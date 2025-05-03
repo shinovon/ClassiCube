@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#if defined CC_BUILD_SYMBIAN
+#include <sys/select.h>
+#endif
 #include <utime.h>
 #include <signal.h>
 #include <stdio.h>
@@ -86,9 +89,9 @@ cc_bool Platform_ReadonlyFilesystem;
 /*########################################################################################################################*
 *---------------------------------------------------------Memory----------------------------------------------------------*
 *#########################################################################################################################*/
-void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return memset( dst, value, numBytes); }
-void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return memcpy( dst, src,   numBytes); }
-void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return memmove(dst, src,   numBytes); }
+void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return (void*) memset( dst, value, numBytes); }
+void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return (void*) memcpy( dst, src,   numBytes); }
+void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*) memmove(dst, src,   numBytes); }
 
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
@@ -794,7 +797,7 @@ void Socket_Close(cc_socket s) {
 	close(s);
 }
 
-#if defined CC_BUILD_DARWIN || defined CC_BUILD_BEOS
+#if defined CC_BUILD_DARWIN || defined CC_BUILD_BEOS || defined CC_BUILD_SYMBIAN
 /* poll is broken on old OSX apparently https://daniel.haxx.se/docs/poll-vs-select.html */
 /* BeOS lacks support for poll */
 static cc_result Socket_Poll(cc_socket s, int mode, cc_bool* success) {
@@ -907,6 +910,7 @@ void Process_Exit(cc_result code) { exit(code); }
 /* Implemented in Platform_Android.c */
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
+#elif defined CC_BUILD_SYMBIAN
 #elif defined CC_BUILD_MACOS
 cc_result Process_StartOpen(const cc_string* args) {
 	UInt8 str[NATIVE_STR_LEN];
@@ -1112,7 +1116,7 @@ static cc_result Process_RawGetExePath(char* path, int* len) {
 /*########################################################################################################################*
 *--------------------------------------------------------Updater----------------------------------------------------------*
 *#########################################################################################################################*/
-#ifdef CC_BUILD_FLATPAK
+#if defined CC_BUILD_FLATPAK || !defined CC_BUILD_SYMBIAN
 cc_bool Updater_Supported = false;
 #else
 cc_bool Updater_Supported = true;
@@ -1122,6 +1126,7 @@ cc_bool Updater_Supported = true;
 /* implemented in Platform_Android.c */
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
+#elif defined CC_BUILD_SYMBIAN
 #else
 cc_bool Updater_Clean(void) { return true; }
 
@@ -1318,6 +1323,7 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 static void Platform_InitPosix(void) {
+	cc_uintptr addr;
 	struct sigaction sa = { 0 };
 	sa.sa_handler = SIG_IGN;
 
@@ -1326,7 +1332,7 @@ static void Platform_InitPosix(void) {
 	sigaction(SIGPIPE, &sa, NULL);
 
 	/* Log runtime address to ease investigating crashes */
-	cc_uintptr addr = (cc_uintptr)Process_Exit;
+	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
 }
 void Platform_Free(void) { }

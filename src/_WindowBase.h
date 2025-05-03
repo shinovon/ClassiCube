@@ -103,7 +103,9 @@ static CC_INLINE void InitGraphicsMode(struct GraphicsMode* m) {
 /*########################################################################################################################*
 *-------------------------------------------------------EGL OpenGL--------------------------------------------------------*
 *#########################################################################################################################*/
+#if !defined CC_BUILD_SYMBIAN
 #include <EGL/egl.h>
+#endif
 static EGLDisplay ctx_display;
 static EGLContext ctx_context;
 static EGLSurface ctx_surface;
@@ -192,8 +194,10 @@ void GLContext_Create(void) {
 
 	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	eglInitialize(ctx_display, NULL, NULL);
+#if !defined CC_BUILD_SYMBIAN
 	eglBindAPI(EGL_OPENGL_ES_API);
-
+#endif
+	
 	EGLConfig configs[64];
 	EGLint numConfig = 0;
 
@@ -239,9 +243,11 @@ void GLContext_Free(void) {
 	eglTerminate(ctx_display);
 }
 
+#ifndef CC_BUILD_SYMBIAN
 void* GLContext_GetAddress(const char* function) {
 	return eglGetProcAddress(function);
 }
+#endif
 
 cc_bool GLContext_SwapBuffers(void) {
 	EGLint err;
