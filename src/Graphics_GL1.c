@@ -21,6 +21,8 @@
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
 #define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
 #include "../misc/opengl/GL1Funcs.h"
+#include "../misc/opengl/GL2Funcs.h"
+//#include "gles/gl.h"
 
 #if defined CC_BUILD_GL11
 static GLuint activeList;
@@ -77,6 +79,7 @@ static GL_SetupVBRangeFunc gfx_setupVBRangeFunc;
 static void GLBackend_Init(void);
 
 void Gfx_Create(void) {
+	MYLOG("+Gfx_Create\n");
 	GLContext_Create();
 #ifdef CC_BUILD_GL11_FALLBACK
 	GLContext_GetAll(coreFuncs, Array_Elems(coreFuncs));
@@ -84,10 +87,15 @@ void Gfx_Create(void) {
 	customMipmapsLevels = true;
 	Gfx.BackendType     = CC_GFX_BACKEND_GL1;
 
+	MYLOG("Gfx_Create 2\n");
 	GL_InitCommon();
+	MYLOG("Gfx_Create 3\n");
 	GLBackend_Init();
+	MYLOG("Gfx_Create 4\n");
 	Gfx_RestoreState();
+	MYLOG("Gfx_Create 5\n");
 	GLContext_SetVSync(gfx_vsync);
+	MYLOG("-Gfx_Create\n");
 }
 
 
@@ -96,18 +104,27 @@ void Gfx_Create(void) {
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
-	cc_uint16 indices[GFX_MAX_INDICES];
+	MYLOG("+Gfx_CreateIb2\n");
+	cc_uint16* indices = Mem_Alloc(GFX_MAX_INDICES, sizeof(cc_uint16), "ib");
 	GfxResourceID id = NULL;
 	cc_uint32 size   = count * sizeof(cc_uint16);
+	MYLOG("Gfx_CreateIb2 1\n");
 
 	_glGenBuffers(1, (GLuint*)&id);
+	MYLOG("Gfx_CreateIb2 2\n");
 	fillFunc(indices, count, obj);
+	MYLOG("Gfx_CreateIb2 3\n");
 	_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+	MYLOG("Gfx_CreateIb2 4\n");
 	_glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
+	MYLOG("-Gfx_CreateIb2\n");
 	return id;
+	return 0;
 }
 
-void Gfx_BindIb(GfxResourceID ib) { _glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib); }
+void Gfx_BindIb(GfxResourceID ib) {
+	_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib);
+}
 
 void Gfx_DeleteIb(GfxResourceID* ib) {
 	GfxResourceID id = *ib;
@@ -464,15 +481,24 @@ void Gfx_DisableTextureOffset(void) { Gfx_LoadMatrix(2, &Matrix_Identity); }
 *#########################################################################################################################*/
 static void Gfx_FreeState(void) { FreeDefaultResources(); }
 static void Gfx_RestoreState(void) {
+	MYLOG("+RestoreState\n");
 	InitDefaultResources();
+	MYLOG("RestoreState 2\n");
 	_glEnableClientState(GL_VERTEX_ARRAY);
+	MYLOG("RestoreState 3\n");
 	_glEnableClientState(GL_COLOR_ARRAY);
+	MYLOG("RestoreState 4\n");
 	gfx_format = -1;
 
+	MYLOG("RestoreState 5\n");
 	_glHint(GL_FOG_HINT, GL_NICEST);
+	MYLOG("RestoreState 5\n");
 	_glAlphaFunc(GL_GREATER, 0.5f);
+	MYLOG("RestoreState 6\n");
 	_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	MYLOG("RestoreState 7\n");
 	_glDepthFunc(GL_LEQUAL);
+	MYLOG("-RestoreState\n");
 }
 
 cc_bool Gfx_WarnIfNecessary(void) {
@@ -692,6 +718,15 @@ static void FallbackOpenGL(void) {
 #endif
 
 static void GLBackend_Init(void) {
+	MYLOG("+GLBackend_Init");
+#ifdef CC_BUILD_SYMBIAN
+	_glGenBuffers    = glGenBuffers;
+	_glDeleteBuffers = glDeleteBuffers;
+	_glBindBuffer    = glBindBuffer;
+	_glBufferData    = glBufferData;
+	_glBufferSubData = glBufferSubData;
+#else
+	
 	static const struct DynamicLibSym coreVboFuncs[] = {
 		DynamicLib_ReqSym2("glBindBuffer",    glBindBuffer), DynamicLib_ReqSym2("glDeleteBuffers", glDeleteBuffers),
 		DynamicLib_ReqSym2("glGenBuffers",    glGenBuffers), DynamicLib_ReqSym2("glBufferData",    glBufferData),
@@ -702,11 +737,14 @@ static void GLBackend_Init(void) {
 		DynamicLib_ReqSym2("glGenBuffersARB",    glGenBuffers), DynamicLib_ReqSym2("glBufferDataARB",    glBufferData),
 		DynamicLib_ReqSym2("glBufferSubDataARB", glBufferSubData)
 	};
+	MYLOG("GLBackend_Init 1");
 
 	static const cc_string vboExt  = String_FromConst("GL_ARB_vertex_buffer_object");
 	static const cc_string bgraExt = String_FromConst("GL_EXT_bgra");
 	cc_string extensions = String_FromReadonly((const char*)_glGetString(GL_EXTENSIONS));
+	MYLOG("GLBackend_Init 2");
 	const GLubyte* ver   = _glGetString(GL_VERSION);
+	MYLOG("GLBackend_Init 3");
 
 	/* Version string is always: x.y. (and whatever afterwards) */
 	int major = ver[0] - '0', minor = ver[2] - '0';
@@ -721,6 +759,8 @@ static void GLBackend_Init(void) {
 		convert_rgba = major == 1 && minor <= 1 && !String_CaselessContains(&extensions, &bgraExt);
 		FallbackOpenGL();
 	}
+#endif
+	MYLOG("-GLBackend_Init");
 }
 #endif
 #endif

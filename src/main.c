@@ -67,6 +67,7 @@ void DirectUrl_ExtractAddress(const cc_string* addr, cc_string* ip, cc_string* p
 *------------------------------------------------------Game setup/run-----------------------------------------------------*
 *#########################################################################################################################*/
 static void RunGame(void) {
+	MYLOG("RunGame\n")
 	cc_string title; char titleBuffer[STRING_SIZE];
 	int width  = Options_GetInt(OPT_WINDOW_WIDTH,  0, DisplayInfo.Width,  0);
 	int height = Options_GetInt(OPT_WINDOW_HEIGHT, 0, DisplayInfo.Height, 0);
@@ -109,6 +110,7 @@ CC_NOINLINE static void WarnMissingArgs(int argsCount, const cc_string* args) {
 }
 
 static void SetupProgram(int argc, char** argv) {
+	MYLOG("+SetupProgram\n")
 	static char ipBuffer[STRING_SIZE];
 	cc_result res;
 	CrashHandler_Install();
@@ -123,6 +125,7 @@ static void SetupProgram(int argc, char** argv) {
 	
 	if (res) Logger_SysWarn(res, "setting current directory");
 	Platform_LogConst("Starting " GAME_APP_NAME " ..");
+	MYLOG("Starting\n")
 	String_InitArray(Server.Address, ipBuffer);
 }
 
@@ -148,6 +151,7 @@ static int ParseMPArgs(const cc_string* user, const cc_string* mppass, const cc_
 }
 
 static int RunProgram(int argc, char** argv) {
+	MYLOG("+RunProgram\n")
 	cc_string args[GAME_MAX_CMDARGS];
 	int argsCount = Platform_GetCommandLineArgs(argc, argv, args);
 	struct ResumeInfo r;
@@ -165,14 +169,17 @@ static int RunProgram(int argc, char** argv) {
 		String_AppendConst(&Game_Username, DEFAULT_USERNAME);
 		RunGame();
 #else
+		MYLOG("RunProgram 1\n")
 		Launcher_Run();
 	/* :[hash] - auto join server with the given hash */
 	} else if (argsCount == 1 && args[0].buffer[0] == ':') {
+		MYLOG("RunProgram 2\n")
 		args[0] = String_UNSAFE_SubstringAt(&args[0], 1);
 		String_Copy(&Launcher_AutoHash, &args[0]);
 		Launcher_Run();
 	/* --resume - try to resume to last server */
 	} else if (argsCount == 1 && String_CaselessEqualsConst(&args[0], DEFAULT_RESUME_ARG)) {
+		MYLOG("RunProgram 2\n")
 		if (!Resume_Parse(&r, true)) {
 			WarnInvalidArg("No server to resume to", &args[0]);
 			return 1;
