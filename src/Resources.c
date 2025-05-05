@@ -65,6 +65,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 	struct ZipEntry entries[64];
 	struct Stream stream;
 	cc_result res;
+	MYLOG("+ZipFile_InspectEntries");
 
 	res = Stream_OpenFile(&stream, path);
 	if (res == ReturnCode_FileNotFound) return;
@@ -76,6 +77,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 
 	/* No point logging error for closing readonly file */
 	(void)stream.Close(&stream);
+	MYLOG("-ZipFile_InspectEntries");
 }
 
 static cc_result ZipEntry_ExtractData(struct ResourceZipEntry* e, struct Stream* data, struct ZipEntry* source) {
@@ -691,9 +693,11 @@ static int ccTexturesReqID;
 
 static void CCTextures_CheckExistence(void) {
 	cc_filepath path;
+	MYLOG("+CCTextures_CheckExistence");
 	Platform_EncodePath(&path, &ccTexPack);
 	
 	ccTexturesExist = File_Exists(&path);
+	MYLOG("-CCTextures_CheckExistence");
 }
 
 static void CCTextures_CountMissing(void) {
@@ -1124,12 +1128,14 @@ static void MCCTextures_CheckExistence(void) {
 	cc_string path  = String_FromReadonly(Game_Version.DefaultTexpack);
 	zipEntriesFound = 0;
 
+	MYLOG("+MCTextures_CheckExistence");
 	ZipFile_InspectEntries(&path, DefaultZip_SelectEntry);
 	/* >= in case somehow have say "gui.png", "GUI.png" */
 	allZipEntriesExist = zipEntriesFound >= Array_Elems(defaultZipEntries);
 
 	/* Need touch.png from ClassiCube textures */
 	if (!allZipEntriesExist) ccTexturesExist = false;
+	MYLOG("-MCTextures_CheckExistence");
 }
 
 static void MCCTextures_CountMissing(void) {
@@ -1256,17 +1262,21 @@ static void ResetState() {
 
 void Resources_CheckExistence(void) {
 	int i;
+	MYLOG("+Resources_CheckExistence");
 	ResetState();
+	MYLOG("+Resources_CheckExistence 1");
 
 	for (i = 0; i < Array_Elems(asset_sets); i++)
 	{
 		asset_sets[i]->CheckExistence();
 	}
+	MYLOG("+Resources_CheckExistence 2");
 
 	for (i = 0; i < Array_Elems(asset_sets); i++)
 	{
 		asset_sets[i]->CountMissing();
 	}
+	MYLOG("-Resources_CheckExistence");
 }
 
 const char* Fetcher_RequestName(int reqID) {

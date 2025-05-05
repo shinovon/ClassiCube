@@ -67,10 +67,10 @@ void DirectUrl_ExtractAddress(const cc_string* addr, cc_string* ip, cc_string* p
 *------------------------------------------------------Game setup/run-----------------------------------------------------*
 *#########################################################################################################################*/
 static void RunGame(void) {
-	MYLOG("RunGame\n")
 	cc_string title; char titleBuffer[STRING_SIZE];
 	int width  = Options_GetInt(OPT_WINDOW_WIDTH,  0, DisplayInfo.Width,  0);
 	int height = Options_GetInt(OPT_WINDOW_HEIGHT, 0, DisplayInfo.Height, 0);
+	MYLOG("RunGame\n")
 
 	/* No custom resolution has been set */
 	if (width == 0 || height == 0) {
@@ -110,9 +110,9 @@ CC_NOINLINE static void WarnMissingArgs(int argsCount, const cc_string* args) {
 }
 
 static void SetupProgram(int argc, char** argv) {
-	MYLOG("+SetupProgram\n")
 	static char ipBuffer[STRING_SIZE];
 	cc_result res;
+	MYLOG("SetupProgram\n")
 	CrashHandler_Install();
 	Logger_Hook();
 	Window_PreInit();
@@ -151,11 +151,11 @@ static int ParseMPArgs(const cc_string* user, const cc_string* mppass, const cc_
 }
 
 static int RunProgram(int argc, char** argv) {
-	MYLOG("+RunProgram\n")
 	cc_string args[GAME_MAX_CMDARGS];
 	int argsCount = Platform_GetCommandLineArgs(argc, argv, args);
 	struct ResumeInfo r;
 	cc_string host;
+	MYLOG("+RunProgram\n")
 
 #ifdef _MSC_VER
 	/* NOTE: Make sure to comment this out before pushing a commit */
@@ -247,17 +247,6 @@ int main(int argc, char** argv) {
 	
 	Window_Free();
 	return 0;
-}
-#elif defined CC_BUILD_SYMBIAN
-TInt E32Main() {
-	cc_result res;
-	SetupProgram(0, NULL);
-
-	for (;;) { RunProgram(0, NULL); }
-
-	Window_Free();
-
-	return res;
 }
 #else
 /* NOTE: main_real is used for when compiling with MinGW without linking to startup files. */

@@ -1179,6 +1179,7 @@ static cc_result Zip_ReadLocalFileHeader(struct ZipState* state, struct ZipEntry
 #endif
 	cc_result res;
 
+	MYLOG("+Zip_ReadLocalFileHeader");
 	if ((res = Stream_Read(stream, header, sizeof(header)))) return res;
 	pathLen  = Stream_GetU16_LE(&header[22]);
 	if (pathLen > ZIP_MAXNAMELEN) return ZIP_ERR_FILENAME_LEN;
@@ -1222,6 +1223,7 @@ static cc_result Zip_ReadLocalFileHeader(struct ZipState* state, struct ZipEntry
 		/* TODO: Should this be an error */
 		res = 0;
 	}
+	MYLOG("-Zip_ReadLocalFileHeader");
 	return res;
 }
 
@@ -1233,6 +1235,7 @@ static cc_result Zip_ReadCentralDirectory(struct ZipState* state) {
 	cc_string path; char pathBuffer[ZIP_MAXNAMELEN];
 	int pathLen, extraLen, commentLen;
 	cc_result res;
+	MYLOG("+Zip_ReadCentralDirectory");
 
 	if ((res = Stream_Read(stream, header, sizeof(header)))) return res;
 	pathLen = Stream_GetU16_LE(&header[24]);
@@ -1254,6 +1257,7 @@ static cc_result Zip_ReadCentralDirectory(struct ZipState* state) {
 	entry->CompressedSize    = Stream_GetU32_LE(&header[16]);
 	entry->UncompressedSize  = Stream_GetU32_LE(&header[20]);
 	entry->LocalHeaderOffset = Stream_GetU32_LE(&header[38]);
+	MYLOG("-Zip_ReadCentralDirectory");
 	return 0;
 }
 
@@ -1283,7 +1287,9 @@ cc_result Zip_Extract(struct Stream* source, Zip_SelectEntry selector, Zip_Proce
 	int i, count;
 
 	cc_result res;
+	MYLOG("Zip_Extract 1");
 	if ((res = source->Length(source, &stream_len))) return res;
+	MYLOG("Zip_Extract 2");
 
 	/* At -22 for nearly all zips, but try a bit further back in case of comment */
 	count = min(257, stream_len);
@@ -1294,12 +1300,15 @@ cc_result Zip_Extract(struct Stream* source, Zip_SelectEntry selector, Zip_Proce
 		if ((res = Stream_ReadU32_LE(source, &sig))) return res;
 		if (sig == ZIP_SIG_ENDOFCENTRALDIR) break;
 	}
+	MYLOG("Zip_Extract 3");
 
 	state.source       = source;
 	state.SelectEntry  = selector;
 	state.ProcessEntry = processor;
 	state.entries      = entries;
 	state.maxEntries   = maxEntries;
+	
+	MYLOG("Zip_Extract 4");
 
 	if (sig != ZIP_SIG_ENDOFCENTRALDIR) return ZIP_ERR_NO_END_OF_CENTRAL_DIR;
 	res = Zip_ReadEndOfCentralDirectory(&state);

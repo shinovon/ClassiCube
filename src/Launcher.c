@@ -286,10 +286,13 @@ void Launcher_Run(void) {
 
 #ifdef CC_BUILD_RESOURCES
 	Resources_CheckExistence();
-
+	MYLOG("Launcher_Run b2\n")
 	if (Resources_MissingCount) {
-		CheckResourcesScreen_SetActive();
+		//CheckResourcesScreen_SetActive();
+		MainScreen_SetActive();
+		MYLOG("Launcher_Run b3\n")
 	} else {
+		MYLOG("Launcher_Run b4\n")
 		MainScreen_SetActive();
 	}
 #else
@@ -459,7 +462,7 @@ static cc_result Launcher_ProcessZipEntry(const cc_string* path, struct Stream* 
 		if (res) {
 			Logger_SysWarn(res, "decoding default.png"); return res;
 		} else if (Font_SetBitmapAtlas(&bmp)) {
-			useBitmappedFont = !Options_GetBool(OPT_USE_CHAT_FONT, false);
+			useBitmappedFont = !Options_GetBool(OPT_USE_CHAT_FONT, false) || true;
 			hasBitmappedFont = true;
 		} else {
 			Mem_Free(bmp.scan0);

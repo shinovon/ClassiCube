@@ -12,10 +12,12 @@ SYSTEMINCLUDE /epoc32/include/platform/app
 SYSTEMINCLUDE /epoc32/include/gles
 SYSTEMINCLUDE /epoc32/include/stdapis
 SYSTEMINCLUDE /epoc32/include/stdapis/sys
+//SYSTEMINCLUDE /epoc32/include/libc
 
 MACRO SYMBIAN_OE_POSIX_SIGNALS
 
 LIBRARY euser.lib
+LIBRARY efsrv.lib
 LIBRARY apparc.lib
 LIBRARY cone.lib
 LIBRARY eikcore.lib
@@ -25,17 +27,22 @@ LIBRARY ws32.lib
 LIBRARY gdi.lib
 
 LIBRARY libgles_cm.lib
+
+//LIBRARY estlib.lib
+
 LIBRARY libc.lib
 LIBRARY libm.lib
 LIBRARY libdl.lib
 LIBRARY libpthread.lib
 
+STATICLIBRARY libcrt0.lib
+
 OPTION GCCE -std=c99
 
 SOURCEPATH ../../src
-SOURCE Animations.c Audio.c AudioBackend.c AxisLinesRenderer.c Bitmap.c Block.c BlockPhysics.c Builder.c Camera.c Chat.c Commands.c Deflate.c Drawer.c Drawer2D.c Entity.c EntityComponents.c EntityRenderers.c EnvRenderer.c Event.c ExtMath.c FancyLighting.c Formats.c Game.c GameVersion.c Generator.c Graphics_3DS.c Graphics_D3D11.c Graphics_D3D9.c Graphics_Dreamcast.c Graphics_GCWii.c Graphics_GL1.c Graphics_GL2.c Graphics_N64.c Graphics_NDS.c Graphics_PS1.c Graphics_PS2.c Graphics_PS3.c Graphics_PSP.c Graphics_PSVita.c Graphics_Saturn.c Graphics_SoftGPU.c Graphics_WiiU.c Graphics_Xbox.c Graphics_Xbox360.c Gui.c HeldBlockRenderer.c Http_Web.c Http_Worker.c Input.c InputHandler.c Inventory.c IsometricDrawer.c LBackend.c LBackend_Android.c LScreens.c LWeb.c LWidgets.c Launcher.c Lighting.c Logger.c MapRenderer.c MenuOptions.c Menus.c Model.c Options.c PackedCol.c Particle.c Physics.c Picking.c Platform_32x.c Platform_3DS.c Platform_Amiga.c Platform_Android.c Platform_BeOS.cpp Platform_Dreamcast.c Platform_GBA.c Platform_GCWii.c Platform_MSDOS.c Platform_MacClassic.c Platform_N64.c Platform_NDS.c Platform_PS1.c Platform_PS2.c Platform_PS3.c Platform_PS4.c Platform_PSP.c Platform_PSVita.c Platform_Posix.c Platform_Saturn.c Platform_Switch.c Platform_Web.c Platform_WiiU.c Platform_Windows.c Platform_Xbox.c Platform_Xbox360.c Protocol.c Queue.c Resources.c SSL.c Screens.c SelOutlineRenderer.c SelectionBox.c Server.c Stream.c String.c SystemFonts.c TexturePack.c TouchUI.c Utils.c Vectors.c Widgets.c Window_32x.c Window_3DS.c Window_Amiga.c Window_Android.c Window_BeOS.cpp Window_Dreamcast.c Window_GBA.c Window_GCWii.c Window_MSDOS.c Window_MacClassic.c Window_N64.c Window_NDS.c Window_OS2.c Window_PS1.c Window_PS2.c Window_PS3.c Window_PS4.c Window_PSP.c Window_PSVita.c Window_SDL2.c Window_SDL3.c Window_Saturn.c Window_Switch.c Window_Terminal.c Window_Web.c Window_WiiU.c Window_Win.c Window_X11.c Window_Xbox.c Window_Xbox360.c World.c _autofit.c _cff.c _ftbase.c _ftbitmap.c _ftglyph.c _ftinit.c _ftsynth.c _psaux.c _pshinter.c _psmodule.c _sfnt.c _smooth.c _truetype.c _type1.c
+SOURCE Animations.c Audio.c AudioBackend.c AxisLinesRenderer.c Bitmap.c Block.c BlockPhysics.c Builder.c Camera.c Chat.c Commands.c Deflate.c Drawer.c Drawer2D.c Entity.c EntityComponents.c EntityRenderers.c EnvRenderer.c Event.c ExtMath.c FancyLighting.c Formats.c Game.c GameVersion.c Generator.c Graphics_3DS.c Graphics_D3D11.c Graphics_D3D9.c Graphics_Dreamcast.c Graphics_GCWii.c Graphics_GL1.c Graphics_GL2.c Graphics_N64.c Graphics_NDS.c Graphics_PS1.c Graphics_PS2.c Graphics_PS3.c Graphics_PSP.c Graphics_PSVita.c Graphics_Saturn.c Graphics_SoftGPU.c Graphics_WiiU.c Graphics_Xbox.c Graphics_Xbox360.c Gui.c HeldBlockRenderer.c Http_Web.c Http_Worker.c Input.c InputHandler.c Inventory.c IsometricDrawer.c LBackend.c LBackend_Android.c LScreens.c LWeb.c LWidgets.c Launcher.c Lighting.c Logger.c MapRenderer.c MenuOptions.c Menus.c Model.c Options.c PackedCol.c Particle.c Physics.c Picking.c Platform_32x.c Platform_3DS.c Platform_Amiga.c Platform_Android.c Platform_BeOS.cpp Platform_Dreamcast.c Platform_GBA.c Platform_GCWii.c Platform_MSDOS.c Platform_MacClassic.c Platform_N64.c Platform_NDS.c Platform_PS1.c Platform_PS2.c Platform_PS3.c Platform_PS4.c Platform_PSP.c Platform_PSVita.c Platform_Posix.c Platform_Saturn.c Platform_Switch.c Platform_Web.c Platform_WiiU.c Platform_Windows.c Platform_Xbox.c Platform_Xbox360.c Protocol.c Queue.c Resources.c SSL.c Screens.c SelOutlineRenderer.c SelectionBox.c Server.c Stream.c String.c SystemFonts.c TexturePack.c TouchUI.c Utils.c Vectors.c Widgets.c Window_32x.c Window_3DS.c Window_Amiga.c Window_Android.c Window_BeOS.cpp Window_Dreamcast.c Window_GBA.c Window_GCWii.c Window_MSDOS.c Window_MacClassic.c Window_N64.c Window_NDS.c Window_OS2.c Window_PS1.c Window_PS2.c Window_PS3.c Window_PS4.c Window_PSP.c Window_PSVita.c Window_SDL2.c Window_SDL3.c Window_Saturn.c Window_Switch.c Window_Terminal.c Window_Web.c Window_WiiU.c Window_Win.c Window_X11.c Window_Xbox.c Window_Xbox360.c World.c _autofit.c _cff.c _ftbase.c _ftbitmap.c _ftglyph.c _ftinit.c _ftsynth.c _psaux.c _pshinter.c _psmodule.c _sfnt.c _smooth.c _truetype.c _type1.c Vorbis.c
 SOURCEPATH ../../src
-SOURCE Window_Symbian.cpp
+SOURCE main.c Window_Symbian.cpp
 
 USERINCLUDE ../../src
 
@@ -54,8 +61,8 @@ END
 
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
-SOURCEPATH ../../src
-SOURCE Vorbis.c
-EPOCSTACKSIZE 32000
+EPOCSTACKSIZE 0x10000
+EPOCHEAPSIZE 0x80000 0x400000
 
-EPOCHEAPSIZE 400000 0x400000
+DEBUGGABLE_UDEBONLY
+SRCDBG

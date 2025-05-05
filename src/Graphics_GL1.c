@@ -30,6 +30,9 @@ static GLuint activeList;
 static void* dynamicListData;
 static cc_uint16 gl_indices[GFX_MAX_INDICES];
 #else
+#ifdef CC_BUILD_SMALLSTACK
+static cc_uint16 gl_indices[GFX_MAX_INDICES];
+#endif
 /* OpenGL functions use stdcall instead of cdecl on Windows */
 static void (APIENTRY *_glBindBuffer)(GLenum target, GfxResourceID buffer); /* NOTE: buffer is actually a GLuint in OpenGL */
 static void (APIENTRY *_glDeleteBuffers)(GLsizei n, const GLuint *buffers);
@@ -104,22 +107,22 @@ void Gfx_Create(void) {
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
-	MYLOG("+Gfx_CreateIb2\n");
-	cc_uint16* indices = Mem_Alloc(GFX_MAX_INDICES, sizeof(cc_uint16), "ib");
+#ifndef CC_BUILD_SMALLSTACK
+	cc_uint16* gl_indices[GFX_MAX_INDICES];
+#endif
 	GfxResourceID id = NULL;
 	cc_uint32 size   = count * sizeof(cc_uint16);
 	MYLOG("Gfx_CreateIb2 1\n");
 
 	_glGenBuffers(1, (GLuint*)&id);
 	MYLOG("Gfx_CreateIb2 2\n");
-	fillFunc(indices, count, obj);
+	fillFunc(gl_indices, count, obj);
 	MYLOG("Gfx_CreateIb2 3\n");
 	_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
 	MYLOG("Gfx_CreateIb2 4\n");
-	_glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
+	_glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, gl_indices, GL_STATIC_DRAW);
 	MYLOG("-Gfx_CreateIb2\n");
 	return id;
-	return 0;
 }
 
 void Gfx_BindIb(GfxResourceID ib) {

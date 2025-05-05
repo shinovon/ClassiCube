@@ -39,7 +39,8 @@ cc_result Process_StartOpen(const cc_string* args) {
 
 cc_result Platform_SetDefaultCurrentDirectory(int argc, char **argv) {
 	// TODO
-	return chdir("C:\\data\\classicube") == -1 ? errno : 0;
+	//return chdir("C:\\data\\classicube") == -1 ? errno : 0;
+	return 0;
 }
 
 void Platform_ShareScreenshot(const cc_string* filename) {

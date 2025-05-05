@@ -117,7 +117,11 @@ static void GLContext_InitSurface(void); // replacement in Window_Switch.c for h
 #else
 static void GLContext_InitSurface(void) {
 	MYLOG("+GLContext_InitSurface\n")
+#ifdef CC_BUILD_SYMBIAN
+	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
+#else
 	EGLNativeWindowType window = (EGLNativeWindowType)Window_Main.Handle.ptr;
+#endif
 	if (!window) return; /* window not created or lost */
 	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window, NULL);
 
@@ -143,7 +147,9 @@ static void DumpEGLConfig(EGLConfig config) {
 	eglGetConfigAttrib(ctx_display, config, EGL_ALPHA_SIZE,       &alpha);
 	eglGetConfigAttrib(ctx_display, config, EGL_DEPTH_SIZE,       &depth);
 	eglGetConfigAttrib(ctx_display, config, EGL_NATIVE_VISUAL_ID, &vid);
+#ifndef CC_BUILD_SYMBIAN
 	eglGetConfigAttrib(ctx_display, config, EGL_RENDERABLE_TYPE,  &mode);
+#endif
 
 	Platform_Log4("EGL R:%i, G:%i, B:%i, A:%i", &red, &green, &blue, &alpha);
 	Platform_Log3("EGL D: %i, V: %h, S: %h",  &depth, &vid, &mode);
@@ -169,17 +175,26 @@ void GLContext_Create(void) {
 	MYLOG("+GLContext_Create\n")
 #if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+#elif defined CC_BUILD_SYMBIAN
+	static EGLint context_attribs[] = { EGL_NONE };
 #else
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 1, EGL_NONE };
 #endif
 	static EGLint attribs[] = {
+#if defined CC_BUILD_SYMBIAN
+		EGL_BUFFER_SIZE,       DisplayInfo.Depth,
+		EGL_DEPTH_SIZE,        16,
+		EGL_STENCIL_SIZE,      0,
+#else
 		EGL_RED_SIZE,  0, EGL_GREEN_SIZE,  0,
 		EGL_BLUE_SIZE, 0, EGL_ALPHA_SIZE,  0,
 		EGL_DEPTH_SIZE,        GLCONTEXT_DEFAULT_DEPTH,
 		EGL_STENCIL_SIZE,      0,
 		EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+#endif
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
 
+#ifndef CC_BUILD_SYMBIAN
 #if defined CC_BUILD_GLES && (CC_GFX_BACKEND == CC_GFX_BACKEND_GL2)
 		EGL_RENDERABLE_TYPE,   EGL_OPENGL_ES2_BIT,
 #elif defined CC_BUILD_GLES
@@ -187,13 +202,16 @@ void GLContext_Create(void) {
 #else
 		EGL_RENDERABLE_TYPE,   EGL_OPENGL_BIT,
 #endif
+#endif
 		EGL_NONE
 	};
 
+#ifndef CC_BUILD_SYMBIAN
 	struct GraphicsMode mode;
 	InitGraphicsMode(&mode);
 	attribs[1] = mode.R; attribs[3] = mode.G;
 	attribs[5] = mode.B; attribs[7] = mode.A;
+#endif
 
 	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	eglInitialize(ctx_display, NULL, NULL);

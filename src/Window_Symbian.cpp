@@ -23,7 +23,7 @@ extern "C" {
 
 static cc_bool launcherMode;
 
-class CWsEventReceiver;
+
 class CWindow;
 
 CWindow* window;
@@ -33,39 +33,28 @@ class CWindow : public CBase
 public:
 	static CWindow* NewLC();
 	void HandleWsEvent(const TWsEvent& aEvent);
-	void InitEventReceiver();
-//	void AllocFrameBuffer(int width, int height);
-//	void DrawFramebuffer(Rect2D r, struct Bitmap* bmp);
-//	void FreeFrameBuffer();
+	void AllocFrameBuffer(int width, int height);
+	void DrawFramebuffer(Rect2D r, struct Bitmap* bmp);
+	void FreeFrameBuffer();
+	void ProcessEvents(float delta);
+	void RequestClose();
+	void InitEvents();
 	~CWindow();
+	
+	TWsEvent iWsEvent;
+	TRequestStatus iWsEventStatus;
 private:
 	CWindow();
 	void ConstructL();
 	
 	void CreateNativeWindowL();
-	
-	RWindow* iWindow;
-	CWsEventReceiver* iWsEventReceiver;
+
 	RWsSession iWsSession;
+	RWindow* iWindow;
 	RWindowGroup iWindowGroup;
 	CWsScreenDevice* iWsScreenDevice;
 	CWindowGc* iWindowGc;
     CFbsBitmap* iBitmap;
-};
-
-class CWsEventReceiver : public CActive
-{
-public:
-    virtual void RunL();
-    virtual void DoCancel();
-    static CWsEventReceiver* NewL(CWindow& aParent);
-    ~CWsEventReceiver();
-private:
-    CWsEventReceiver();
-    void ConstructL(CWindow& aParent);
-private:
-    RWsSession iWsSession;
-    CWindow* iParent;
 };
 
 //
@@ -79,9 +68,30 @@ CWindow* CWindow::NewLC() {
 }
 
 void CWindow::CreateNativeWindowL() {
+	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
+	User::LeaveIfError(iWsScreenDevice->Construct());
+	//iWsScreenDevice->CreateContext(iWindow);
+	
+	iWindowGroup = RWindowGroup(iWsSession);
+	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this)));
+	iWindowGroup.SetOrdinalPosition(0);
+	
+	RProcess thisProcess;
+	TParse exeName;
+	exeName.Set(thisProcess.FileName(), NULL, NULL);
+	TBuf<32> winGroupName;
+	winGroupName.Append(0);
+	winGroupName.Append(0);
+	winGroupName.Append(0);
+	winGroupName.Append(0);
+	winGroupName.Append(exeName.Name());
+	winGroupName.Append(0);
+	winGroupName.Append(0);
+	iWindowGroup.SetName(winGroupName);
+	
 	iWindow = new (ELeave) RWindow(iWsSession);
 	    
-	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
+	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this) - 1);
 	User::LeaveIfError(err);
 
 	iWindowGroup.EnableScreenChangeEvents();
@@ -95,9 +105,9 @@ void CWindow::CreateNativeWindowL() {
 	
 	iWindow->Activate();
 	iWindow->SetVisible(ETrue);
-	iWindow->SetNonFading(ETrue); 
-	iWindow->SetShadowDisabled(ETrue); 
-	iWindow->EnableRedrawStore(EFalse); 
+	//iWindow->SetNonFading(ETrue); 
+	//iWindow->SetShadowDisabled(ETrue); 
+	//iWindow->EnableRedrawStore(EFalse); 
 	iWindow->EnableVisibilityChangeEvents();
 	iWindow->SetNonTransparent(); 
 	iWindow->SetBackgroundColor(); 
@@ -115,6 +125,8 @@ void CWindow::CreateNativeWindowL() {
 	
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
+	
+	iWsSession.EventReadyCancel();
 }
 
 CWindow::CWindow() {
@@ -128,8 +140,6 @@ CWindow::~CWindow() {
 		delete iWindow;
 		iWindow = NULL;
 	}
-	
-	delete iWsEventReceiver;
 }
 
 void CWindow::ConstructL() {
@@ -139,10 +149,6 @@ void CWindow::ConstructL() {
 	}
 	
 	iWsSession = env->WsSession();
-	iWsScreenDevice = env->ScreenDevice();
-	iWindowGroup = RWindowGroup(iWsSession);
-	iWindowGroup.Construct((TUint32) this, ETrue, iWsScreenDevice);
-	iWindowGroup.SetName(_L("ClassiCube"));
 	
 	TRAPD(err, CreateNativeWindowL());
 	if (err) {
@@ -173,20 +179,52 @@ void CWindow::ConstructL() {
 	
 	DisplayInfo.Depth = bufferSize;
 	
-	//iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
-	//iWindowGc->Construct();
+	iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
+	iWindowGc->Construct();
 	//iWindowGc->SetBrushStyle(CWindowGc::ESolidBrush);
 }
 
-void CWindow::InitEventReceiver() {
-	if (!iWsEventReceiver){
-		TRAPD(err,
-			iWsEventReceiver = CWsEventReceiver::NewL(*this);
-		);
-		if (err) {
-			User::Panic(_L("Failed to create CWsEventReceiver"), 0);
-		}
+static int ConvertKey(TInt aScanCode) {
+	switch (aScanCode) {
+	case 0x30:
+		return CCKEY_0;
+	case 0x31:
+		return CCKEY_1;
+	case 0x32:
+		return CCKEY_2;
+	case 0x33:
+		return CCKEY_3;
+	case 0x34:
+		return CCKEY_4;
+	case 0x35:
+		return CCKEY_5;
+	case 0x36:
+		return CCKEY_6;
+	case 0x37:
+		return CCKEY_7;
+	case 0x38:
+		return CCKEY_8;
+	case 0x39:
+		return CCKEY_9;
+	case EStdKeyUpArrow:
+		return CCKEY_UP;
+	case EStdKeyDownArrow:
+		return CCKEY_DOWN;
+	case EStdKeyLeftArrow:
+		return CCKEY_LEFT;
+	case EStdKeyRightArrow:
+		return CCKEY_RIGHT;
+	case EStdKeyBackspace:
+		return CCKEY_BACKSPACE;
+//	case EStdKeyDevice0:
+//		return CCKEY_MENU;
+	case EStdKeyDevice1:
+		return CCKEY_ESCAPE;
+	case EStdKeyDevice3:
+		return CCKEY_ENTER;
 	}
+	
+	return aScanCode;
 }
 
 void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
@@ -195,12 +233,12 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	switch (eventType) {
 	case EEventKeyDown: {
 		MYLOG("EEventKeyDown\n");
-		Input_Set(aWsEvent.Key()->iScanCode, true);
+		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), true);
 		break;
 	}
 	case EEventKeyUp: {
 		MYLOG("EEventKeyUp\n");
-		Input_Set(aWsEvent.Key()->iScanCode, false);
+		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), false);
 		break;
 	}
 	case EEventScreenDeviceChanged: {
@@ -208,6 +246,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		if (pixnrot.iPixelSize != iWindow->Size()) {
+			MYLOG("Resized\n");
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
 			TInt w = pixnrot.iPixelSize.iWidth,
@@ -241,99 +280,92 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
 			MYLOG("EEventWindowVisibilityChanged\n");
 			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
-			
-			Event_RaiseVoid(&WindowEvents.StateChanged);
+
+			Event_RaiseVoid(&WindowEvents.InactiveChanged);
 		}
 		break;
 	}
 	case EEventPointer: {
 		MYLOG("EEventPointer\n");
-		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
+		/*TAdvancedPointerEvent*/ TPointerEvent* pointer = aWsEvent.Pointer();
 		
-		long num = pointer->PointerNumber();
+		//long num = pointer->PointerNumber();
+		long num = 1;
 		TPoint pos = pointer->iPosition;
-		if ((pointer->iModifiers & TPointerEvent::EButton1Down) != 0) {
+		switch (pointer->iType) {
+		case TPointerEvent::EButton1Down:
 			MYLOG("AddTouch\n");
 			Input_AddTouch(num, pos.iX, pos.iY);
-		} else {
+			break;
+		case TPointerEvent::EDrag:
+			MYLOG("UpdateTouch\n");
+			Input_UpdateTouch(num, pos.iX, pos.iY);
+			break;
+		case TPointerEvent::EButton1Up:
 			MYLOG("RemoveTouch\n");
 			Input_RemoveTouch(num, pos.iX, pos.iY);
+			break;
 		}
 		break;
 	}
 	}
 }
 
-//void CWindow::AllocFrameBuffer(int width, int height) {
-//	FreeFrameBuffer();
-//	iBitmap = new CFbsBitmap();
-//	iBitmap->Create(TSize(width, height), EColor16MA);
-//}
-//
-//void CWindow::FreeFrameBuffer() {
-//	if (iBitmap != NULL) {
-//		delete iBitmap;
-//		iBitmap = NULL;
-//	}
-//}
-//
-//void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-//	iWindow->BeginRedraw();
-//	iWindowGc->Activate(*iWindow);
-	
-//	iBitmap->BeginDataAccess();
-//	TUint8* data = (TUint8*) iBitmap->DataAddress();
-//	const TUint8* src = (TUint8*) bmp->scan0;
-//	for (TInt row = bmp->height - 1; row >= 0; --row) {
-//		memcpy(data, src, bmp->width * BITMAPCOLOR_SIZE);
-//		src += bmp->width * BITMAPCOLOR_SIZE;
-//		data += iBitmap->DataStride();
-//	}
-//	iBitmap->EndDataAccess();
-	
-//	iWindowGc->BitBlt(TPoint(r.x, r.y), iBitmap, TRect(r.x, r.y, r.width, r.height));
-//	iWindowGc->Deactivate();
-//	iWindow->EndRedraw();
-//}
-
-// window server event receiver
-
-CWsEventReceiver::CWsEventReceiver()
-: CActive(CActive::EPriorityStandard) {
+void CWindow::AllocFrameBuffer(int width, int height) {
+	FreeFrameBuffer();
+	iBitmap = new CFbsBitmap();
+	iBitmap->Create(TSize(width, height), EColor16MA);
 }
 
-CWsEventReceiver::~CWsEventReceiver() {
-	Cancel();
+void CWindow::FreeFrameBuffer() {
+	if (iBitmap != NULL) {
+		delete iBitmap;
+		iBitmap = NULL;
+	}
 }
 
-CWsEventReceiver* CWsEventReceiver::NewL(CWindow& aParent) {
-CWsEventReceiver* self = new (ELeave) CWsEventReceiver;
-	CleanupStack::PushL(self);
-	self->ConstructL(aParent);
-	CleanupStack::Pop(self);
-	return self;
+void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
+	iWindow->Invalidate(/*TRect(r.x, r.y, r.width, r.height)*/);
+	iWindow->BeginRedraw();
+	iWindowGc->Activate(*iWindow);
+
+	if (iBitmap) {
+		iBitmap->BeginDataAccess();
+		TUint8* data = (TUint8*) iBitmap->DataAddress();
+		const TUint8* src = (TUint8*) bmp->scan0;
+		for (TInt row = bmp->height - 1; row >= 0; --row) {
+			memcpy(data, src, bmp->width * BITMAPCOLOR_SIZE);
+			src += bmp->width * BITMAPCOLOR_SIZE;
+			data += iBitmap->DataStride();
+		}
+		iBitmap->EndDataAccess();
+		
+		iWindowGc->BitBlt(TPoint(r.x, r.y), iBitmap, TRect(r.x, r.y, r.width, r.height));
+//		iWindowGc->DrawBitmap(TPoint(0, 0), iBitmap);
+	}
+	iWindowGc->Deactivate();
+	iWindow->EndRedraw();
+	//iWsSession.Flush();
 }
 
-void CWsEventReceiver::ConstructL(CWindow& aParent) {
-	iParent = &aParent;
-	iWsSession = CCoeEnv::Static()->WsSession();
-	iWsSession.EventReady(&iStatus);
-	CActiveScheduler::Add(this);
-	SetActive();
+void CWindow::ProcessEvents(float delta) {
+	while (iWsEventStatus != KRequestPending) {
+		iWsSession.GetEvent(window->iWsEvent);
+		HandleWsEvent(window->iWsEvent);
+		iWsEventStatus = KRequestPending;
+		iWsSession.EventReady(&iWsEventStatus);
+	}
 }
 
-void CWsEventReceiver::RunL() {
-	TWsEvent wsEvent;
-	iWsSession.GetEvent(wsEvent);
-	iParent->HandleWsEvent(wsEvent);
-	
-	iWsSession.EventReady(&iStatus);
-	
-	SetActive();
+void CWindow::RequestClose() {
+	// TODO
 }
 
-void CWsEventReceiver::DoCancel() {
-	iWsSession.EventReadyCancel();
+void CWindow::InitEvents() {
+	MYLOG("+InitEvents\n")
+	iWsEventStatus = KRequestPending;
+	iWsSession.EventReady(&iWsEventStatus);
+	MYLOG("-InitEvents\n")
 }
 
 //
@@ -359,7 +391,7 @@ void Window_Init(void) {
 	
 	//TBool touch = AknLayoutUtils::PenEnabled();
 	
-	bool touch = true;
+	bool touch = false;
 	Input_SetTouchMode(touch);
 	Gui_SetTouchUI(touch);
 	
@@ -375,6 +407,7 @@ void Window_Free(void) {
 void Window_Create2D(int width, int height) {
 	MYLOG("Window_Create2D\n")
 	launcherMode = true;
+	window->InitEvents();
 }
 void Window_Create3D(int width, int height) {
 	MYLOG("Window_Create3D\n")
@@ -404,11 +437,11 @@ void Window_Show(void) { }
 void Window_SetSize(int width, int height) { }
 
 void Window_RequestClose(void) {
-	// TODO
+	window->RequestClose();
 }
 
 void Window_ProcessEvents(float delta) {
-	// TODO
+	window->ProcessEvents(delta);
 }
 
 void Window_EnableRawMouse(void)  {  }
@@ -455,6 +488,7 @@ cc_result Window_SaveFileDialog(const struct SaveFileDialogArgs* args) {
 	return ERR_NOT_SUPPORTED;
 }
 
+#if 0
 static GfxResourceID fb_tex, fb_vb;
 static void AllocateVB(void) {
 	MYLOG("+AllocateVB");
@@ -478,7 +512,6 @@ void Window_AllocFramebuffer(struct Bitmap* bmp, int width, int height) {
 
 	if (!Gfx.Created) {
 		Gfx_Create();
-		window->InitEventReceiver();
 	}
 	fb_tex = Gfx_AllocTexture(bmp, bmp->width, TEXTURE_FLAG_NONPOW2, false);
 	AllocateVB();
@@ -522,6 +555,29 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	Gfx_DeleteVb(&fb_vb);
 	MYLOG("-FreeFramebuffer");
 }
+#else
+void Window_AllocFramebuffer(struct Bitmap* bmp, int width, int height) {
+	MYLOG("+AllocFramebuffer");
+	bmp->scan0  = (BitmapCol*)Mem_Alloc(width * height, BITMAPCOLOR_SIZE, "bitmap");
+	bmp->width  = width;
+	bmp->height = height;
+	window->AllocFrameBuffer(width, height);
+	MYLOG("-AllocFramebuffer");
+}
+
+void Window_DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
+	MYLOG("+DrawFramebuffer");
+	window->DrawFramebuffer(r, bmp);
+	MYLOG("-DrawFramebuffer");
+}
+
+void Window_FreeFramebuffer(struct Bitmap* bmp) {
+	MYLOG("+FreeFramebuffer");
+	window->FreeFrameBuffer();
+	Mem_Free(bmp->scan0);
+	MYLOG("-FreeFramebuffer");
+}
+#endif
 /*
 void* GLContext_GetAddress(const char* function) {
 	MYLOG("GLContext_GetAddress");

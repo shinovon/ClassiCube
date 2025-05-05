@@ -330,7 +330,7 @@ cc_result Directory_Enum(const cc_string* dirPath, void* obj, Directory_EnumCall
 		len = String_Length(src);
 		String_AppendUtf8(&path, src, len);
 
-#if defined CC_BUILD_HAIKU || defined CC_BUILD_SOLARIS || defined CC_BUILD_HPUX || defined CC_BUILD_IRIX || defined CC_BUILD_BEOS
+#if defined CC_BUILD_HAIKU || defined CC_BUILD_SOLARIS || defined CC_BUILD_HPUX || defined CC_BUILD_IRIX || defined CC_BUILD_BEOS || defined CC_BUILD_SYMBIAN
 		{
 			char full_path[NATIVE_STR_LEN];
 			struct stat sb;
@@ -439,7 +439,9 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	
 	*handle = ptr;
 	pthread_attr_init(&attrs);
+#if !defined CC_BUILD_SYMBIAN
 	pthread_attr_setstacksize(&attrs, stackSize);
+#endif
 	
 	res = pthread_create(ptr, &attrs, ExecThread, (void*)func);
 	if (res) Process_Abort2(res, "Creating thread");
@@ -634,6 +636,11 @@ void Platform_LoadSysFonts(void) {
 	static const cc_string dirs[] = {
 		String_FromConst("/@unixroot/usr/share/fonts"),
 		String_FromConst("/@unixroot/usr/local/share/fonts")
+	};
+#elif defined CC_BUILD_SYMBIAN
+	static const cc_string dirs[] = {
+		String_FromConst("Z:/resource/fonts"),
+		String_FromConst("C:/resource/fonts")
 	};
 #else
 	static const cc_string dirs[] = {
@@ -1298,6 +1305,8 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 
 #ifdef CC_BUILD_DARWIN
 const cc_string DynamicLib_Ext = String_FromConst(".dylib");
+#elif defined CC_BUILD_SYMBIAN
+const cc_string DynamicLib_Ext = String_FromConst(".dll");
 #else
 const cc_string DynamicLib_Ext = String_FromConst(".so");
 #endif
