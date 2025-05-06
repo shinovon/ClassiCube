@@ -49,6 +49,7 @@ static void LoadFallbackAtlas(void) {
 	src.width  = 16;
 	src.height = 8;
 	src.scan0  = fallback_terrain;
+	MYLOG("LoadFallbackAtlas\n");
 	
 	if (Gfx.MinTexWidth || Gfx.MinTexHeight) {
 		Bitmap_Allocate(&bmp, 16 * Gfx.MinTexWidth, 8 * Gfx.MinTexHeight);
@@ -529,13 +530,25 @@ static cc_result ExtractPng(struct Stream* stream) {
 
 static cc_bool needReload;
 static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
+#ifdef CC_BUILD_SMALLSTACK
+	struct ZipEntry* entries = Mem_TryAlloc(512, sizeof(struct ZipEntry));
+#else
 	struct ZipEntry entries[512];
+#endif
 	cc_result res;
+	MYLOG("+ExtractFrom\n");
+#ifdef CC_BUILD_SMALLSTACK
+	if (!entries) return ERR_OUT_OF_MEMORY;
+#endif
 
 	Event_RaiseVoid(&TextureEvents.PackChanged);
 	/* If context is lost, then trying to load textures will just fail */
 	/* So defer loading the texture pack until context is restored */
-	if (Gfx.LostContext) { needReload = true; return 0; }
+	if (Gfx.LostContext) {
+		needReload = true;
+		res = 0;
+		goto ret;
+	}
 	needReload = false;
 
 	res = ExtractPng(stream);
@@ -548,6 +561,11 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	} else if (res) {
 		Logger_SysWarn2(res, "decoding", path);
 	}
+	MYLOG("-ExtractFrom\n");
+	ret:
+#ifdef CC_BUILD_SMALLSTACK
+	Mem_Free(entries);
+#endif
 	return res;
 }
 
@@ -564,13 +582,19 @@ static cc_result ExtractFromFile(const cc_string* path) {
 static cc_result ExtractFromFile(const cc_string* path) {
 	struct Stream stream;
 	cc_result res;
+	MYLOG("+ExtractFromFile\n");
+	Logger_Log(path);
 
 	res = Stream_OpenFile(&stream, path);
-	if (res) { Logger_SysWarn2(res, "opening", path); return res; }
+	MYLOG("+ExtractFromFile 2\n");
+	if (res) { 
+		MYLOG("+ExtractFromFile E\n");Logger_SysWarn2(res, "opening", path); return res; }
+	MYLOG("+ExtractFromFile 3\n");
 
 	res = ExtractFrom(&stream, path);
 	/* No point logging error for closing readonly file */
 	(void)stream.Close(&stream);
+	MYLOG("-ExtractFromFile\n");
 	return res;
 }
 #endif
@@ -578,6 +602,7 @@ static cc_result ExtractFromFile(const cc_string* path) {
 static cc_result ExtractUserTextures(void) {
 	cc_string path;
 	cc_result res;
+	MYLOG("+ExtractUserTextures\n");
 
 	/* TODO: Log error for multiple default texture pack extract failure */
 	res = TexturePack_ExtractDefault(ExtractFromFile);
@@ -586,7 +611,7 @@ static cc_result ExtractUserTextures(void) {
 
 	path = TexturePack_Path;
 	if (String_CaselessEqualsConst(&path, "texpacks/default.zip")) path.length = 0;
-	if (Game_ClassicMode || path.length == 0) return res;
+	if (Game_ClassicMode || path.length == 0 || true) return res;
 
 	/* override default textures with user's selected texture pack */
 	return ExtractFromFile(&path);
@@ -597,6 +622,7 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 	cc_string url = TexturePack_Url;
 	struct Stream stream;
 	cc_result res = 0;
+	MYLOG("+TexturePack_ExtractCurrent\n");
 
 	/* don't pointlessly load default texture pack */
 	if (!usingDefault || forceReload) {
@@ -604,7 +630,7 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 		usingDefault = true;
 	}
 
-	if (url.length && OpenCachedData(&url, &stream)) {
+	if (url.length && OpenCachedData(&url, &stream) && false) {
 		res = ExtractFrom(&stream, &url);
 		usingDefault = false;
 
@@ -614,6 +640,7 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 
 	/* Use fallback terrain texture with 1 pixel per tile */
 	if (!Atlas2D.Bmp.scan0) LoadFallbackAtlas();
+	MYLOG("-TexturePack_ExtractCurrent\n");
 	return res;
 }
 
@@ -658,6 +685,7 @@ void TexturePack_CheckPending(void) {
 static void DownloadAsync(const cc_string* url) {
 	cc_string etag = String_Empty;
 	cc_string time = String_Empty;
+	MYLOG("DownloadAsync\n");
 
 	/* Only retrieve etag/last-modified headers if the file exists */
 	/* This inconsistency can occur if user deleted some cached files */
@@ -671,6 +699,7 @@ static void DownloadAsync(const cc_string* url) {
 }
 
 void TexturePack_Extract(const cc_string* url) {
+	MYLOG("TexturePack_Extract\n");
 	if (url->length) DownloadAsync(url);
 
 	if (String_Equals(url, &TexturePack_Url)) return;

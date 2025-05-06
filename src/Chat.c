@@ -197,8 +197,8 @@ void Chat_Add4(const char* format, const void* a1, const void* a2, const void* a
 }
 
 void Chat_AddRaw(const char* raw) {
-	cc_string str = String_FromReadonly(raw);
-	Chat_AddOf(&str, MSG_TYPE_NORMAL);
+	//cc_string str = String_FromReadonly(raw);
+	//Chat_AddOf(&str, MSG_TYPE_NORMAL);
 }
 void Chat_Add(const cc_string* text) { Chat_AddOf(text, MSG_TYPE_NORMAL); }
 

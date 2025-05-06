@@ -56,7 +56,7 @@ void Logger_FailToStart(const char* raw_msg);
 
 #define MYLOG(t) \
 {\
-	static const cc_string msg = String_FromConst(t); \
+	const cc_string msg = String_FromConst(t); \
 	Logger_Log(&msg); \
 }
 

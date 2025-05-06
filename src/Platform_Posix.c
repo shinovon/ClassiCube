@@ -13,7 +13,11 @@
 #include <errno.h>
 #include <time.h>
 #include <stdlib.h>
+#if defined CC_BUILD_SYMBIAN
+#include <stdapis/string.h>
+#else
 #include <string.h>
+#endif
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -93,7 +97,7 @@ void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return (void*) m
 void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return (void*) memcpy( dst, src,   numBytes); }
 void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*) memmove(dst, src,   numBytes); }
 
-#ifndef CC_BUILD_SYMBIAN
+//#ifndef CC_BUILD_SYMBIAN
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? malloc(size) : NULL;
@@ -111,7 +115,7 @@ void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 void Mem_Free(void* mem) {
 	if (mem) free(mem);
 }
-#endif
+//#endif
 
 
 /*########################################################################################################################*
@@ -127,6 +131,7 @@ void Platform_Log(const char* msg, int len) {
 	/* Avoid "ignoring return value of 'write' declared with attribute 'warn_unused_result'" warning */
 	ret = write(STDOUT_FILENO, msg,  len);
 	ret = write(STDOUT_FILENO, "\n",   1);
+	
 }
 #endif
 
@@ -1348,7 +1353,7 @@ static void Platform_InitPosix(void) {
 }
 void Platform_Free(void) { }
 
-#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX
+#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX || defined CC_BUILD_SYMBIAN
 cc_bool Platform_DescribeError(cc_result res, cc_string* dst) {
 	const char* err = strerror(res);
 	if (!err || res >= 1000) return false;

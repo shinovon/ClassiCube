@@ -170,7 +170,9 @@ static int RunProgram(int argc, char** argv) {
 		RunGame();
 #else
 		MYLOG("RunProgram 1\n")
-		Launcher_Run();
+		//Launcher_Run();
+		Options_Get(LOPT_USERNAME, &Game_Username, DEFAULT_USERNAME);
+		RunGame();
 	/* :[hash] - auto join server with the given hash */
 	} else if (argsCount == 1 && args[0].buffer[0] == ':') {
 		MYLOG("RunProgram 2\n")

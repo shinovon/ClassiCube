@@ -135,6 +135,7 @@ static void InitDefaultResources(void) {
 }
 
 static void FreeDefaultResources(void) {
+	MYLOG("+FreeDefaultResources\n");
 	Gfx_DeleteDynamicVb(&Gfx_quadVb);
 	Gfx_DeleteDynamicVb(&Gfx_texVb);
 	Gfx_DeleteIb(&Gfx.DefaultIb);

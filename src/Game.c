@@ -330,11 +330,11 @@ static void HandleInactiveChanged(void* obj) {
 }
 
 static void Game_WarnFunc(const cc_string* msg) {
-	cc_string str = *msg, line;
-	while (str.length) {
-		String_UNSAFE_SplitBy(&str, '\n', &line);
-		Chat_Add1("&c%s", &line);
-	}
+//	cc_string str = *msg, line;
+//	while (str.length) {
+//		String_UNSAFE_SplitBy(&str, '\n', &line);
+//		Chat_Add1("&c%s", &line);
+//	}
 }
 
 static void LoadOptions(void) {
@@ -413,20 +413,26 @@ static void LoadPlugins(void) { }
 static void Game_PendingClose(void* obj) { gameRunning = false; }
 static void Game_Load(void) {
 	struct IGameComponent* comp;
+	MYLOG("+game_load\n");
 	Game_UpdateDimensions();
 	Game_SetFpsLimit(Options_GetEnum(OPT_FPS_LIMIT, 0, FpsLimit_Names, FPS_LIMIT_COUNT));
 	Gfx_Create();
+	MYLOG("game_load 1\n");
 	
 	Logger_WarnFunc = Game_WarnFunc;
 	LoadOptions();
+	MYLOG("game_load 2\n");
 	GameVersion_Load();
+	MYLOG("game_load 3\n");
 	Utils_EnsureDirectory("maps");
+	MYLOG("game_load 4\n");
 
 	Event_Register_(&WorldEvents.NewMap,           NULL, HandleOnNewMap);
 	Event_Register_(&WorldEvents.MapLoaded,        NULL, HandleOnNewMapLoaded);
 	Event_Register_(&WindowEvents.Resized,         NULL, Game_OnResize);
 	Event_Register_(&WindowEvents.Closing,         NULL, Game_PendingClose);
 	Event_Register_(&WindowEvents.InactiveChanged, NULL, HandleInactiveChanged);
+	MYLOG("game_load 5\n");
 
 	Game_AddComponent(&World_Component);
 	Game_AddComponent(&Textures_Component);
@@ -464,27 +470,35 @@ static void Game_Load(void) {
 	Game_AddComponent(&AxisLinesRenderer_Component);
 	Game_AddComponent(&Formats_Component);
 	Game_AddComponent(&EntityRenderers_Component);
+	MYLOG("game_load 6\n");
 
 	LoadPlugins();
+	MYLOG("+init comps\n");
 	for (comp = comps_head; comp; comp = comp->next) {
 		if (comp->Init) comp->Init();
 	}
+	MYLOG("-init comps\n");
 
 	TexturePack_ExtractCurrent(true);
 	if (TexturePack_DefaultMissing) {
 		Window_ShowDialog("Missing file",
 			"Both default.zip and classicube.zip are missing,\n try downloading resources first.\n\nClassiCube will still run, but without any textures.");
 	}
+	MYLOG("game_load 7\n");
 
 	entTaskI = ScheduledTask_Add(GAME_DEF_TICKS, Entities_Tick);
 	Gfx_WarnIfNecessary();
+	MYLOG("game_load 8\n");
 
 	if (Gfx.Limitations & GFX_LIMIT_VERTEX_ONLY_FOG)
 		EnvRenderer_SetMode(EnvRenderer_Minimal | ENV_LEGACY);
+	MYLOG("game_load 9\n");
 	if (Gfx.BackendType == CC_GFX_BACKEND_SOFTGPU)
 		EnvRenderer_SetMode(ENV_MINIMAL);
 
+	MYLOG("BeginConnect\n");
 	Server.BeginConnect();
+	MYLOG("-game_load\n");
 }
 
 void Game_SetFpsLimit(int method) {

@@ -462,7 +462,7 @@ static cc_result Launcher_ProcessZipEntry(const cc_string* path, struct Stream* 
 		if (res) {
 			Logger_SysWarn(res, "decoding default.png"); return res;
 		} else if (Font_SetBitmapAtlas(&bmp)) {
-			useBitmappedFont = !Options_GetBool(OPT_USE_CHAT_FONT, false) || true;
+			useBitmappedFont = !Options_GetBool(OPT_USE_CHAT_FONT, false);
 			hasBitmappedFont = true;
 		} else {
 			Mem_Free(bmp.scan0);

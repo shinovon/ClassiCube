@@ -7,6 +7,31 @@
 #include "Core.h"
 #include "Constants.h"
 #include "main.h"
+#include "Logger.h"
+
+static void ExceptionHandler(TExcType type) {
+	MYLOG("Exception\n");
+	switch(type) {
+	case EExcIntegerDivideByZero:
+		MYLOG("EExcIntegerDivideByZero\n");
+		break;
+	case EExcAccessViolation:
+		MYLOG("EExcAccessViolation\n");
+		break;
+	case EExcStackFault:
+		MYLOG("EExcStackFault\n");
+		break;
+	case EExcPageFault:
+		MYLOG("EExcPageFault\n");
+		break;
+	}
+	cc_string msg; char msgB[64];
+	String_InitArray(msg, msgB);
+	String_AppendConst(&msg, "ExcType: ");
+	String_AppendInt(&msg, (int) type);
+	Logger_Log(&msg);
+	User::HandleException(NULL);
+}
 
 int main(int argc, char** argv) {
 	CTrapCleanup *cleanup = CTrapCleanup::New();
@@ -19,7 +44,9 @@ int main(int argc, char** argv) {
 //	__crt0(argc, argv, envp);
 	
 //	_REENT;
-	
+//#ifndef _DEBUG
+	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+//#endif
 	RThread currentThread;
 	RProcess thisProcess;
 	TParse exeName;

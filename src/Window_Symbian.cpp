@@ -55,6 +55,8 @@ private:
 	CWsScreenDevice* iWsScreenDevice;
 	CWindowGc* iWindowGc;
     CFbsBitmap* iBitmap;
+    
+    TBool iEventsInitialized;
 };
 
 //
@@ -363,6 +365,9 @@ void CWindow::RequestClose() {
 
 void CWindow::InitEvents() {
 	MYLOG("+InitEvents\n")
+	if (iEventsInitialized)
+		return;
+	iEventsInitialized = ETrue;
 	iWsEventStatus = KRequestPending;
 	iWsSession.EventReady(&iWsEventStatus);
 	MYLOG("-InitEvents\n")
@@ -412,6 +417,7 @@ void Window_Create2D(int width, int height) {
 void Window_Create3D(int width, int height) {
 	MYLOG("Window_Create3D\n")
 	launcherMode = false;
+	window->InitEvents();
 }
 
 void Window_Destroy(void) {
@@ -557,25 +563,25 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 }
 #else
 void Window_AllocFramebuffer(struct Bitmap* bmp, int width, int height) {
-	MYLOG("+AllocFramebuffer");
+	MYLOG("+AllocFramebuffer\n");
 	bmp->scan0  = (BitmapCol*)Mem_Alloc(width * height, BITMAPCOLOR_SIZE, "bitmap");
 	bmp->width  = width;
 	bmp->height = height;
 	window->AllocFrameBuffer(width, height);
-	MYLOG("-AllocFramebuffer");
+	MYLOG("-AllocFramebuffer\n");
 }
 
 void Window_DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-	MYLOG("+DrawFramebuffer");
+	MYLOG("+DrawFramebuffer\n");
 	window->DrawFramebuffer(r, bmp);
-	MYLOG("-DrawFramebuffer");
+	MYLOG("-DrawFramebuffer\n");
 }
 
 void Window_FreeFramebuffer(struct Bitmap* bmp) {
-	MYLOG("+FreeFramebuffer");
+	MYLOG("+FreeFramebuffer\n");
 	window->FreeFrameBuffer();
 	Mem_Free(bmp->scan0);
-	MYLOG("-FreeFramebuffer");
+	MYLOG("-FreeFramebuffer\n");
 }
 #endif
 /*

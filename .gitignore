@@ -235,3 +235,4 @@ UpgradeLog*.htm
 .project
 ABLD.BAT
 !*.mmp
+!*.pkg

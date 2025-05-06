@@ -721,7 +721,7 @@ static void FallbackOpenGL(void) {
 #endif
 
 static void GLBackend_Init(void) {
-	MYLOG("+GLBackend_Init");
+	MYLOG("+GLBackend_Init\n");
 #ifdef CC_BUILD_SYMBIAN
 	_glGenBuffers    = glGenBuffers;
 	_glDeleteBuffers = glDeleteBuffers;
@@ -763,7 +763,7 @@ static void GLBackend_Init(void) {
 		FallbackOpenGL();
 	}
 #endif
-	MYLOG("-GLBackend_Init");
+	MYLOG("-GLBackend_Init\n");
 }
 #endif
 #endif

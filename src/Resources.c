@@ -65,7 +65,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 	struct ZipEntry entries[64];
 	struct Stream stream;
 	cc_result res;
-	MYLOG("+ZipFile_InspectEntries");
+	MYLOG("+ZipFile_InspectEntries\n");
 
 	res = Stream_OpenFile(&stream, path);
 	if (res == ReturnCode_FileNotFound) return;
@@ -77,7 +77,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 
 	/* No point logging error for closing readonly file */
 	(void)stream.Close(&stream);
-	MYLOG("-ZipFile_InspectEntries");
+	MYLOG("-ZipFile_InspectEntries\n");
 }
 
 static cc_result ZipEntry_ExtractData(struct ResourceZipEntry* e, struct Stream* data, struct ZipEntry* source) {
@@ -693,11 +693,11 @@ static int ccTexturesReqID;
 
 static void CCTextures_CheckExistence(void) {
 	cc_filepath path;
-	MYLOG("+CCTextures_CheckExistence");
+	MYLOG("+CCTextures_CheckExistence\n");
 	Platform_EncodePath(&path, &ccTexPack);
 	
 	ccTexturesExist = File_Exists(&path);
-	MYLOG("-CCTextures_CheckExistence");
+	MYLOG("-CCTextures_CheckExistence\n");
 }
 
 static void CCTextures_CountMissing(void) {
@@ -1128,14 +1128,14 @@ static void MCCTextures_CheckExistence(void) {
 	cc_string path  = String_FromReadonly(Game_Version.DefaultTexpack);
 	zipEntriesFound = 0;
 
-	MYLOG("+MCTextures_CheckExistence");
+	MYLOG("+MCTextures_CheckExistence\n");
 	ZipFile_InspectEntries(&path, DefaultZip_SelectEntry);
 	/* >= in case somehow have say "gui.png", "GUI.png" */
 	allZipEntriesExist = zipEntriesFound >= Array_Elems(defaultZipEntries);
 
 	/* Need touch.png from ClassiCube textures */
 	if (!allZipEntriesExist) ccTexturesExist = false;
-	MYLOG("-MCTextures_CheckExistence");
+	MYLOG("-MCTextures_CheckExistence\n");
 }
 
 static void MCCTextures_CountMissing(void) {
@@ -1262,21 +1262,21 @@ static void ResetState() {
 
 void Resources_CheckExistence(void) {
 	int i;
-	MYLOG("+Resources_CheckExistence");
+	MYLOG("+Resources_CheckExistence\n");
 	ResetState();
-	MYLOG("+Resources_CheckExistence 1");
+	MYLOG("+Resources_CheckExistence 1\n");
 
 	for (i = 0; i < Array_Elems(asset_sets); i++)
 	{
 		asset_sets[i]->CheckExistence();
 	}
-	MYLOG("+Resources_CheckExistence 2");
+	MYLOG("+Resources_CheckExistence 2\n");
 
 	for (i = 0; i < Array_Elems(asset_sets); i++)
 	{
 		asset_sets[i]->CountMissing();
 	}
-	MYLOG("-Resources_CheckExistence");
+	MYLOG("-Resources_CheckExistence\n");
 }
 
 const char* Fetcher_RequestName(int reqID) {
