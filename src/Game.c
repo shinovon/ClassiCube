@@ -330,11 +330,11 @@ static void HandleInactiveChanged(void* obj) {
 }
 
 static void Game_WarnFunc(const cc_string* msg) {
-//	cc_string str = *msg, line;
-//	while (str.length) {
-//		String_UNSAFE_SplitBy(&str, '\n', &line);
-//		Chat_Add1("&c%s", &line);
-//	}
+	cc_string str = *msg, line;
+	while (str.length) {
+		String_UNSAFE_SplitBy(&str, '\n', &line);
+		Chat_Add1("&c%s", &line);
+	}
 }
 
 static void LoadOptions(void) {
@@ -419,7 +419,8 @@ static void Game_Load(void) {
 	Gfx_Create();
 	MYLOG("game_load 1\n");
 	
-	Logger_WarnFunc = Game_WarnFunc;
+//	Logger_WarnFunc = Game_WarnFunc;
+	Logger_WarnFunc = Logger_DialogWarn;
 	LoadOptions();
 	MYLOG("game_load 2\n");
 	GameVersion_Load();

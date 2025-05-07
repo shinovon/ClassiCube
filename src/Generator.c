@@ -572,7 +572,8 @@ static void NotchyGen_CreateSurfaceLayer(void) {
 	struct OctaveNoise* n2 = &buf->n2;
 #else
 	struct OctaveNoise _n1, _n2;
-	struct OctaveNoise* n1 = &n1, n2 = &n2;
+	struct OctaveNoise* n1 = &_n1;
+	struct OctaveNoise* n2 = &_n2;
 #endif
 
 	OctaveNoise_Init(n1, &rnd, 8);

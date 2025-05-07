@@ -721,8 +721,7 @@ static void FallbackOpenGL(void) {
 #endif
 
 static void GLBackend_Init(void) {
-	MYLOG("+GLBackend_Init\n");
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 	_glGenBuffers    = glGenBuffers;
 	_glDeleteBuffers = glDeleteBuffers;
 	_glBindBuffer    = glBindBuffer;
@@ -740,17 +739,15 @@ static void GLBackend_Init(void) {
 		DynamicLib_ReqSym2("glGenBuffersARB",    glGenBuffers), DynamicLib_ReqSym2("glBufferDataARB",    glBufferData),
 		DynamicLib_ReqSym2("glBufferSubDataARB", glBufferSubData)
 	};
-	MYLOG("GLBackend_Init 1");
 
 	static const cc_string vboExt  = String_FromConst("GL_ARB_vertex_buffer_object");
 	static const cc_string bgraExt = String_FromConst("GL_EXT_bgra");
 	cc_string extensions = String_FromReadonly((const char*)_glGetString(GL_EXTENSIONS));
-	MYLOG("GLBackend_Init 2");
 	const GLubyte* ver   = _glGetString(GL_VERSION);
-	MYLOG("GLBackend_Init 3");
 
 	/* Version string is always: x.y. (and whatever afterwards) */
 	int major = ver[0] - '0', minor = ver[2] - '0';
+	MYLOG("GLBackend_Init 3");
 
 	/* Supported in core since 1.5 */
 	if (major > 1 || (major == 1 && minor >= 5)) {

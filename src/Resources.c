@@ -1134,7 +1134,10 @@ static void MCCTextures_CheckExistence(void) {
 	allZipEntriesExist = zipEntriesFound >= Array_Elems(defaultZipEntries);
 
 	/* Need touch.png from ClassiCube textures */
-	if (!allZipEntriesExist) ccTexturesExist = false;
+	if (!allZipEntriesExist) {
+		ccTexturesExist = false;
+		MYLOG("Missing\n");
+	}
 	MYLOG("-MCTextures_CheckExistence\n");
 }
 

@@ -355,6 +355,7 @@ void Camera_SetFov(int fov) {
 }
 
 void Camera_UpdateProjection(void) {
+	if (!Camera.Active) return;
 	Camera.Active->GetProjection(&Gfx.Projection);
 	Gfx_LoadMatrix(MATRIX_PROJ,  &Gfx.Projection);
 	Event_RaiseVoid(&GfxEvents.ProjectionChanged);

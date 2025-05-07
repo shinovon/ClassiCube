@@ -8,18 +8,20 @@
 #include <w32std.h>
 #include <aknutils.h>
 #include <aknnotewrappers.h>
+#include <apgwgnam.h>
 #include <stdlib.h>
-#include <stdapis/string.h>
 extern "C" {
+#include <stdapis/string.h>
 #include <gles/egl.h>
 #include "_WindowBase.h"
-}
 #include "Errors.h"
 #include "Logger.h"
 #include "String.h"
 #include "Gui.h"
 #include "Graphics.h"
 #include "Game.h"
+}
+
 
 static cc_bool launcherMode;
 
@@ -55,6 +57,7 @@ private:
 	CWsScreenDevice* iWsScreenDevice;
 	CWindowGc* iWindowGc;
     CFbsBitmap* iBitmap;
+    CApaWindowGroupName* iWindowGroupName;
     
     TBool iEventsInitialized;
 };
@@ -72,52 +75,45 @@ CWindow* CWindow::NewLC() {
 void CWindow::CreateNativeWindowL() {
 	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
 	User::LeaveIfError(iWsScreenDevice->Construct());
-	//iWsScreenDevice->CreateContext(iWindow);
 	
 	iWindowGroup = RWindowGroup(iWsSession);
 	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this)));
 	iWindowGroup.SetOrdinalPosition(0);
+	iWindowGroup.EnableScreenChangeEvents();
+	iWindowGroup.EnableReceiptOfFocus(EFalse);
 	
-	RProcess thisProcess;
-	TParse exeName;
-	exeName.Set(thisProcess.FileName(), NULL, NULL);
-	TBuf<32> winGroupName;
-	winGroupName.Append(0);
-	winGroupName.Append(0);
-	winGroupName.Append(0);
-	winGroupName.Append(0);
-	winGroupName.Append(exeName.Name());
-	winGroupName.Append(0);
-	winGroupName.Append(0);
-	iWindowGroup.SetName(winGroupName);
+	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
+	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
+	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
+	iWindowGroupName->SetHidden(EFalse);
+	iWindowGroupName->SetSystem(EFalse);
+	iWindowGroupName->SetWindowGroupName(iWindowGroup);
 	
 	iWindow = new (ELeave) RWindow(iWsSession);
 	    
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this) - 1);
 	User::LeaveIfError(err);
-
-	iWindowGroup.EnableScreenChangeEvents();
 		
-	TPixelsTwipsAndRotation pixnrot; 
+	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-		
-	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
-					   
-	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	
 	iWindow->Activate();
+	iWindow->SetSize(pixnrot.iPixelSize);
+	//iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
-	//iWindow->SetNonFading(ETrue); 
-	//iWindow->SetShadowDisabled(ETrue); 
-	//iWindow->EnableRedrawStore(EFalse); 
 	iWindow->EnableVisibilityChangeEvents();
-	iWindow->SetNonTransparent(); 
-	iWindow->SetBackgroundColor(); 
-	iWindow->SetOrdinalPosition(0);
+	
+	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
+	CApaWindowGroupName* rootWindGroupName = 0;
+	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession, rootWin.Identifier()));
+	if (rootWindGroupName) {
+		rootWindGroupName->SetHidden(ETrue);
+		rootWindGroupName->SetWindowGroupName(rootWin);
+	}
 
 	WindowInfo.Focused = true;
 	WindowInfo.Exists = true;
-	WindowInfo.Handle.ptr = iWindow;
+	WindowInfo.Handle.ptr = (void*) iWindow;
 	
 	TInt w = pixnrot.iPixelSize.iWidth,
 		h = pixnrot.iPixelSize.iHeight;
@@ -128,7 +124,7 @@ void CWindow::CreateNativeWindowL() {
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
 	
-	iWsSession.EventReadyCancel();
+	//iWsSession.EventReadyCancel();
 }
 
 CWindow::CWindow() {
@@ -136,6 +132,9 @@ CWindow::CWindow() {
 }
 
 CWindow::~CWindow() {
+	if (iWindowGc != NULL) {
+		delete iWindowGc;
+	}
 	if (iWindow != NULL) {
 		iWindow->SetOrdinalPosition(KOrdinalPositionSwitchToOwningWindow);
 		iWindow->Close();
@@ -180,10 +179,6 @@ void CWindow::ConstructL() {
 	}
 	
 	DisplayInfo.Depth = bufferSize;
-	
-	iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
-	iWindowGc->Construct();
-	//iWindowGc->SetBrushStyle(CWindowGc::ESolidBrush);
 }
 
 static int ConvertKey(TInt aScanCode) {
@@ -247,8 +242,8 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		MYLOG("EEventScreenDeviceChanged\n");
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-		if (pixnrot.iPixelSize != iWindow->Size()) {
-			MYLOG("Resized\n");
+		//if (pixnrot.iPixelSize != iWindow->Size()) {
+			//MYLOG("Resized\n");
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
 			TInt w = pixnrot.iPixelSize.iWidth,
@@ -261,7 +256,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			WindowInfo.Height = h;
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
-		}   
+		//}   
 		break;
 	}
 	case EEventFocusLost: {
@@ -307,6 +302,8 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			MYLOG("RemoveTouch\n");
 			Input_RemoveTouch(num, pos.iX, pos.iY);
 			break;
+		default:
+			break;
 		}
 		break;
 	}
@@ -314,6 +311,10 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 }
 
 void CWindow::AllocFrameBuffer(int width, int height) {
+	if (!iWindowGc) {
+		iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
+		iWindowGc->Construct();
+	}
 	FreeFrameBuffer();
 	iBitmap = new CFbsBitmap();
 	iBitmap->Create(TSize(width, height), EColor16MA);
@@ -327,6 +328,8 @@ void CWindow::FreeFrameBuffer() {
 }
 
 void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
+	if (!iWindowGc)
+		return;
 	iWindow->Invalidate(/*TRect(r.x, r.y, r.width, r.height)*/);
 	iWindow->BeginRedraw();
 	iWindowGc->Activate(*iWindow);
@@ -343,7 +346,6 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 		iBitmap->EndDataAccess();
 		
 		iWindowGc->BitBlt(TPoint(r.x, r.y), iBitmap, TRect(r.x, r.y, r.width, r.height));
-//		iWindowGc->DrawBitmap(TPoint(0, 0), iBitmap);
 	}
 	iWindowGc->Deactivate();
 	iWindow->EndRedraw();
@@ -396,7 +398,7 @@ void Window_Init(void) {
 	
 	//TBool touch = AknLayoutUtils::PenEnabled();
 	
-	bool touch = false;
+	bool touch = true;
 	Input_SetTouchMode(touch);
 	Gui_SetTouchUI(touch);
 	
@@ -467,9 +469,9 @@ void Gamepads_Process(float delta) {
 void ShowDialogCore(const char* title, const char* msg) {
 	// TODO
 	MYLOG("ShowDialog\n")
-	static const cc_string t2 = String_FromConst(title);
+	static const cc_string t2 = String_Init((char*) title, String_Length(title), String_Length(title));
 	Logger_Log(&t2);
-	static const cc_string msg2 = String_FromConst(msg);
+	static const cc_string msg2 = String_Init((char*) msg, String_Length(msg), String_Length(msg));
 	Logger_Log(&msg2);
 	
 }

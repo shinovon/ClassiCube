@@ -1,11 +1,15 @@
 #include "Core.h"
 #if defined CC_BUILD_SYMBIAN
+extern "C" {
 #include "Errors.h"
 #include "Platform.h"
+#include "Logger.h"
 #include <unistd.h>
 #include <errno.h>
+}
 #include <e32base.h>
 
+extern "C" void Symbian_Init(void);
 
 static cc_result Process_RawGetExePath(char* path, int* len) {
 	// TODO
@@ -73,6 +77,34 @@ void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 
 void Mem_Free(void* mem) {
 	if (mem) User::Free(mem);
+}
+
+static void ExceptionHandler(TExcType type) {
+	MYLOG("Exception\n");
+	switch(type) {
+	case EExcIntegerDivideByZero:
+		MYLOG("EExcIntegerDivideByZero\n");
+		break;
+	case EExcAccessViolation:
+		MYLOG("EExcAccessViolation\n");
+		break;
+	case EExcStackFault:
+		MYLOG("EExcStackFault\n");
+		break;
+	case EExcPageFault:
+		MYLOG("EExcPageFault\n");
+		break;
+	}
+	cc_string msg; char msgB[64];
+	String_InitArray(msg, msgB);
+	String_AppendConst(&msg, "ExcType: ");
+	String_AppendInt(&msg, (int) type);
+	Logger_Log(&msg);
+	User::HandleException(NULL);
+}
+
+void Symbian_Init(void) {
+	//User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 }
 
 #endif

@@ -522,6 +522,7 @@ static cc_result ProcessZipEntry(const cc_string* path, struct Stream* stream, s
 static cc_result ExtractPng(struct Stream* stream) {
 	struct Bitmap bmp;
 	cc_result res = Png_Decode(&bmp, stream);
+	MYLOG("ExtractPng\n");
 	if (!res && Atlas_TryChange(&bmp)) return 0;
 
 	Mem_Free(bmp.scan0);
@@ -531,7 +532,7 @@ static cc_result ExtractPng(struct Stream* stream) {
 static cc_bool needReload;
 static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 #ifdef CC_BUILD_SMALLSTACK
-	struct ZipEntry* entries = Mem_TryAlloc(512, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = Mem_TryAllocCleared(512, sizeof(struct ZipEntry));
 #else
 	struct ZipEntry entries[512];
 #endif
@@ -555,7 +556,13 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	if (res == PNG_ERR_INVALID_SIG) {
 		/* file isn't a .png image, probably a .zip archive then */
 		res = Zip_Extract(stream, SelectZipEntry, ProcessZipEntry,
-							entries, Array_Elems(entries));
+							entries,
+#ifdef CC_BUILD_SMALLSTACK
+							512
+#else
+							Array_Elems(entries)
+#endif
+								);
 
 		if (res) Logger_SysWarn2(res, "extracting", path);
 	} else if (res) {
@@ -630,7 +637,7 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 		usingDefault = true;
 	}
 
-	if (url.length && OpenCachedData(&url, &stream) && false) {
+	if (url.length && OpenCachedData(&url, &stream)) {
 		res = ExtractFrom(&stream, &url);
 		usingDefault = false;
 

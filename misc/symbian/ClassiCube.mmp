@@ -19,6 +19,7 @@ MACRO SYMBIAN_OE_POSIX_SIGNALS
 LIBRARY euser.lib
 LIBRARY efsrv.lib
 LIBRARY apparc.lib
+LIBRARY apgrfx.lib
 LIBRARY cone.lib
 LIBRARY eikcore.lib
 LIBRARY avkon.lib
@@ -47,7 +48,7 @@ SOURCE main.c Window_Symbian.cpp
 USERINCLUDE ../../src
 
 SOURCEPATH .
-SOURCE ../../src/Platform_Symbian.cpp e32main.cpp
+SOURCE ../../src/Platform_Symbian.cpp
 
 START RESOURCE classicube.rss
 HEADER
