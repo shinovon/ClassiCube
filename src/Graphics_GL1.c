@@ -110,7 +110,7 @@ GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
 #ifndef CC_BUILD_SMALLSTACK
 	cc_uint16* gl_indices[GFX_MAX_INDICES];
 #endif
-	GfxResourceID id = NULL;
+	GfxResourceID id = 0;
 	cc_uint32 size   = count * sizeof(cc_uint16);
 	MYLOG("Gfx_CreateIb2 1\n");
 
@@ -148,7 +148,7 @@ void Gfx_DeleteIb(GfxResourceID* ib) { }
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocStaticVb(VertexFormat fmt, int count) {
-	GfxResourceID id = NULL;
+	GfxResourceID id = 0;
 	_glGenBuffers(1, (GLuint*)&id);
 	_glBindBuffer(GL_ARRAY_BUFFER, id);
 	return id;
@@ -226,7 +226,7 @@ GfxResourceID Gfx_CreateVb2(void* vertices, VertexFormat fmt, int count) {
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocDynamicVb(VertexFormat fmt, int maxVertices) {
-	GfxResourceID id = NULL;
+	GfxResourceID id = 0;
 	cc_uint32 size   = maxVertices * strideSizes[fmt];
 
 	_glGenBuffers(1, (GLuint*)&id);

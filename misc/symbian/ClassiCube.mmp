@@ -14,6 +14,9 @@ SYSTEMINCLUDE /epoc32/include/stdapis
 SYSTEMINCLUDE /epoc32/include/stdapis/sys
 //SYSTEMINCLUDE /epoc32/include/libc
 
+USERINCLUDE ../../src
+USERINCLUDE ../../src/freetype
+
 MACRO SYMBIAN_OE_POSIX_SIGNALS
 
 LIBRARY euser.lib

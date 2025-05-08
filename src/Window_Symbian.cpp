@@ -22,18 +22,17 @@ extern "C" {
 #include "Game.h"
 }
 
-
 static cc_bool launcherMode;
 
-
 class CWindow;
+class CWsEventReceiver;
 
 CWindow* window;
 
 class CWindow : public CBase
 {
 public:
-	static CWindow* NewLC();
+	static CWindow* NewL();
 	void HandleWsEvent(const TWsEvent& aEvent);
 	void AllocFrameBuffer(int width, int height);
 	void DrawFramebuffer(Rect2D r, struct Bitmap* bmp);
@@ -45,26 +44,43 @@ public:
 	
 	TWsEvent iWsEvent;
 	TRequestStatus iWsEventStatus;
+	RWindow* iWindow;
+	
 private:
 	CWindow();
 	void ConstructL();
 	
-	void CreateNativeWindowL();
+	void CreateWindowL();
 
 	RWsSession iWsSession;
-	RWindow* iWindow;
 	RWindowGroup iWindowGroup;
 	CWsScreenDevice* iWsScreenDevice;
 	CWindowGc* iWindowGc;
     CFbsBitmap* iBitmap;
     CApaWindowGroupName* iWindowGroupName;
+    CWsEventReceiver* iWsEventReceiver;
     
     TBool iEventsInitialized;
 };
 
+class CWsEventReceiver : public CActive
+{
+public:
+    virtual void RunL();
+    virtual void DoCancel();
+    static CWsEventReceiver* NewL(CWindow& aParent);
+    ~CWsEventReceiver();
+private:
+    CWsEventReceiver();
+    void ConstructL(CWindow& aParent);
+private:
+    RWsSession iWsSession;
+    CWindow* iParent;
+};
+
 //
 
-CWindow* CWindow::NewLC() {
+CWindow* CWindow::NewL() {
 	CWindow* self = new (ELeave) CWindow();
 	CleanupStack::PushL(self);
 	self->ConstructL();
@@ -72,7 +88,7 @@ CWindow* CWindow::NewLC() {
 	return self;    
 }
 
-void CWindow::CreateNativeWindowL() {
+void CWindow::CreateWindowL() {
 	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
 	User::LeaveIfError(iWsScreenDevice->Construct());
 	
@@ -98,8 +114,8 @@ void CWindow::CreateNativeWindowL() {
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 	
 	iWindow->Activate();
-	iWindow->SetSize(pixnrot.iPixelSize);
-	//iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
+	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
+	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
 	iWindow->EnableVisibilityChangeEvents();
 	
@@ -132,14 +148,19 @@ CWindow::CWindow() {
 }
 
 CWindow::~CWindow() {
-	if (iWindowGc != NULL) {
+	if (iWindowGc) {
 		delete iWindowGc;
+		iWindowGc = NULL;
 	}
-	if (iWindow != NULL) {
+	if (iWindow) {
 		iWindow->SetOrdinalPosition(KOrdinalPositionSwitchToOwningWindow);
 		iWindow->Close();
 		delete iWindow;
 		iWindow = NULL;
+	}
+	if (iWsEventReceiver) {
+		delete iWsEventReceiver;
+		iWsEventReceiver = NULL;
 	}
 }
 
@@ -151,7 +172,7 @@ void CWindow::ConstructL() {
 	
 	iWsSession = env->WsSession();
 	
-	TRAPD(err, CreateNativeWindowL());
+	TRAPD(err, CreateWindowL());
 	if (err) {
 		User::Panic(_L("Window creation failed"), err);
 	}
@@ -179,6 +200,15 @@ void CWindow::ConstructL() {
 	}
 	
 	DisplayInfo.Depth = bufferSize;
+	
+	if (!iWsEventReceiver){
+		TRAPD(err,
+			iWsEventReceiver = CWsEventReceiver::NewL(*this);
+		);
+		if (err) {
+			User::Panic(_L("Failed to create CWsEventReceiver"), 0);
+		}
+	}
 }
 
 static int ConvertKey(TInt aScanCode) {
@@ -226,6 +256,12 @@ static int ConvertKey(TInt aScanCode) {
 
 void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	TInt eventType = aWsEvent.Type();
+//	MYLOG("HandleWsEvent\n");
+//	cc_string msg; char msgB[64];
+//	String_InitArray(msg, msgB);
+//	String_AppendConst(&msg, "HandleWsEvent: ");
+//	String_AppendInt(&msg, (int) eventType);
+//	Logger_Log(&msg);
 	// TODO
 	switch (eventType) {
 	case EEventKeyDown: {
@@ -242,8 +278,8 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		MYLOG("EEventScreenDeviceChanged\n");
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-		//if (pixnrot.iPixelSize != iWindow->Size()) {
-			//MYLOG("Resized\n");
+		if (pixnrot.iPixelSize != iWindow->Size()) {
+			MYLOG("Resized\n");
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
 			TInt w = pixnrot.iPixelSize.iWidth,
@@ -256,29 +292,29 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			WindowInfo.Height = h;
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
-		//}   
+		}   
 		break;
 	}
 	case EEventFocusLost: {
 		MYLOG("EEventFocusLost\n");
-		WindowInfo.Focused = false;
+		//WindowInfo.Focused = false;
 		
-		Event_RaiseVoid(&WindowEvents.FocusChanged);
+		//Event_RaiseVoid(&WindowEvents.FocusChanged);
 		break;
 	}
 	case EEventFocusGained: {
 		MYLOG("EEventFocusGained\n");
-		WindowInfo.Focused = true;
+		//WindowInfo.Focused = true;
 		
-		Event_RaiseVoid(&WindowEvents.FocusChanged);
+		//Event_RaiseVoid(&WindowEvents.FocusChanged);
 		break;
 	}
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
 			MYLOG("EEventWindowVisibilityChanged\n");
-			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
+			//WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
 
-			Event_RaiseVoid(&WindowEvents.InactiveChanged);
+			//Event_RaiseVoid(&WindowEvents.InactiveChanged);
 		}
 		break;
 	}
@@ -353,26 +389,87 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 }
 
 void CWindow::ProcessEvents(float delta) {
+//	MYLOG("+ProcessEvents\n")
+//	TBool block = !WindowInfo.Focused;
+	RThread thread;
+    TInt error = KErrNone;
+    
+//    if (block && !thread.RequestCount()) {
+//    	User::WaitForAnyRequest();
+//    	CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
+//    }
+	
+	while (thread.RequestCount()) {
+		TInt res = CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
+		if (res)
+			User::WaitForAnyRequest();
+	}
+    
+    /*
 	while (iWsEventStatus != KRequestPending) {
 		iWsSession.GetEvent(window->iWsEvent);
 		HandleWsEvent(window->iWsEvent);
 		iWsEventStatus = KRequestPending;
 		iWsSession.EventReady(&iWsEventStatus);
 	}
+	*/
+//	MYLOG("-ProcessEvents\n")
 }
 
 void CWindow::RequestClose() {
 	// TODO
+	Event_RaiseVoid(&WindowEvents.Closing);
 }
 
 void CWindow::InitEvents() {
 	MYLOG("+InitEvents\n")
-	if (iEventsInitialized)
-		return;
-	iEventsInitialized = ETrue;
-	iWsEventStatus = KRequestPending;
-	iWsSession.EventReady(&iWsEventStatus);
+//	if (iEventsInitialized)
+//		return;
+//	iEventsInitialized = ETrue;
+//	iWsEventStatus = KRequestPending;
+//	iWsSession.EventReady(&iWsEventStatus);
+	
 	MYLOG("-InitEvents\n")
+}
+
+//
+
+CWsEventReceiver::CWsEventReceiver()
+: CActive(CActive::EPriorityStandard) {
+}
+
+CWsEventReceiver::~CWsEventReceiver() {
+	Cancel();
+}
+
+CWsEventReceiver* CWsEventReceiver::NewL(CWindow& aParent) {
+CWsEventReceiver* self = new (ELeave) CWsEventReceiver;
+	CleanupStack::PushL(self);
+	self->ConstructL(aParent);
+	CleanupStack::Pop(self);
+	return self;
+}
+
+void CWsEventReceiver::ConstructL(CWindow& aParent) {
+	iParent = &aParent;
+	iWsSession = CCoeEnv::Static()->WsSession();
+	iWsSession.EventReady(&iStatus);
+	CActiveScheduler::Add(this);
+	SetActive();
+}
+
+void CWsEventReceiver::RunL() {
+	TWsEvent wsEvent;
+	iWsSession.GetEvent(wsEvent);
+	iParent->HandleWsEvent(wsEvent);
+	
+	iWsSession.EventReady(&iStatus);
+	
+	SetActive();
+}
+
+void CWsEventReceiver::DoCancel() {
+	iWsSession.EventReadyCancel();
 }
 
 //
@@ -385,12 +482,28 @@ void Window_PreInit(void) {
 	if (err != KErrNone) {
 		User::Panic(_L("Failed to create CoeEnv"), 0);
 	}
+	
+	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	if (!eglInitialize(ctx_display, NULL, NULL)) {
+		User::Panic(_L("Failed to initialize EGL"), 0);
+	}
+
+	TRAP(err,
+	delete CActiveScheduler::Current();            
+	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
+	CActiveScheduler::Install(actScheduler);
+	);
+	
+	if (err != KErrNone) {
+		User::Panic(_L("Failed to initialize CActiveScheduler"), 0);
+	}
+	
 	MYLOG("-Window_PreInit\n")
 }
 
 void Window_Init(void) {
 	MYLOG("+Window_Init\n")
-	TRAPD(err, window = CWindow::NewLC());
+	TRAPD(err, window = CWindow::NewL());
 	MYLOG("Window_Init 1\n")
 	if (err) {
 		User::Panic(_L("Failed to initialize CWindow"), err);
@@ -424,6 +537,8 @@ void Window_Create3D(int width, int height) {
 
 void Window_Destroy(void) {
 	MYLOG("Window_Destroy\n")
+	CCoeEnv::Static()->DestroyEnvironment();
+	delete CCoeEnv::Static();
 }
 
 void Window_SetTitle(const cc_string* title) { }
@@ -586,6 +701,20 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	MYLOG("-FreeFramebuffer\n");
 }
 #endif
+
+static void GLContext_InitSurface(void) {
+	MYLOG("+GLContext_InitSurface\n")
+	if (!window) return; /* window not created or lost */
+	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window->iWindow, NULL);
+	MYLOG("GLContext_InitSurface 1\n")
+	if (!ctx_context)
+		ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
+	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
+
+	if (!ctx_surface) return;
+	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
+	MYLOG("-GLContext_InitSurface\n")
+}
 /*
 void* GLContext_GetAddress(const char* function) {
 	MYLOG("GLContext_GetAddress");

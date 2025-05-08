@@ -636,7 +636,11 @@ typedef struct cc_string_ {
 Thus it is **NOT SAFE** to allocate a string on the stack. */
 #define STRING_REF
 
+#ifdef CC_BUILD_SYMBIAN
+typedef unsigned int GfxResourceID;
+#else
 typedef void* GfxResourceID;
+#endif
 
 /* Contains the information to describe a 2D textured quad. */
 struct Texture {
