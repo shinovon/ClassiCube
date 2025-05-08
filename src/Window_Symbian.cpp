@@ -113,6 +113,9 @@ void CWindow::CreateWindowL() {
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 	
+#if 1
+	iWindow->EnableAdvancedPointers();
+#endif
 	iWindow->Activate();
 	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
@@ -325,12 +328,12 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	}
 	case EEventPointer: {
 		MYLOG("EEventPointer\n");
-#if 1
+#if 0
 		TPointerEvent* pointer = aWsEvent.Pointer();
 		long num = 0;
 #else
 		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
-		long num = pointer->PointerNumber();
+		long num = pointer->IsAdvancedPointerEvent() ? pointer->PointerNumber() : 0;
 #endif
 		TPoint pos = pointer->iPosition;
 		switch (pointer->iType) {
