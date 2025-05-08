@@ -87,7 +87,11 @@ void Gfx_Create(void) {
 #ifdef CC_BUILD_GL11_FALLBACK
 	GLContext_GetAll(coreFuncs, Array_Elems(coreFuncs));
 #endif
+#ifdef CC_BUILD_SYMBIAN
+	customMipmapsLevels = false;
+#else
 	customMipmapsLevels = true;
+#endif
 	Gfx.BackendType     = CC_GFX_BACKEND_GL1;
 
 	MYLOG("Gfx_Create 2\n");
@@ -112,16 +116,11 @@ GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
 #endif
 	GfxResourceID id = 0;
 	cc_uint32 size   = count * sizeof(cc_uint16);
-	MYLOG("Gfx_CreateIb2 1\n");
 
 	_glGenBuffers(1, (GLuint*)&id);
-	MYLOG("Gfx_CreateIb2 2\n");
 	fillFunc(gl_indices, count, obj);
-	MYLOG("Gfx_CreateIb2 3\n");
 	_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-	MYLOG("Gfx_CreateIb2 4\n");
 	_glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, gl_indices, GL_STATIC_DRAW);
-	MYLOG("-Gfx_CreateIb2\n");
 	return id;
 }
 

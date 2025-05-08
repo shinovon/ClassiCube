@@ -104,7 +104,10 @@ static void ExceptionHandler(TExcType type) {
 }
 
 void Symbian_Init(void) {
-	//User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+//#ifdef __WINSCW__
+//   User::SetJustInTime(false);
+//#endif
+//	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 }
 
 #endif

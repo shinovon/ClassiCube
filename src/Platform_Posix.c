@@ -194,14 +194,25 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /* clock_gettime is optional, see http://pubs.opengroup.org/onlinepubs/009696899/functions/clock_getres.html */
 /* "... These functions are part of the Timers option and need not be available on all implementations..." */
 cc_uint64 Stopwatch_Measure(void) {
+#if defined CC_BUILD_SYMBIAN
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000000000LL + (tv.tv_usec * 1000);
+#else
 	struct timespec t;
-	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX
+	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX || defined CC_BUILD_SYMBIAN
 	clock_gettime(CLOCK_REALTIME, &t);
 	#else
 	/* TODO: CLOCK_MONOTONIC_RAW ?? */
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	#endif
+#if defined CC_BUILD_SYMBIAN
+	/* TODO */
+	return (cc_uint32)t.tv_sec * NS_PER_SEC + t.tv_nsec;
+#else
 	return (cc_uint64)t.tv_sec * NS_PER_SEC + t.tv_nsec;
+#endif
+#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {

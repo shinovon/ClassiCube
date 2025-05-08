@@ -118,6 +118,7 @@ void CWindow::CreateWindowL() {
 	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
 	iWindow->EnableVisibilityChangeEvents();
+	iWindow->PointerFilter(EPointerFilterDrag, 0);
 	
 	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
 	CApaWindowGroupName* rootWindGroupName = 0;
@@ -136,11 +137,15 @@ void CWindow::CreateWindowL() {
 	
 	DisplayInfo.Width = w;
 	DisplayInfo.Height = h;
+	DisplayInfo.ScaleX = 1;
+	DisplayInfo.ScaleY = 1;
 	
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
+	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
+	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
 	
-	//iWsSession.EventReadyCancel();
+	iWsSession.EventReadyCancel();
 }
 
 CWindow::CWindow() {
@@ -201,14 +206,14 @@ void CWindow::ConstructL() {
 	
 	DisplayInfo.Depth = bufferSize;
 	
-	if (!iWsEventReceiver){
-		TRAPD(err,
-			iWsEventReceiver = CWsEventReceiver::NewL(*this);
-		);
-		if (err) {
-			User::Panic(_L("Failed to create CWsEventReceiver"), 0);
-		}
-	}
+//	if (!iWsEventReceiver){
+//		TRAPD(err,
+//			iWsEventReceiver = CWsEventReceiver::NewL(*this);
+//		);
+//		if (err) {
+//			User::Panic(_L("Failed to create CWsEventReceiver"), 0);
+//		}
+//	}
 }
 
 static int ConvertKey(TInt aScanCode) {
@@ -278,7 +283,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		MYLOG("EEventScreenDeviceChanged\n");
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-		if (pixnrot.iPixelSize != iWindow->Size()) {
+		//if (pixnrot.iPixelSize != iWindow->Size()) {
 			MYLOG("Resized\n");
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
@@ -292,7 +297,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			WindowInfo.Height = h;
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
-		}   
+		//}   
 		break;
 	}
 	case EEventFocusLost: {
@@ -320,22 +325,25 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	}
 	case EEventPointer: {
 		MYLOG("EEventPointer\n");
-		/*TAdvancedPointerEvent*/ TPointerEvent* pointer = aWsEvent.Pointer();
-		
-		//long num = pointer->PointerNumber();
-		long num = 1;
+#if 1
+		TPointerEvent* pointer = aWsEvent.Pointer();
+		long num = 0;
+#else
+		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
+		long num = pointer->PointerNumber();
+#endif
 		TPoint pos = pointer->iPosition;
 		switch (pointer->iType) {
 		case TPointerEvent::EButton1Down:
-			MYLOG("AddTouch\n");
+//			MYLOG("AddTouch\n");
 			Input_AddTouch(num, pos.iX, pos.iY);
 			break;
 		case TPointerEvent::EDrag:
-			MYLOG("UpdateTouch\n");
-			Input_UpdateTouch(num, pos.iX, pos.iY);
+//			MYLOG("UpdateTouch\n");
+			Input_AddTouch(num, pos.iX, pos.iY);
 			break;
 		case TPointerEvent::EButton1Up:
-			MYLOG("RemoveTouch\n");
+//			MYLOG("RemoveTouch\n");
 			Input_RemoveTouch(num, pos.iX, pos.iY);
 			break;
 		default:
@@ -391,28 +399,28 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 void CWindow::ProcessEvents(float delta) {
 //	MYLOG("+ProcessEvents\n")
 //	TBool block = !WindowInfo.Focused;
-	RThread thread;
-    TInt error = KErrNone;
+//	RThread thread;
+//    TInt error = KErrNone;
     
 //    if (block && !thread.RequestCount()) {
 //    	User::WaitForAnyRequest();
 //    	CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
 //    }
 	
-	while (thread.RequestCount()) {
-		TInt res = CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
-		if (res)
-			User::WaitForAnyRequest();
-	}
+//	while (thread.RequestCount()) {
+//		TInt res = CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
+//		if (res)
+//			User::WaitForAnyRequest();
+//	}
     
-    /*
+    
 	while (iWsEventStatus != KRequestPending) {
 		iWsSession.GetEvent(window->iWsEvent);
 		HandleWsEvent(window->iWsEvent);
 		iWsEventStatus = KRequestPending;
 		iWsSession.EventReady(&iWsEventStatus);
 	}
-	*/
+	
 //	MYLOG("-ProcessEvents\n")
 }
 
@@ -423,11 +431,11 @@ void CWindow::RequestClose() {
 
 void CWindow::InitEvents() {
 	MYLOG("+InitEvents\n")
-//	if (iEventsInitialized)
-//		return;
-//	iEventsInitialized = ETrue;
-//	iWsEventStatus = KRequestPending;
-//	iWsSession.EventReady(&iWsEventStatus);
+	if (iEventsInitialized)
+		return;
+	iEventsInitialized = ETrue;
+	iWsEventStatus = KRequestPending;
+	iWsSession.EventReady(&iWsEventStatus);
 	
 	MYLOG("-InitEvents\n")
 }
@@ -488,11 +496,11 @@ void Window_PreInit(void) {
 		User::Panic(_L("Failed to initialize EGL"), 0);
 	}
 
-	TRAP(err,
-	delete CActiveScheduler::Current();            
-	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
-	CActiveScheduler::Install(actScheduler);
-	);
+//	TRAP(err,
+//	delete CActiveScheduler::Current();            
+//	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
+//	CActiveScheduler::Install(actScheduler);
+//	);
 	
 	if (err != KErrNone) {
 		User::Panic(_L("Failed to initialize CActiveScheduler"), 0);
@@ -567,11 +575,11 @@ void Window_ProcessEvents(float delta) {
 	window->ProcessEvents(delta);
 }
 
-void Window_EnableRawMouse(void)  {  }
+void Window_EnableRawMouse(void)  { Input.RawMode = true; }
 
 void Window_UpdateRawMouse(void)  {  }
 
-void Window_DisableRawMouse(void) {  }
+void Window_DisableRawMouse(void) { Input.RawMode = false; }
 
 void Gamepads_Init(void) {
 	
@@ -702,19 +710,19 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 }
 #endif
 
-static void GLContext_InitSurface(void) {
-	MYLOG("+GLContext_InitSurface\n")
-	if (!window) return; /* window not created or lost */
-	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window->iWindow, NULL);
-	MYLOG("GLContext_InitSurface 1\n")
-	if (!ctx_context)
-		ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
-	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
-
-	if (!ctx_surface) return;
-	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
-	MYLOG("-GLContext_InitSurface\n")
-}
+//static void GLContext_InitSurface(void) {
+//	MYLOG("+GLContext_InitSurface\n")
+//	if (!window) return; /* window not created or lost */
+//	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window->iWindow, NULL);
+//	MYLOG("GLContext_InitSurface 1\n")
+//	if (!ctx_context)
+//		ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
+//	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
+//
+//	if (!ctx_surface) return;
+//	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
+//	MYLOG("-GLContext_InitSurface\n")
+//}
 /*
 void* GLContext_GetAddress(const char* function) {
 	MYLOG("GLContext_GetAddress");

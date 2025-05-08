@@ -112,21 +112,19 @@ static EGLSurface ctx_surface;
 static EGLConfig ctx_config;
 static cc_uintptr ctx_visualID;
 
-#if defined CC_BUILD_SWITCH || defined CC_BUILD_SYMBIAN
+#ifdef CC_BUILD_SWITCH
 static void GLContext_InitSurface(void); // replacement in Window_Switch.c for handheld/docked resolution fix
 #else
 static void GLContext_InitSurface(void) {
 	MYLOG("+GLContext_InitSurface\n")
 #ifdef CC_BUILD_SYMBIAN
-	void* window = (NativeWindowType)Window_Main.Handle.ptr;
+	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
 #else
 	EGLNativeWindowType window = (EGLNativeWindowType)Window_Main.Handle.ptr;
 #endif
 	if (!window) return; /* window not created or lost */
 	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window, NULL);
 	MYLOG("GLContext_InitSurface 1\n")
-	if (!ctx_context)
-	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
 
 	if (!ctx_surface) return;
 	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
@@ -177,6 +175,11 @@ static void ChooseEGLConfig(EGLConfig* configs, EGLint num_configs) {
 
 void GLContext_Create(void) {
 	MYLOG("+GLContext_Create\n")
+#if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
+	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+#elif !defined CC_BUILD_SYMBIAN
+	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 1, EGL_NONE };
+#endif
 	static EGLint attribs[] = {
 #if defined CC_BUILD_SYMBIAN
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
@@ -199,13 +202,6 @@ void GLContext_Create(void) {
 #endif
 		EGL_NONE
 	};
-	
-#if !defined CC_BUILD_SYMBIAN
-#if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
-	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
-#elif !defined CC_BUILD_SYMBIAN
-	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 1, EGL_NONE };
-#endif
 
 #ifndef CC_BUILD_SYMBIAN
 	struct GraphicsMode mode;
@@ -218,6 +214,7 @@ void GLContext_Create(void) {
 
 	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	eglInitialize(ctx_display, NULL, NULL);
+#if !defined CC_BUILD_SYMBIAN
 	eglBindAPI(EGL_OPENGL_ES_API);
 	
 	EGLConfig configs[64];
@@ -247,8 +244,9 @@ void GLContext_Create(void) {
 	EGLint numConfigs;
 	
 	eglChooseConfig(ctx_display, attribs, &ctx_config, 1, &numConfigs);
+	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
 #endif
-	//if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
+	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 	GLContext_InitSurface();
 }
 
@@ -287,7 +285,6 @@ cc_bool GLContext_SwapBuffers(void) {
 	}
 	
 	if (eglSwapBuffers(ctx_display, ctx_surface)) {
-		User::ResetInactivityTime();
 		return true;
 	}
 	
