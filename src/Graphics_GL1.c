@@ -726,6 +726,7 @@ static void GLBackend_Init(void) {
 	_glBindBuffer    = glBindBuffer;
 	_glBufferData    = glBufferData;
 	_glBufferSubData = glBufferSubData;
+	convert_rgba = true;
 #else
 	
 	static const struct DynamicLibSym coreVboFuncs[] = {

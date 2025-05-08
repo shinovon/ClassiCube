@@ -305,24 +305,24 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	}
 	case EEventFocusLost: {
 		MYLOG("EEventFocusLost\n");
-		//WindowInfo.Focused = false;
+		WindowInfo.Focused = false;
 		
-		//Event_RaiseVoid(&WindowEvents.FocusChanged);
+		Event_RaiseVoid(&WindowEvents.FocusChanged);
 		break;
 	}
 	case EEventFocusGained: {
 		MYLOG("EEventFocusGained\n");
-		//WindowInfo.Focused = true;
+		WindowInfo.Focused = true;
 		
-		//Event_RaiseVoid(&WindowEvents.FocusChanged);
+		Event_RaiseVoid(&WindowEvents.FocusChanged);
 		break;
 	}
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
 			MYLOG("EEventWindowVisibilityChanged\n");
-			//WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
+			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
 
-			//Event_RaiseVoid(&WindowEvents.InactiveChanged);
+			Event_RaiseVoid(&WindowEvents.InactiveChanged);
 		}
 		break;
 	}
