@@ -273,6 +273,7 @@ void Launcher_Run(void) {
 
 #ifdef CC_BUILD_RESOURCES
 	Resources_CheckExistence();
+
 	if (Resources_MissingCount) {
 		CheckResourcesScreen_SetActive();
 	} else {

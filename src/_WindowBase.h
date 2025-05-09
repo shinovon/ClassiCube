@@ -169,24 +169,21 @@ static void ChooseEGLConfig(EGLConfig* configs, EGLint num_configs) {
 	}
 }
 
+#ifndef CC_BUILD_SYMBIAN
 void GLContext_Create(void) {
 #if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
-#elif !defined CC_BUILD_SYMBIAN
+#else
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 1, EGL_NONE };
 #endif
 	static EGLint attribs[] = {
-#if defined CC_BUILD_SYMBIAN
-		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
-		EGL_BUFFER_SIZE,       0,
-		EGL_DEPTH_SIZE,        16,
-#else
 		EGL_RED_SIZE,  0, EGL_GREEN_SIZE,  0,
 		EGL_BLUE_SIZE, 0, EGL_ALPHA_SIZE,  0,
 		EGL_DEPTH_SIZE,        GLCONTEXT_DEFAULT_DEPTH,
 		EGL_STENCIL_SIZE,      0,
 		EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
+
 #if defined CC_BUILD_GLES && (CC_GFX_BACKEND == CC_GFX_BACKEND_GL2)
 		EGL_RENDERABLE_TYPE,   EGL_OPENGL_ES2_BIT,
 #elif defined CC_BUILD_GLES
@@ -194,28 +191,22 @@ void GLContext_Create(void) {
 #else
 		EGL_RENDERABLE_TYPE,   EGL_OPENGL_BIT,
 #endif
-#endif
 		EGL_NONE
 	};
 
-#ifndef CC_BUILD_SYMBIAN
 	struct GraphicsMode mode;
 	InitGraphicsMode(&mode);
 	attribs[1] = mode.R; attribs[3] = mode.G;
 	attribs[5] = mode.B; attribs[7] = mode.A;
-#else
-	attribs[3] = DisplayInfo.Depth;
-#endif
 
 	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	eglInitialize(ctx_display, NULL, NULL);
-#if !defined CC_BUILD_SYMBIAN
 	eglBindAPI(EGL_OPENGL_ES_API);
-	
+
 	EGLConfig configs[64];
 	EGLint numConfig = 0;
 
-	eglChooseConfig(ctx_display, attribs, configs, 1, &numConfig);
+	eglChooseConfig(ctx_display, attribs, configs, 64, &numConfig);
 	if (!numConfig) {
 		attribs[9] = 16; // some older devices only support 16 bit depth buffer
 		eglChooseConfig(ctx_display, attribs, configs, 64, &numConfig);
@@ -234,16 +225,12 @@ void GLContext_Create(void) {
 		ChooseEGLConfig(configs, numConfig);
 		DumpEGLConfig(ctx_config);
 	}
+
 	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, context_attribs);
-#else
-	EGLint numConfigs;
-	
-	eglChooseConfig(ctx_display, attribs, &ctx_config, 1, &numConfigs);
-	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
-#endif
 	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 	GLContext_InitSurface();
 }
+#endif
 
 void GLContext_Update(void) {
 	GLContext_FreeSurface();
@@ -268,19 +255,8 @@ void* GLContext_GetAddress(const char* function) {
 
 cc_bool GLContext_SwapBuffers(void) {
 	EGLint err;
-	if (!ctx_surface) {
-		return false;
-	}
-
-	err = eglGetError();
-	if (err && err != EGL_SUCCESS) {
-		Logger_SimpleWarn(err, "eglGetError");
-	}
-	
-	if (eglSwapBuffers(ctx_display, ctx_surface)) {
-		return true;
-	}
-	
+	if (!ctx_surface) return false;
+	if (eglSwapBuffers(ctx_display, ctx_surface)) return true;
 #ifdef CC_BUILD_SYMBIAN
 	if (GLContext_TryRestore() && eglSwapBuffers(ctx_display, ctx_surface)) {
 		return true;

@@ -581,7 +581,7 @@ static void NotchyGen_CreateSurfaceLayer(void) {
 
 	Gen_CurrentState = "Creating surface";
 	for (z = 0; z < World.Length; z++) {
-		//Gen_CurrentProgress = (float)z / World.Length;
+		Gen_CurrentProgress = (float)z / World.Length;
 
 		for (x = 0; x < World.Width; x++) {
 			y = heightmap[hIndex++];

@@ -21,8 +21,9 @@
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
 #define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
 #include "../misc/opengl/GL1Funcs.h"
+#ifdef CC_BUILD_SYMBIAN
 #include "../misc/opengl/GL2Funcs.h"
-//#include "gles/gl.h"
+#endif
 
 #if defined CC_BUILD_GL11
 static GLuint activeList;
@@ -86,13 +87,9 @@ void Gfx_Create(void) {
 #ifdef CC_BUILD_GL11_FALLBACK
 	GLContext_GetAll(coreFuncs, Array_Elems(coreFuncs));
 #endif
-#ifdef CC_BUILD_SYMBIAN
-	customMipmapsLevels = false;
-#else
 	customMipmapsLevels = true;
-#endif
 	Gfx.BackendType     = CC_GFX_BACKEND_GL1;
-	
+
 	GL_InitCommon();
 	GLBackend_Init();
 	Gfx_RestoreState();
@@ -108,7 +105,7 @@ GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
 #ifndef CC_BUILD_SMALLSTACK
 	cc_uint16* gl_indices[GFX_MAX_INDICES];
 #endif
-	GfxResourceID id = 0;
+	GfxResourceID id = NULL;
 	cc_uint32 size   = count * sizeof(cc_uint16);
 
 	_glGenBuffers(1, (GLuint*)&id);
@@ -118,9 +115,7 @@ GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
 	return id;
 }
 
-void Gfx_BindIb(GfxResourceID ib) {
-	_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib);
-}
+void Gfx_BindIb(GfxResourceID ib) { _glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib); }
 
 void Gfx_DeleteIb(GfxResourceID* ib) {
 	GfxResourceID id = *ib;
@@ -141,7 +136,7 @@ void Gfx_DeleteIb(GfxResourceID* ib) { }
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocStaticVb(VertexFormat fmt, int count) {
-	GfxResourceID id = 0;
+	GfxResourceID id = NULL;
 	_glGenBuffers(1, (GLuint*)&id);
 	_glBindBuffer(GL_ARRAY_BUFFER, id);
 	return id;
@@ -219,7 +214,7 @@ GfxResourceID Gfx_CreateVb2(void* vertices, VertexFormat fmt, int count) {
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocDynamicVb(VertexFormat fmt, int maxVertices) {
-	GfxResourceID id = 0;
+	GfxResourceID id = NULL;
 	cc_uint32 size   = maxVertices * strideSizes[fmt];
 
 	_glGenBuffers(1, (GLuint*)&id);

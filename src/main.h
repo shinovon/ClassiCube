@@ -20,9 +20,5 @@ cc_bool Resume_Parse(struct ResumeInfo* info, cc_bool full);
 cc_bool DirectUrl_Claims(const cc_string* STRING_REF input, cc_string* addr, cc_string* user, cc_string* mppass);
 void    DirectUrl_ExtractAddress(const cc_string* STRING_REF addr, cc_string* ip, cc_string* port);
 
-#ifdef CC_NOMAIN
-int main_real(int argc, char** argv);
-#endif
-
 CC_END_HEADER
 #endif

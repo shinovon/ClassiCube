@@ -211,7 +211,7 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_MOBILE
 	#define CC_BUILD_POSIX
 	#define CC_BUILD_GLES
-	#define CC_BUILD
+	#define CC_BUILD_EGL
 	#define CC_BUILD_TOUCH
 	#define CC_BUILD_OPENSLES
 	#define DEFAULT_AUD_BACKEND CC_AUD_BACKEND_OPENSLES
@@ -561,16 +561,15 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_NOMUSIC
 	#define CC_BUILD_NOSOUNDS
 	#define CC_BUILD_SMALLSTACK
-	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
-	//#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN
-	//#define DEFAULT_SSL_BACKEND CC_SSL_BACKEND_BEARSSL
-	#undef  CC_BUILD_NETWORKING
-	#undef CC_BUILD_ADVLIGHTING
 	#define CC_BUILD_TINYSTACK
-	#undef CC_BUILD_PLUGINS
 	#define CC_BUILD_LOWMEM
 	#define CC_BUILD_SYMBIAN_MULTITOUCH
-	#undef EXTENDED_TEXTURES
+	#undef  CC_BUILD_NETWORKING
+	#undef  CC_BUILD_PLUGINS
+	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
+	/*#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN*/
+	/*#define DEFAULT_SSL_BACKEND CC_SSL_BACKEND_BEARSSL*/
+	#undef  _WIN32
 #endif
 #endif
 
@@ -637,11 +636,7 @@ typedef struct cc_string_ {
 Thus it is **NOT SAFE** to allocate a string on the stack. */
 #define STRING_REF
 
-//#ifdef CC_BUILD_SYMBIAN
-//typedef unsigned int GfxResourceID;
-//#else
 typedef void* GfxResourceID;
-//#endif
 
 /* Contains the information to describe a 2D textured quad. */
 struct Texture {

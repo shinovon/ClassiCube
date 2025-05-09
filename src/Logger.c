@@ -1142,7 +1142,6 @@ static cc_bool logOpen;
 
 void Logger_Log(const cc_string* msg) {
 	static const cc_string path = String_FromConst("client.log");
-	Platform_Log(msg->buffer, msg->length);
 	if (!logOpen) {
 		logOpen = true;
 		Stream_AppendFile(&logStream, &path);

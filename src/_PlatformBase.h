@@ -76,7 +76,6 @@ void Platform_Log4(const char* format, const void* a1, const void* a2, const voi
 	String_InitArray(msg, msgBuffer);
 
 	String_Format4(&msg, format, a1, a2, a3, a4);
-	Logger_Log(&msg);
 	Platform_Log(msg.buffer, msg.length);
 }
 

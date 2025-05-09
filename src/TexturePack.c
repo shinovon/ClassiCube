@@ -552,14 +552,14 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	res = ExtractPng(stream);
 	if (res == PNG_ERR_INVALID_SIG) {
 		/* file isn't a .png image, probably a .zip archive then */
-		res = Zip_Extract(stream, SelectZipEntry, ProcessZipEntry,
-							entries,
+
 #ifdef CC_BUILD_SMALLSTACK
-							512
+		res = Zip_Extract(stream, SelectZipEntry, ProcessZipEntry,
+							entries, 512);
 #else
-							Array_Elems(entries)
+		res = Zip_Extract(stream, SelectZipEntry, ProcessZipEntry,
+							entries, Array_Elems(entries));
 #endif
-								);
 
 		if (res) Logger_SysWarn2(res, "extracting", path);
 	} else if (res) {
@@ -585,7 +585,6 @@ static cc_result ExtractFromFile(const cc_string* path) {
 static cc_result ExtractFromFile(const cc_string* path) {
 	struct Stream stream;
 	cc_result res;
-	Logger_Log(path);
 
 	res = Stream_OpenFile(&stream, path);
 	if (res) { Logger_SysWarn2(res, "opening", path); return res; }
@@ -608,7 +607,7 @@ static cc_result ExtractUserTextures(void) {
 
 	path = TexturePack_Path;
 	if (String_CaselessEqualsConst(&path, "texpacks/default.zip")) path.length = 0;
-	if (Game_ClassicMode || path.length == 0 || true) return res;
+	if (Game_ClassicMode || path.length == 0) return res;
 
 	/* override default textures with user's selected texture pack */
 	return ExtractFromFile(&path);

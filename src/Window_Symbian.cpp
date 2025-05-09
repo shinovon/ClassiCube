@@ -449,8 +449,6 @@ void Window_Create3D(int width, int height) {
 }
 
 void Window_Destroy(void) {
-	CCoeEnv::Static()->DestroyEnvironment();
-	delete CCoeEnv::Static();
 }
 
 void Window_SetTitle(const cc_string* title) { }
@@ -540,6 +538,24 @@ void Window_DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	window->FreeFrameBuffer();
 	Mem_Free(bmp->scan0);
+}
+
+void GLContext_Create(void) {
+	static EGLint attribs[] = {
+		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
+		EGL_BUFFER_SIZE,       DisplayInfo.Depth,
+		EGL_DEPTH_SIZE,        16,
+		EGL_NONE
+	};
+
+	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	eglInitialize(ctx_display, NULL, NULL);
+	EGLint numConfigs;
+	
+	eglChooseConfig(ctx_display, attribs, &ctx_config, 1, &numConfigs);
+	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
+	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
+	GLContext_InitSurface();
 }
 
 //static void GLContext_InitSurface(void) {
