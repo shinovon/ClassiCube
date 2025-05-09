@@ -563,7 +563,6 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_TOUCH
 	#define CC_BUILD_SYMBIAN_MULTITOUCH
 	#undef  CC_BUILD_PLUGINS
-	#undef  _WIN32
 	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
 	/* TODO */
 	#undef  CC_BUILD_NETWORKING
