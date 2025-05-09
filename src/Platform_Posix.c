@@ -13,7 +13,11 @@
 #include <errno.h>
 #include <time.h>
 #include <stdlib.h>
+#if defined CC_BUILD_SYMBIAN
+#include <stdapis/string.h>
+#else
 #include <string.h>
+#endif
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -25,6 +29,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#if defined CC_BUILD_SYMBIAN
+#include <sys/select.h>
+#endif
 #include <utime.h>
 #include <signal.h>
 #include <stdio.h>
@@ -86,10 +93,11 @@ cc_bool Platform_ReadonlyFilesystem;
 /*########################################################################################################################*
 *---------------------------------------------------------Memory----------------------------------------------------------*
 *#########################################################################################################################*/
-void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return memset( dst, value, numBytes); }
-void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return memcpy( dst, src,   numBytes); }
-void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return memmove(dst, src,   numBytes); }
+void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return (void*) memset( dst, value, numBytes); }
+void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return (void*) memcpy( dst, src,   numBytes); }
+void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*) memmove(dst, src,   numBytes); }
 
+#ifndef CC_BUILD_SYMBIAN
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? malloc(size) : NULL;
@@ -107,6 +115,7 @@ void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 void Mem_Free(void* mem) {
 	if (mem) free(mem);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -122,6 +131,7 @@ void Platform_Log(const char* msg, int len) {
 	/* Avoid "ignoring return value of 'write' declared with attribute 'warn_unused_result'" warning */
 	ret = write(STDOUT_FILENO, msg,  len);
 	ret = write(STDOUT_FILENO, "\n",   1);
+	
 }
 #endif
 
@@ -184,14 +194,25 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /* clock_gettime is optional, see http://pubs.opengroup.org/onlinepubs/009696899/functions/clock_getres.html */
 /* "... These functions are part of the Timers option and need not be available on all implementations..." */
 cc_uint64 Stopwatch_Measure(void) {
+#if defined CC_BUILD_SYMBIAN
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000000000LL + (tv.tv_usec * 1000);
+#else
 	struct timespec t;
-	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX
+	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX || defined CC_BUILD_SYMBIAN
 	clock_gettime(CLOCK_REALTIME, &t);
 	#else
 	/* TODO: CLOCK_MONOTONIC_RAW ?? */
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	#endif
+#if defined CC_BUILD_SYMBIAN
+	/* TODO */
+	return (cc_uint32)t.tv_sec * NS_PER_SEC + t.tv_nsec;
+#else
 	return (cc_uint64)t.tv_sec * NS_PER_SEC + t.tv_nsec;
+#endif
+#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
@@ -325,7 +346,7 @@ cc_result Directory_Enum(const cc_string* dirPath, void* obj, Directory_EnumCall
 		len = String_Length(src);
 		String_AppendUtf8(&path, src, len);
 
-#if defined CC_BUILD_HAIKU || defined CC_BUILD_SOLARIS || defined CC_BUILD_HPUX || defined CC_BUILD_IRIX || defined CC_BUILD_BEOS
+#if defined CC_BUILD_HAIKU || defined CC_BUILD_SOLARIS || defined CC_BUILD_HPUX || defined CC_BUILD_IRIX || defined CC_BUILD_BEOS || defined CC_BUILD_SYMBIAN
 		{
 			char full_path[NATIVE_STR_LEN];
 			struct stat sb;
@@ -434,7 +455,9 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	
 	*handle = ptr;
 	pthread_attr_init(&attrs);
+#if !defined CC_BUILD_SYMBIAN
 	pthread_attr_setstacksize(&attrs, stackSize);
+#endif
 	
 	res = pthread_create(ptr, &attrs, ExecThread, (void*)func);
 	if (res) Process_Abort2(res, "Creating thread");
@@ -630,6 +653,11 @@ void Platform_LoadSysFonts(void) {
 		String_FromConst("/@unixroot/usr/share/fonts"),
 		String_FromConst("/@unixroot/usr/local/share/fonts")
 	};
+#elif defined CC_BUILD_SYMBIAN
+	static const cc_string dirs[] = {
+		String_FromConst("Z:/resource/fonts"),
+		String_FromConst("C:/resource/fonts")
+	};
 #else
 	static const cc_string dirs[] = {
 		String_FromConst("/usr/share/fonts"),
@@ -794,7 +822,7 @@ void Socket_Close(cc_socket s) {
 	close(s);
 }
 
-#if defined CC_BUILD_DARWIN || defined CC_BUILD_BEOS
+#if defined CC_BUILD_DARWIN || defined CC_BUILD_BEOS || defined CC_BUILD_SYMBIAN
 /* poll is broken on old OSX apparently https://daniel.haxx.se/docs/poll-vs-select.html */
 /* BeOS lacks support for poll */
 static cc_result Socket_Poll(cc_socket s, int mode, cc_bool* success) {
@@ -907,6 +935,7 @@ void Process_Exit(cc_result code) { exit(code); }
 /* Implemented in Platform_Android.c */
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
+#elif defined CC_BUILD_SYMBIAN
 #elif defined CC_BUILD_MACOS
 cc_result Process_StartOpen(const cc_string* args) {
 	UInt8 str[NATIVE_STR_LEN];
@@ -1122,6 +1151,7 @@ cc_bool Updater_Supported = true;
 /* implemented in Platform_Android.c */
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
+#elif defined CC_BUILD_SYMBIAN
 #else
 cc_bool Updater_Clean(void) { return true; }
 
@@ -1291,6 +1321,8 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 
 #ifdef CC_BUILD_DARWIN
 const cc_string DynamicLib_Ext = String_FromConst(".dylib");
+#elif defined CC_BUILD_SYMBIAN
+const cc_string DynamicLib_Ext = String_FromConst(".dll");
 #else
 const cc_string DynamicLib_Ext = String_FromConst(".so");
 #endif
@@ -1318,6 +1350,7 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 static void Platform_InitPosix(void) {
+	cc_uintptr addr;
 	struct sigaction sa = { 0 };
 	sa.sa_handler = SIG_IGN;
 
@@ -1326,12 +1359,12 @@ static void Platform_InitPosix(void) {
 	sigaction(SIGPIPE, &sa, NULL);
 
 	/* Log runtime address to ease investigating crashes */
-	cc_uintptr addr = (cc_uintptr)Process_Exit;
+	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
 }
 void Platform_Free(void) { }
 
-#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX
+#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX || defined CC_BUILD_SYMBIAN
 cc_bool Platform_DescribeError(cc_result res, cc_string* dst) {
 	const char* err = strerror(res);
 	if (!err || res >= 1000) return false;
