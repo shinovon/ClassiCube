@@ -4,6 +4,7 @@ extern "C" {
 #include "Errors.h"
 #include "Platform.h"
 #include "Logger.h"
+#include "String.h"
 #include <unistd.h>
 #include <errno.h>
 }
@@ -80,21 +81,6 @@ void Mem_Free(void* mem) {
 }
 
 static void ExceptionHandler(TExcType type) {
-	MYLOG("Exception\n");
-	switch(type) {
-	case EExcIntegerDivideByZero:
-		MYLOG("EExcIntegerDivideByZero\n");
-		break;
-	case EExcAccessViolation:
-		MYLOG("EExcAccessViolation\n");
-		break;
-	case EExcStackFault:
-		MYLOG("EExcStackFault\n");
-		break;
-	case EExcPageFault:
-		MYLOG("EExcPageFault\n");
-		break;
-	}
 	cc_string msg; char msgB[64];
 	String_InitArray(msg, msgB);
 	String_AppendConst(&msg, "ExcType: ");
@@ -104,10 +90,9 @@ static void ExceptionHandler(TExcType type) {
 }
 
 void Symbian_Init(void) {
-//#ifdef __WINSCW__
-//   User::SetJustInTime(false);
-//#endif
-//	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#if !defined __WINSCW__ && !defined __DEBUG__
+	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#endif
 }
 
 #endif

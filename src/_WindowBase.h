@@ -116,7 +116,6 @@ static cc_uintptr ctx_visualID;
 static void GLContext_InitSurface(void); // replacement in Window_Switch.c for handheld/docked resolution fix
 #else
 static void GLContext_InitSurface(void) {
-	MYLOG("+GLContext_InitSurface\n")
 #ifdef CC_BUILD_SYMBIAN
 	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
 #else
@@ -124,16 +123,13 @@ static void GLContext_InitSurface(void) {
 #endif
 	if (!window) return; /* window not created or lost */
 	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window, NULL);
-	MYLOG("GLContext_InitSurface 1\n")
 
 	if (!ctx_surface) return;
 	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
-	MYLOG("-GLContext_InitSurface\n")
 }
 #endif
 
 static void GLContext_FreeSurface(void) {
-	MYLOG("+GLContext_FreeSurface\n")
 	if (!ctx_surface) return;
 	eglMakeCurrent(ctx_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglDestroySurface(ctx_display, ctx_surface);
@@ -174,7 +170,6 @@ static void ChooseEGLConfig(EGLConfig* configs, EGLint num_configs) {
 }
 
 void GLContext_Create(void) {
-	MYLOG("+GLContext_Create\n")
 #if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
 #elif !defined CC_BUILD_SYMBIAN
@@ -272,10 +267,8 @@ void* GLContext_GetAddress(const char* function) {
 }
 
 cc_bool GLContext_SwapBuffers(void) {
-	MYLOG("+GLContext_SwapBuffers\n")
 	EGLint err;
 	if (!ctx_surface) {
-		MYLOG("-no surface\n")
 		return false;
 	}
 
@@ -289,7 +282,6 @@ cc_bool GLContext_SwapBuffers(void) {
 	}
 	
 #ifdef CC_BUILD_SYMBIAN
-	MYLOG("-eglSwapBuffers fail\n")
 	if (GLContext_TryRestore() && eglSwapBuffers(ctx_display, ctx_surface)) {
 		return true;
 	}

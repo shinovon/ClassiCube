@@ -569,6 +569,7 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_TINYSTACK
 	#undef CC_BUILD_PLUGINS
 	#define CC_BUILD_LOWMEM
+	#define CC_BUILD_SYMBIAN_MULTITOUCH
 	#undef EXTENDED_TEXTURES
 #endif
 #endif

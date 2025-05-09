@@ -52,13 +52,5 @@ void Logger_Hook(void);
 void Logger_DoAbort(cc_result result, const char* raw_msg, void* ctx);
 void Logger_FailToStart(const char* raw_msg);
 
-#include "String.h"
-
-#define MYLOG(t) \
-{\
-	const cc_string msg = String_FromConst(t); \
-	Logger_Log(&msg); \
-}
-
 CC_END_HEADER
 #endif

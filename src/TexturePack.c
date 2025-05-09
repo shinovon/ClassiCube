@@ -49,7 +49,6 @@ static void LoadFallbackAtlas(void) {
 	src.width  = 16;
 	src.height = 8;
 	src.scan0  = fallback_terrain;
-	MYLOG("LoadFallbackAtlas\n");
 	
 	if (Gfx.MinTexWidth || Gfx.MinTexHeight) {
 		Bitmap_Allocate(&bmp, 16 * Gfx.MinTexWidth, 8 * Gfx.MinTexHeight);
@@ -522,7 +521,6 @@ static cc_result ProcessZipEntry(const cc_string* path, struct Stream* stream, s
 static cc_result ExtractPng(struct Stream* stream) {
 	struct Bitmap bmp;
 	cc_result res = Png_Decode(&bmp, stream);
-	MYLOG("ExtractPng\n");
 	if (!res && Atlas_TryChange(&bmp)) return 0;
 
 	Mem_Free(bmp.scan0);
@@ -537,7 +535,6 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	struct ZipEntry entries[512];
 #endif
 	cc_result res;
-	MYLOG("+ExtractFrom\n");
 #ifdef CC_BUILD_SMALLSTACK
 	if (!entries) return ERR_OUT_OF_MEMORY;
 #endif
@@ -568,7 +565,6 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	} else if (res) {
 		Logger_SysWarn2(res, "decoding", path);
 	}
-	MYLOG("-ExtractFrom\n");
 	ret:
 #ifdef CC_BUILD_SMALLSTACK
 	Mem_Free(entries);
@@ -589,19 +585,14 @@ static cc_result ExtractFromFile(const cc_string* path) {
 static cc_result ExtractFromFile(const cc_string* path) {
 	struct Stream stream;
 	cc_result res;
-	MYLOG("+ExtractFromFile\n");
 	Logger_Log(path);
 
 	res = Stream_OpenFile(&stream, path);
-	MYLOG("+ExtractFromFile 2\n");
-	if (res) { 
-		MYLOG("+ExtractFromFile E\n");Logger_SysWarn2(res, "opening", path); return res; }
-	MYLOG("+ExtractFromFile 3\n");
+	if (res) { Logger_SysWarn2(res, "opening", path); return res; }
 
 	res = ExtractFrom(&stream, path);
 	/* No point logging error for closing readonly file */
 	(void)stream.Close(&stream);
-	MYLOG("-ExtractFromFile\n");
 	return res;
 }
 #endif
@@ -609,7 +600,6 @@ static cc_result ExtractFromFile(const cc_string* path) {
 static cc_result ExtractUserTextures(void) {
 	cc_string path;
 	cc_result res;
-	MYLOG("+ExtractUserTextures\n");
 
 	/* TODO: Log error for multiple default texture pack extract failure */
 	res = TexturePack_ExtractDefault(ExtractFromFile);
@@ -629,7 +619,6 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 	cc_string url = TexturePack_Url;
 	struct Stream stream;
 	cc_result res = 0;
-	MYLOG("+TexturePack_ExtractCurrent\n");
 
 	/* don't pointlessly load default texture pack */
 	if (!usingDefault || forceReload) {
@@ -647,7 +636,6 @@ cc_result TexturePack_ExtractCurrent(cc_bool forceReload) {
 
 	/* Use fallback terrain texture with 1 pixel per tile */
 	if (!Atlas2D.Bmp.scan0) LoadFallbackAtlas();
-	MYLOG("-TexturePack_ExtractCurrent\n");
 	return res;
 }
 
@@ -692,7 +680,6 @@ void TexturePack_CheckPending(void) {
 static void DownloadAsync(const cc_string* url) {
 	cc_string etag = String_Empty;
 	cc_string time = String_Empty;
-	MYLOG("DownloadAsync\n");
 
 	/* Only retrieve etag/last-modified headers if the file exists */
 	/* This inconsistency can occur if user deleted some cached files */
@@ -706,7 +693,6 @@ static void DownloadAsync(const cc_string* url) {
 }
 
 void TexturePack_Extract(const cc_string* url) {
-	MYLOG("TexturePack_Extract\n");
 	if (url->length) DownloadAsync(url);
 
 	if (String_Equals(url, &TexturePack_Url)) return;

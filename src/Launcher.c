@@ -232,7 +232,6 @@ static void Launcher_Free(void) {
 
 void Launcher_Run(void) {
 	static const cc_string title = String_FromConst(GAME_APP_TITLE);
-	MYLOG("Launcher_Run\n")
 	Window_Create2D(640, 400);
 #ifdef CC_BUILD_MOBILE
 	Window_LockLandscapeOrientation(Options_GetBool(OPT_LANDSCAPE_MODE, false));
@@ -247,58 +246,41 @@ void Launcher_Run(void) {
 		Options_Set("update-dirty", NULL);
 	}
 #endif
-	MYLOG("Launcher_Run 1\n")
 	Drawer2D_Component.Init();
 	SystemFonts_Component.Init();
 	Drawer2D.BitmappedText    = false;
 	Drawer2D.BlackTextShadows = true;
-	MYLOG("Launcher_Run 2\n")
 
 	LBackend_Init();
-	MYLOG("Launcher_Run 3\n")
 	LBackend_InitFramebuffer();
-	MYLOG("Launcher_Run 4\n")
 	Launcher_ShowEmptyServers = Options_GetBool(LOPT_SHOW_EMPTY, true);
 	Options_Get(LOPT_USERNAME, &Launcher_Username, "");
 	/* Some window backends require priming a few frames in case e.g. returning from in-game */
 	LBackend_AddDirtyFrames(4);
-	MYLOG("Launcher_Run 5\n")
 
 	LWebTasks_Init();
-	MYLOG("Launcher_Run 6\n")
 	Session_Load();
-	MYLOG("Launcher_Run 7\n")
 	Launcher_LoadTheme();
-	MYLOG("Launcher_Run 7\n")
 	Launcher_Init();
-	MYLOG("Launcher_Run 8\n")
 
 	GameVersion_Load();
-	MYLOG("Launcher_Run 9\n")
 	Launcher_TryLoadTexturePack();
-	MYLOG("Launcher_Run a\n")
 
 	Http_Component.Init();
 #ifdef CC_BUILD_NETWORKING
 	CheckUpdateTask_Run();
 #endif
-	MYLOG("Launcher_Run b\n")
 
 #ifdef CC_BUILD_RESOURCES
 	Resources_CheckExistence();
-	MYLOG("Launcher_Run b2\n")
 	if (Resources_MissingCount) {
-		//CheckResourcesScreen_SetActive();
-		MainScreen_SetActive();
-		MYLOG("Launcher_Run b3\n")
+		CheckResourcesScreen_SetActive();
 	} else {
-		MYLOG("Launcher_Run b4\n")
 		MainScreen_SetActive();
 	}
 #else
 	MainScreen_SetActive();
 #endif
-	MYLOG("Launcher_Run c\n")
 
 	for (;;) {
 		Window_ProcessEvents(10 / 1000.0f);
@@ -309,12 +291,10 @@ void Launcher_Run(void) {
 		LBackend_Tick();
 		Thread_Sleep(10);
 	}
-	MYLOG("Launcher_Run d\n")
 
 	Options_SaveIfChanged();
 	Launcher_Free();
 	Launcher_ShouldExit = false;
-	MYLOG("Launcher_Run e\n")
 
 #ifdef CC_BUILD_MOBILE
 	/* Reset components */
@@ -322,7 +302,6 @@ void Launcher_Run(void) {
 	Drawer2D_Component.Free();
 	Http_Component.Free();
 #endif
-	MYLOG("Launcher_Run g\n")
 
 	if (Launcher_ShouldUpdate) {
 		const char* action;
@@ -462,11 +441,9 @@ static cc_result Launcher_ProcessZipEntry(const cc_string* path, struct Stream* 
 		if (res) {
 			Logger_SysWarn(res, "decoding default.png"); return res;
 		} else if (Font_SetBitmapAtlas(&bmp)) {
-			MYLOG("Font loaded\n");
 			useBitmappedFont = !Options_GetBool(OPT_USE_CHAT_FONT, false);
 			hasBitmappedFont = true;
 		} else {
-			MYLOG("Font not loaded\n");
 			Mem_Free(bmp.scan0);
 		}
 	} else if (String_CaselessEqualsConst(path, "terrain.png")) {

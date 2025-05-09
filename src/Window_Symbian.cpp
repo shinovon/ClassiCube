@@ -113,7 +113,7 @@ void CWindow::CreateWindowL() {
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 	
-#if 1
+#if defined CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
@@ -208,15 +208,6 @@ void CWindow::ConstructL() {
 	}
 	
 	DisplayInfo.Depth = bufferSize;
-	
-//	if (!iWsEventReceiver){
-//		TRAPD(err,
-//			iWsEventReceiver = CWsEventReceiver::NewL(*this);
-//		);
-//		if (err) {
-//			User::Panic(_L("Failed to create CWsEventReceiver"), 0);
-//		}
-//	}
 }
 
 static int ConvertKey(TInt aScanCode) {
@@ -264,7 +255,6 @@ static int ConvertKey(TInt aScanCode) {
 
 void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	TInt eventType = aWsEvent.Type();
-//	MYLOG("HandleWsEvent\n");
 //	cc_string msg; char msgB[64];
 //	String_InitArray(msg, msgB);
 //	String_AppendConst(&msg, "HandleWsEvent: ");
@@ -273,21 +263,17 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	// TODO
 	switch (eventType) {
 	case EEventKeyDown: {
-		MYLOG("EEventKeyDown\n");
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), true);
 		break;
 	}
 	case EEventKeyUp: {
-		MYLOG("EEventKeyUp\n");
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), false);
 		break;
 	}
 	case EEventScreenDeviceChanged: {
-		MYLOG("EEventScreenDeviceChanged\n");
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		//if (pixnrot.iPixelSize != iWindow->Size()) {
-			MYLOG("Resized\n");
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
 			TInt w = pixnrot.iPixelSize.iWidth,
@@ -304,14 +290,12 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	case EEventFocusLost: {
-		MYLOG("EEventFocusLost\n");
 		WindowInfo.Focused = false;
 		
 		Event_RaiseVoid(&WindowEvents.FocusChanged);
 		break;
 	}
 	case EEventFocusGained: {
-		MYLOG("EEventFocusGained\n");
 		WindowInfo.Focused = true;
 		
 		Event_RaiseVoid(&WindowEvents.FocusChanged);
@@ -319,7 +303,6 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	}
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
-			MYLOG("EEventWindowVisibilityChanged\n");
 			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
 
 			Event_RaiseVoid(&WindowEvents.InactiveChanged);
@@ -327,8 +310,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	case EEventPointer: {
-		MYLOG("EEventPointer\n");
-#if 0
+#if defined CC_BUILD_SYMBIAN_MULTITOUCH
 		TPointerEvent* pointer = aWsEvent.Pointer();
 		long num = 0;
 #else
@@ -338,15 +320,12 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		TPoint pos = pointer->iPosition;
 		switch (pointer->iType) {
 		case TPointerEvent::EButton1Down:
-//			MYLOG("AddTouch\n");
 			Input_AddTouch(num, pos.iX, pos.iY);
 			break;
 		case TPointerEvent::EDrag:
-//			MYLOG("UpdateTouch\n");
 			Input_AddTouch(num, pos.iX, pos.iY);
 			break;
 		case TPointerEvent::EButton1Up:
-//			MYLOG("RemoveTouch\n");
 			Input_RemoveTouch(num, pos.iX, pos.iY);
 			break;
 		default:
@@ -396,35 +375,15 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 	}
 	iWindowGc->Deactivate();
 	iWindow->EndRedraw();
-	//iWsSession.Flush();
 }
 
 void CWindow::ProcessEvents(float delta) {
-//	MYLOG("+ProcessEvents\n")
-//	TBool block = !WindowInfo.Focused;
-//	RThread thread;
-//    TInt error = KErrNone;
-    
-//    if (block && !thread.RequestCount()) {
-//    	User::WaitForAnyRequest();
-//    	CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
-//    }
-	
-//	while (thread.RequestCount()) {
-//		TInt res = CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
-//		if (res)
-//			User::WaitForAnyRequest();
-//	}
-    
-    
 	while (iWsEventStatus != KRequestPending) {
 		iWsSession.GetEvent(window->iWsEvent);
 		HandleWsEvent(window->iWsEvent);
 		iWsEventStatus = KRequestPending;
 		iWsSession.EventReady(&iWsEventStatus);
 	}
-	
-//	MYLOG("-ProcessEvents\n")
 }
 
 void CWindow::RequestClose() {
@@ -433,60 +392,16 @@ void CWindow::RequestClose() {
 }
 
 void CWindow::InitEvents() {
-	MYLOG("+InitEvents\n")
 	if (iEventsInitialized)
 		return;
 	iEventsInitialized = ETrue;
 	iWsEventStatus = KRequestPending;
 	iWsSession.EventReady(&iWsEventStatus);
-	
-	MYLOG("-InitEvents\n")
-}
-
-//
-
-CWsEventReceiver::CWsEventReceiver()
-: CActive(CActive::EPriorityStandard) {
-}
-
-CWsEventReceiver::~CWsEventReceiver() {
-	Cancel();
-}
-
-CWsEventReceiver* CWsEventReceiver::NewL(CWindow& aParent) {
-CWsEventReceiver* self = new (ELeave) CWsEventReceiver;
-	CleanupStack::PushL(self);
-	self->ConstructL(aParent);
-	CleanupStack::Pop(self);
-	return self;
-}
-
-void CWsEventReceiver::ConstructL(CWindow& aParent) {
-	iParent = &aParent;
-	iWsSession = CCoeEnv::Static()->WsSession();
-	iWsSession.EventReady(&iStatus);
-	CActiveScheduler::Add(this);
-	SetActive();
-}
-
-void CWsEventReceiver::RunL() {
-	TWsEvent wsEvent;
-	iWsSession.GetEvent(wsEvent);
-	iParent->HandleWsEvent(wsEvent);
-	
-	iWsSession.EventReady(&iStatus);
-	
-	SetActive();
-}
-
-void CWsEventReceiver::DoCancel() {
-	iWsSession.EventReadyCancel();
 }
 
 //
 
 void Window_PreInit(void) {
-	MYLOG("+Window_PreInit\n")
 	CCoeEnv* env = new (ELeave) CCoeEnv();
 	TRAPD(err, env->ConstructL(ETrue, 0));
 	
@@ -498,56 +413,42 @@ void Window_PreInit(void) {
 	if (!eglInitialize(ctx_display, NULL, NULL)) {
 		User::Panic(_L("Failed to initialize EGL"), 0);
 	}
-
-//	TRAP(err,
-//	delete CActiveScheduler::Current();            
-//	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
-//	CActiveScheduler::Install(actScheduler);
-//	);
 	
 	if (err != KErrNone) {
 		User::Panic(_L("Failed to initialize CActiveScheduler"), 0);
 	}
-	
-	MYLOG("-Window_PreInit\n")
 }
 
 void Window_Init(void) {
-	MYLOG("+Window_Init\n")
 	TRAPD(err, window = CWindow::NewL());
-	MYLOG("Window_Init 1\n")
 	if (err) {
 		User::Panic(_L("Failed to initialize CWindow"), err);
 	}
 	
+#ifdef CC_BUILD_TOUCH
 	//TBool touch = AknLayoutUtils::PenEnabled();
 	
 	bool touch = true;
 	Input_SetTouchMode(touch);
 	Gui_SetTouchUI(touch);
-	
-	MYLOG("-Window_Init\n")
+#endif
 }
 
 void Window_Free(void) {
-	MYLOG("Window_Free\n")
 	CCoeEnv::Static()->DestroyEnvironment();
 	delete CCoeEnv::Static();
 }
 
 void Window_Create2D(int width, int height) {
-	MYLOG("Window_Create2D\n")
 	launcherMode = true;
 	window->InitEvents();
 }
 void Window_Create3D(int width, int height) {
-	MYLOG("Window_Create3D\n")
 	launcherMode = false;
 	window->InitEvents();
 }
 
 void Window_Destroy(void) {
-	MYLOG("Window_Destroy\n")
 	CCoeEnv::Static()->DestroyEnvironment();
 	delete CCoeEnv::Static();
 }
@@ -594,7 +495,6 @@ void Gamepads_Process(float delta) {
 
 void ShowDialogCore(const char* title, const char* msg) {
 	// TODO
-	MYLOG("ShowDialog\n")
 	static const cc_string t2 = String_Init((char*) title, String_Length(title), String_Length(title));
 	Logger_Log(&t2);
 	static const cc_string msg2 = String_Init((char*) msg, String_Length(msg), String_Length(msg));
@@ -602,13 +502,17 @@ void ShowDialogCore(const char* title, const char* msg) {
 	
 }
 
+// TODO
+
 void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) { }
 
 void OnscreenKeyboard_SetText(const cc_string* text) { }
 
 void OnscreenKeyboard_Close(void) { }
 
-void Window_LockLandscapeOrientation(cc_bool lock) { }
+void Window_LockLandscapeOrientation(cc_bool lock) {
+	// TODO
+}
 
 static void Cursor_GetRawPos(int* x, int* y) { *x = 0; *y = 0; }
 void Cursor_SetPosition(int x, int y) { }
@@ -622,114 +526,30 @@ cc_result Window_SaveFileDialog(const struct SaveFileDialogArgs* args) {
 	return ERR_NOT_SUPPORTED;
 }
 
-#if 0
-static GfxResourceID fb_tex, fb_vb;
-static void AllocateVB(void) {
-	MYLOG("+AllocateVB");
-	fb_vb = Gfx_CreateVb(VERTEX_FORMAT_TEXTURED, 4);
-	struct VertexTextured* data = (struct VertexTextured*)Gfx_LockVb(fb_vb,
-															VERTEX_FORMAT_TEXTURED, 4);
-	data[0].x = -1.0f; data[0].y = -1.0f; data[0].z = 0.0f; data[0].Col = PACKEDCOL_WHITE; data[0].U = 0.0f; data[0].V = 1.0f;
-	data[1].x =  1.0f; data[1].y = -1.0f; data[1].z = 0.0f; data[1].Col = PACKEDCOL_WHITE; data[1].U = 1.0f; data[1].V = 1.0f;
-	data[2].x =  1.0f; data[2].y =  1.0f; data[2].z = 0.0f; data[2].Col = PACKEDCOL_WHITE; data[2].U = 1.0f; data[2].V = 0.0f;
-	data[3].x = -1.0f; data[3].y =  1.0f; data[3].z = 0.0f; data[3].Col = PACKEDCOL_WHITE; data[3].U = 0.0f; data[2].V = 0.0f;
-
-	Gfx_UnlockVb(fb_vb);
-	MYLOG("-AllocateVB");
-}
-
 void Window_AllocFramebuffer(struct Bitmap* bmp, int width, int height) {
-	MYLOG("+AllocFramebuffer");
-	bmp->scan0  = (BitmapCol*)Mem_Alloc(width * height, BITMAPCOLOR_SIZE, "bitmap");
-	bmp->width  = width;
-	bmp->height = height;
-
-	if (!Gfx.Created) {
-		Gfx_Create();
-	}
-	fb_tex = Gfx_AllocTexture(bmp, bmp->width, TEXTURE_FLAG_NONPOW2, false);
-	AllocateVB();
-
-	Game.Width  = Window_Main.Width;
-	Game.Height = Window_Main.Height;
-	Gfx_OnWindowResize();
-	MYLOG("-AllocFramebuffer");
-}
-
-void Window_DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-	MYLOG("+DrawFramebuffer");
-	struct Bitmap part;
-	part.scan0  = Bitmap_GetRow(bmp, r.y) + r.x;
-	part.width  = r.width;
-	part.height = r.height;
-
-	Gfx_BeginFrame();
-	Gfx_BindIb(Gfx.DefaultIb);
-	Gfx_UpdateTexture(fb_tex, r.x, r.y, &part, bmp->width, false);
-
-	Gfx_LoadMatrix(MATRIX_VIEW, &Matrix_Identity);
-	Gfx_LoadMatrix(MATRIX_PROJ, &Matrix_Identity);
-	Gfx_SetDepthTest(false);
-	Gfx_SetAlphaTest(false);
-	Gfx_SetAlphaBlending(false);
-
-	Gfx_SetVertexFormat(VERTEX_FORMAT_COLOURED);
-	Gfx_SetVertexFormat(VERTEX_FORMAT_TEXTURED);
-	Gfx_BindTexture(fb_tex);
-	Gfx_BindVb(fb_vb);
-	Gfx_DrawVb_IndexedTris(4);
-	Gfx_EndFrame();
-	MYLOG("-DrawFramebuffer");
-}
-
-void Window_FreeFramebuffer(struct Bitmap* bmp) {
-	MYLOG("+FreeFramebuffer");
-	Mem_Free(bmp->scan0);
-	Gfx_DeleteTexture(&fb_tex);
-	Gfx_DeleteVb(&fb_vb);
-	MYLOG("-FreeFramebuffer");
-}
-#else
-void Window_AllocFramebuffer(struct Bitmap* bmp, int width, int height) {
-	MYLOG("+AllocFramebuffer\n");
 	bmp->scan0  = (BitmapCol*)Mem_Alloc(width * height, BITMAPCOLOR_SIZE, "bitmap");
 	bmp->width  = width;
 	bmp->height = height;
 	window->AllocFrameBuffer(width, height);
-	MYLOG("-AllocFramebuffer\n");
 }
 
 void Window_DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-	MYLOG("+DrawFramebuffer\n");
 	window->DrawFramebuffer(r, bmp);
-	MYLOG("-DrawFramebuffer\n");
 }
 
 void Window_FreeFramebuffer(struct Bitmap* bmp) {
-	MYLOG("+FreeFramebuffer\n");
 	window->FreeFrameBuffer();
 	Mem_Free(bmp->scan0);
-	MYLOG("-FreeFramebuffer\n");
 }
-#endif
 
 //static void GLContext_InitSurface(void) {
-//	MYLOG("+GLContext_InitSurface\n")
 //	if (!window) return; /* window not created or lost */
 //	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window->iWindow, NULL);
-//	MYLOG("GLContext_InitSurface 1\n")
 //	if (!ctx_context)
 //		ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
 //	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 //
 //	if (!ctx_surface) return;
 //	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
-//	MYLOG("-GLContext_InitSurface\n")
 //}
-/*
-void* GLContext_GetAddress(const char* function) {
-	MYLOG("GLContext_GetAddress");
-	return (void*) eglGetProcAddress(function);
-}
-*/
 #endif

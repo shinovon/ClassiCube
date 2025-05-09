@@ -82,7 +82,6 @@ static GL_SetupVBRangeFunc gfx_setupVBRangeFunc;
 static void GLBackend_Init(void);
 
 void Gfx_Create(void) {
-	MYLOG("+Gfx_Create\n");
 	GLContext_Create();
 #ifdef CC_BUILD_GL11_FALLBACK
 	GLContext_GetAll(coreFuncs, Array_Elems(coreFuncs));
@@ -93,16 +92,11 @@ void Gfx_Create(void) {
 	customMipmapsLevels = true;
 #endif
 	Gfx.BackendType     = CC_GFX_BACKEND_GL1;
-
-	MYLOG("Gfx_Create 2\n");
+	
 	GL_InitCommon();
-	MYLOG("Gfx_Create 3\n");
 	GLBackend_Init();
-	MYLOG("Gfx_Create 4\n");
 	Gfx_RestoreState();
-	MYLOG("Gfx_Create 5\n");
 	GLContext_SetVSync(gfx_vsync);
-	MYLOG("-Gfx_Create\n");
 }
 
 
@@ -483,24 +477,15 @@ void Gfx_DisableTextureOffset(void) { Gfx_LoadMatrix(2, &Matrix_Identity); }
 *#########################################################################################################################*/
 static void Gfx_FreeState(void) { FreeDefaultResources(); }
 static void Gfx_RestoreState(void) {
-	MYLOG("+RestoreState\n");
 	InitDefaultResources();
-	MYLOG("RestoreState 2\n");
 	_glEnableClientState(GL_VERTEX_ARRAY);
-	MYLOG("RestoreState 3\n");
 	_glEnableClientState(GL_COLOR_ARRAY);
-	MYLOG("RestoreState 4\n");
 	gfx_format = -1;
 
-	MYLOG("RestoreState 5\n");
 	_glHint(GL_FOG_HINT, GL_NICEST);
-	MYLOG("RestoreState 5\n");
 	_glAlphaFunc(GL_GREATER, 0.5f);
-	MYLOG("RestoreState 6\n");
 	_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	MYLOG("RestoreState 7\n");
 	_glDepthFunc(GL_LEQUAL);
-	MYLOG("-RestoreState\n");
 }
 
 cc_bool Gfx_WarnIfNecessary(void) {
@@ -728,7 +713,6 @@ static void GLBackend_Init(void) {
 	_glBufferSubData = glBufferSubData;
 	convert_rgba = true;
 #else
-	
 	static const struct DynamicLibSym coreVboFuncs[] = {
 		DynamicLib_ReqSym2("glBindBuffer",    glBindBuffer), DynamicLib_ReqSym2("glDeleteBuffers", glDeleteBuffers),
 		DynamicLib_ReqSym2("glGenBuffers",    glGenBuffers), DynamicLib_ReqSym2("glBufferData",    glBufferData),
@@ -747,7 +731,6 @@ static void GLBackend_Init(void) {
 
 	/* Version string is always: x.y. (and whatever afterwards) */
 	int major = ver[0] - '0', minor = ver[2] - '0';
-	MYLOG("GLBackend_Init 3");
 
 	/* Supported in core since 1.5 */
 	if (major > 1 || (major == 1 && minor >= 5)) {
@@ -760,7 +743,6 @@ static void GLBackend_Init(void) {
 		FallbackOpenGL();
 	}
 #endif
-	MYLOG("-GLBackend_Init\n");
 }
 #endif
 #endif

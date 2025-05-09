@@ -125,17 +125,13 @@ static void RecreateDynamicVb(GfxResourceID* vb, VertexFormat fmt, int maxVertic
 }
 
 static void InitDefaultResources(void) {
-	MYLOG("+InitDefaultResources\n");
 	Gfx.DefaultIb = Gfx_CreateIb2(GFX_MAX_INDICES, MakeIndices, NULL);
-	MYLOG("+InitDefaultResources 2\n");
 
 	RecreateDynamicVb(&Gfx_quadVb, VERTEX_FORMAT_COLOURED, 4);
-	MYLOG("+InitDefaultResources 3\n");
 	RecreateDynamicVb(&Gfx_texVb,  VERTEX_FORMAT_TEXTURED, 4);
 }
 
 static void FreeDefaultResources(void) {
-	MYLOG("+FreeDefaultResources\n");
 	Gfx_DeleteDynamicVb(&Gfx_quadVb);
 	Gfx_DeleteDynamicVb(&Gfx_texVb);
 	Gfx_DeleteIb(&Gfx.DefaultIb);
