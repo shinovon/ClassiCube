@@ -25,7 +25,6 @@ extern "C" {
 static cc_bool launcherMode;
 
 class CWindow;
-class CWsEventReceiver;
 
 CWindow* window;
 
@@ -49,33 +48,16 @@ public:
 private:
 	CWindow();
 	void ConstructL();
-	
 	void CreateWindowL();
 
 	RWsSession iWsSession;
 	RWindowGroup iWindowGroup;
 	CWsScreenDevice* iWsScreenDevice;
 	CWindowGc* iWindowGc;
-    CFbsBitmap* iBitmap;
-    CApaWindowGroupName* iWindowGroupName;
-    CWsEventReceiver* iWsEventReceiver;
-    
-    TBool iEventsInitialized;
-};
+	CFbsBitmap* iBitmap;
+	CApaWindowGroupName* iWindowGroupName;
 
-class CWsEventReceiver : public CActive
-{
-public:
-    virtual void RunL();
-    virtual void DoCancel();
-    static CWsEventReceiver* NewL(CWindow& aParent);
-    ~CWsEventReceiver();
-private:
-    CWsEventReceiver();
-    void ConstructL(CWindow& aParent);
-private:
-    RWsSession iWsSession;
-    CWindow* iParent;
+	TBool iEventsInitialized;
 };
 
 //
@@ -85,34 +67,34 @@ CWindow* CWindow::NewL() {
 	CleanupStack::PushL(self);
 	self->ConstructL();
 	CleanupStack::Pop(self);
-	return self;    
+	return self;
 }
 
 void CWindow::CreateWindowL() {
 	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
 	User::LeaveIfError(iWsScreenDevice->Construct());
-	
+
 	iWindowGroup = RWindowGroup(iWsSession);
 	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this)));
 	iWindowGroup.SetOrdinalPosition(0);
 	iWindowGroup.EnableScreenChangeEvents();
 	iWindowGroup.EnableReceiptOfFocus(EFalse);
-	
+
 	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
 	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
 	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
 	iWindowGroupName->SetHidden(EFalse);
 	iWindowGroupName->SetSystem(EFalse);
 	iWindowGroupName->SetWindowGroupName(iWindowGroup);
-	
+
 	iWindow = new (ELeave) RWindow(iWsSession);
-	    
+
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this) - 1);
 	User::LeaveIfError(err);
-		
+
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-	
+
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
@@ -166,10 +148,6 @@ CWindow::~CWindow() {
 		delete iWindow;
 		iWindow = NULL;
 	}
-	if (iWsEventReceiver) {
-		delete iWsEventReceiver;
-		iWsEventReceiver = NULL;
-	}
 }
 
 void CWindow::ConstructL() {
@@ -188,23 +166,22 @@ void CWindow::ConstructL() {
 	TDisplayMode displayMode = iWindow->DisplayMode();
 	TInt bufferSize = 0;
 
-	switch (displayMode)
-	{
-		case EColor4K:
-			bufferSize = 12;
-			break;
-		case EColor64K:
-			bufferSize = 16;
-			break;
-		case EColor16M:
-			bufferSize = 24;
-			break;
-		case EColor16MU:
-		case EColor16MA:
-			bufferSize = 32;
-			break;
-		default:
-			break;
+	switch (displayMode) {
+	case EColor4K:
+		bufferSize = 12;
+		break;
+	case EColor64K:
+		bufferSize = 16;
+		break;
+	case EColor16M:
+		bufferSize = 24;
+		break;
+	case EColor16MU:
+	case EColor16MA:
+		bufferSize = 32;
+		break;
+	default:
+		break;
 	}
 	
 	DisplayInfo.Depth = bufferSize;
@@ -261,7 +238,6 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 //	String_AppendConst(&msg, "HandleWsEvent: ");
 //	String_AppendInt(&msg, (int) eventType);
 //	Logger_Log(&msg);
-	// TODO
 	switch (eventType) {
 	case EEventKeyDown: {
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), true);
@@ -274,7 +250,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	case EEventScreenDeviceChanged: {
 		TPixelsTwipsAndRotation pixnrot; 
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
-		//if (pixnrot.iPixelSize != iWindow->Size()) {
+		if (pixnrot.iPixelSize != iWindow->Size()) {
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 			
 			TInt w = pixnrot.iPixelSize.iWidth,
@@ -287,7 +263,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			WindowInfo.Height = h;
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
-		//}   
+		}
 		break;
 	}
 	case EEventFocusLost: {
@@ -310,6 +286,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		}
 		break;
 	}
+#ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
@@ -334,20 +311,21 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		}
 		break;
 	}
+#endif
 	}
 }
 
 void CWindow::AllocFrameBuffer(int width, int height) {
-	if (!iWindowGc) {
-		iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
-		iWindowGc->Construct();
-	}
 	FreeFrameBuffer();
 	iBitmap = new CFbsBitmap();
 	iBitmap->Create(TSize(width, height), EColor16MA);
 }
 
 void CWindow::FreeFrameBuffer() {
+	if (iWindowGc != NULL) {
+		delete iWindowGc;
+		iWindowGc = NULL;
+	}
 	if (iBitmap != NULL) {
 		delete iBitmap;
 		iBitmap = NULL;
@@ -355,8 +333,10 @@ void CWindow::FreeFrameBuffer() {
 }
 
 void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-	if (!iWindowGc)
-		return;
+	if (!iWindowGc) {
+		iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
+		iWindowGc->Construct();
+	}
 	iWindow->Invalidate(/*TRect(r.x, r.y, r.width, r.height)*/);
 	iWindow->BeginRedraw();
 	iWindowGc->Activate(*iWindow);
@@ -372,10 +352,11 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 		}
 		iBitmap->EndDataAccess();
 		
-		iWindowGc->BitBlt(TPoint(r.x, r.y), iBitmap, TRect(r.x, r.y, r.width, r.height));
+		iWindowGc->BitBlt(TPoint(0, 0), iBitmap/*, TRect(r.x, r.y, r.width, r.height)*/);
 	}
 	iWindowGc->Deactivate();
 	iWindow->EndRedraw();
+	iWsSession.Flush();
 }
 
 void CWindow::ProcessEvents(float delta) {
@@ -388,11 +369,14 @@ void CWindow::ProcessEvents(float delta) {
 }
 
 void CWindow::RequestClose() {
-	// TODO
 	Event_RaiseVoid(&WindowEvents.Closing);
 }
 
 void CWindow::InitEvents() {
+	iWindow->Invalidate();
+	iWindow->BeginRedraw();
+	iWindow->EndRedraw();
+	iWsSession.Flush();
 	if (iEventsInitialized)
 		return;
 	iEventsInitialized = ETrue;
@@ -408,15 +392,6 @@ void Window_PreInit(void) {
 	
 	if (err != KErrNone) {
 		User::Panic(_L("Failed to create CoeEnv"), 0);
-	}
-	
-	ctx_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	if (!eglInitialize(ctx_display, NULL, NULL)) {
-		User::Panic(_L("Failed to initialize EGL"), 0);
-	}
-	
-	if (err != KErrNone) {
-		User::Panic(_L("Failed to initialize CActiveScheduler"), 0);
 	}
 }
 
@@ -559,14 +534,4 @@ void GLContext_Create(void) {
 	GLContext_InitSurface();
 }
 
-//static void GLContext_InitSurface(void) {
-//	if (!window) return; /* window not created or lost */
-//	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window->iWindow, NULL);
-//	if (!ctx_context)
-//		ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
-//	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
-//
-//	if (!ctx_surface) return;
-//	eglMakeCurrent(ctx_display, ctx_surface, ctx_surface, ctx_context);
-//}
 #endif
