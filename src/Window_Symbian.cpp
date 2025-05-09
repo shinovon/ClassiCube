@@ -113,7 +113,7 @@ void CWindow::CreateWindowL() {
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 	
-#if defined CC_BUILD_SYMBIAN_MULTITOUCH
+#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
@@ -211,6 +211,7 @@ void CWindow::ConstructL() {
 }
 
 static int ConvertKey(TInt aScanCode) {
+	// TODO
 	switch (aScanCode) {
 	case 0x30:
 		return CCKEY_0;
@@ -310,12 +311,12 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	case EEventPointer: {
-#if defined CC_BUILD_SYMBIAN_MULTITOUCH
-		TPointerEvent* pointer = aWsEvent.Pointer();
-		long num = 0;
-#else
+#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
 		long num = pointer->IsAdvancedPointerEvent() ? pointer->PointerNumber() : 0;
+#else
+		TPointerEvent* pointer = aWsEvent.Pointer();
+		long num = 0;
 #endif
 		TPoint pos = pointer->iPosition;
 		switch (pointer->iType) {
