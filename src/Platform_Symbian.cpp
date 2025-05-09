@@ -90,7 +90,7 @@ static void ExceptionHandler(TExcType type) {
 }
 
 void Symbian_Init(void) {
-#if !defined __WINSCW__ && !defined __DEBUG__
+#if !defined _DEBUG
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
 }

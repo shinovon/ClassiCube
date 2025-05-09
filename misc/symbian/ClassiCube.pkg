@@ -18,4 +18,3 @@ ENDIF
 "$(EPOCROOT)\epoc32\data\z\private\10003a3f\import\apps\classicube_reg.rsc" - "!:\private\10003a3f\import\apps\classicube_reg.rsc"
 "$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"
 "$(EPOCROOT)\epoc32\data\z\resource\apps\classicube_icon.mif" - "!:\resource\apps\classicube_icon.mif"
-;"default.zip" - "!:\private\e212a5c2\texpacks\default.zip"

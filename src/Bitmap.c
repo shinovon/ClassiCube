@@ -733,7 +733,12 @@ static cc_result Png_EncodeCore(struct Bitmap* bmp, struct Stream* stream, cc_ui
 	cc_uint8*  curLine = buffer + (bmp->width * 4) * 1;
 	cc_uint8* bestLine = buffer + (bmp->width * 4) * 2;
 
-	struct ZLibState zlState;
+#ifdef CC_BUILD_SMALLSTACK
+	struct ZLibState* zlState = Mem_TryAlloc(1, sizeof(struct ZLibState));
+#else
+	struct ZLibState _zlState;
+	struct ZLibState* zlState = &_zlState;
+#endif
 	struct Stream chunk, zlStream;
 	cc_uint32 stream_end, stream_beg;
 	int y, lineSize;
@@ -766,7 +771,7 @@ static cc_result Png_EncodeCore(struct Bitmap* bmp, struct Stream* stream, cc_ui
 	Stream_SetU32_BE(&tmp[0], PNG_FourCC('I','D','A','T'));
 	if ((res = Stream_Write(&chunk, tmp, 4))) return res;
 
-	ZLib_MakeStream(&zlStream, &zlState, &chunk); 
+	ZLib_MakeStream(&zlStream, zlState, &chunk); 
 	lineSize = bmp->width * (alpha ? 4 : 3);
 	Mem_Set(prevLine, 0, lineSize);
 

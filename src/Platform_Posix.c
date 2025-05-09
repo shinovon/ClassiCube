@@ -13,15 +13,26 @@
 #include <errno.h>
 #include <time.h>
 #include <stdlib.h>
-#if defined CC_BUILD_SYMBIAN
-#include <stdapis/string.h>
-#else
-#include <string.h>
-#endif
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <utime.h>
+#include <signal.h>
+#include <stdio.h>
+#if defined CC_BUILD_SYMBIAN
+#include <stdapis/string.h>
+#include <stdapis/arpa/inet.h>
+#include <stdapis/netinet/in.h>
+#include <stdapis/sys/socket.h>
+#include <stdapis/sys/ioctl.h>
+#include <stdapis/sys/types.h>
+#include <stdapis/sys/stat.h>
+#include <stdapis/sys/time.h>
+#include <stdapis/sys/select.h>
+#include <stdapis/netdb.h>
+#else
+#include <string.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -29,13 +40,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#if defined CC_BUILD_SYMBIAN
-#include <sys/select.h>
-#endif
-#include <utime.h>
-#include <signal.h>
-#include <stdio.h>
 #include <netdb.h>
+#endif
 
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
 const cc_result ReturnCode_FileNotFound     = ENOENT;
@@ -206,12 +212,7 @@ cc_uint64 Stopwatch_Measure(void) {
 	/* TODO: CLOCK_MONOTONIC_RAW ?? */
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	#endif
-#if defined CC_BUILD_SYMBIAN
-	/* TODO */
-	return (cc_uint32)t.tv_sec * NS_PER_SEC + t.tv_nsec;
-#else
 	return (cc_uint64)t.tv_sec * NS_PER_SEC + t.tv_nsec;
-#endif
 #endif
 }
 
@@ -455,9 +456,12 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	
 	*handle = ptr;
 	pthread_attr_init(&attrs);
-#if !defined CC_BUILD_SYMBIAN
-	pthread_attr_setstacksize(&attrs, stackSize);
+#ifdef CC_BUILD_SYMBIAN
+	if (stackSize >= 64 * 1024) {
+		stackSize = 64 * 1024;
+	}
 #endif
+	pthread_attr_setstacksize(&attrs, stackSize);
 	
 	res = pthread_create(ptr, &attrs, ExecThread, (void*)func);
 	if (res) Process_Abort2(res, "Creating thread");
@@ -655,8 +659,8 @@ void Platform_LoadSysFonts(void) {
 	};
 #elif defined CC_BUILD_SYMBIAN
 	static const cc_string dirs[] = {
-		String_FromConst("Z:/resource/fonts"),
-		String_FromConst("C:/resource/fonts")
+		String_FromConst("Z:\\resource\\fonts"),
+		String_FromConst("C:\\resource\\fonts")
 	};
 #else
 	static const cc_string dirs[] = {
@@ -676,7 +680,7 @@ void Platform_LoadSysFonts(void) {
 /*########################################################################################################################*
 *---------------------------------------------------------Socket----------------------------------------------------------*
 *#########################################################################################################################*/
-#if defined CC_BUILD_OS2
+#if defined CC_BUILD_OS2 || defined CC_BUILD_SYMBIAN
 #undef AF_INET6
 #endif
 
