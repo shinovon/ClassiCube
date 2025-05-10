@@ -79,7 +79,11 @@ void CWindow::CreateWindowL() {
 	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this) - 1));
 	iWindowGroup.SetOrdinalPosition(0);
 	iWindowGroup.EnableScreenChangeEvents();
+#ifdef CC_BUILD_TOUCH
 	iWindowGroup.EnableReceiptOfFocus(EFalse);
+#else
+	iWindowGroup.EnableReceiptOfFocus(ETrue);
+#endif
 
 	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
 	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
@@ -190,8 +194,63 @@ void CWindow::ConstructL() {
 }
 
 static int ConvertKey(TInt aScanCode) {
-	// TODO
+	// TODO array?
 	switch (aScanCode) {
+	case EStdKeyBackspace:
+		return CCKEY_BACKSPACE;
+	case EStdKeyTab:
+		return CCKEY_TAB;
+	case EStdKeyEnter:
+		return CCKEY_ENTER;
+	case EStdKeyEscape:
+		return CCKEY_ESCAPE;
+	case EStdKeySpace:
+		return CCKEY_SPACE;
+	case EStdKeyPrintScreen:
+		return CCKEY_PRINTSCREEN;
+	case EStdKeyPause:
+		return CCKEY_PAUSE;
+	case EStdKeyHome:
+		return CCKEY_HOME;
+	case EStdKeyEnd:
+		return CCKEY_END;
+	case EStdKeyPageUp:
+		return CCKEY_PAGEUP;
+	case EStdKeyPageDown:
+		return CCKEY_PAGEDOWN;
+	case EStdKeyInsert:
+		return CCKEY_INSERT;
+	case EStdKeyDelete:
+		return CCKEY_DELETE;
+	case EStdKeyLeftArrow:
+		return CCKEY_LEFT;
+	case EStdKeyRightArrow:
+		return CCKEY_RIGHT;
+	case EStdKeyUpArrow:
+		return CCKEY_UP;
+	case EStdKeyDownArrow:
+		return CCKEY_DOWN;
+	case EStdKeyLeftShift:
+		return CCKEY_LSHIFT;
+	case EStdKeyRightShift:
+		return CCKEY_RSHIFT;
+	case EStdKeyLeftAlt:
+		return CCKEY_LALT;
+	case EStdKeyRightAlt:
+		return CCKEY_RALT;
+	case EStdKeyLeftCtrl:
+		return CCKEY_LCTRL;
+	case EStdKeyRightCtrl:
+		return CCKEY_RCTRL;
+	case EStdKeyLeftFunc:
+		return CCKEY_LWIN;
+	case EStdKeyRightFunc:
+		return CCKEY_RWIN;
+	case EStdKeyNumLock:
+		return CCKEY_NUMLOCK;
+	case EStdKeyScrollLock:
+		return CCKEY_SCROLLLOCK;
+
 	case 0x30:
 		return CCKEY_0;
 	case 0x31:
@@ -212,21 +271,74 @@ static int ConvertKey(TInt aScanCode) {
 		return CCKEY_8;
 	case 0x39:
 		return CCKEY_9;
-	case EStdKeyUpArrow:
-		return CCKEY_UP;
-	case EStdKeyDownArrow:
-		return CCKEY_DOWN;
-	case EStdKeyLeftArrow:
-		return CCKEY_LEFT;
-	case EStdKeyRightArrow:
-		return CCKEY_RIGHT;
-	case EStdKeyBackspace:
-		return CCKEY_BACKSPACE;
-//	case EStdKeyDevice0:
-//		return CCKEY_MENU;
-	case EStdKeyDevice1:
+
+	case EStdKeyComma:
+		return CCKEY_COMMA;
+	case EStdKeyFullStop:
+		return CCKEY_PERIOD;
+	case EStdKeyForwardSlash:
+		return CCKEY_SLASH;
+	case EStdKeyBackSlash:
+		return CCKEY_BACKSLASH;
+	case EStdKeySemiColon:
+		return CCKEY_SEMICOLON;
+	case EStdKeySingleQuote:
+		return CCKEY_QUOTE;
+//	case EStdKeyHash:
+//		return '#';
+	case EStdKeySquareBracketLeft:
+		return CCKEY_LBRACKET;
+	case EStdKeySquareBracketRight:
+		return CCKEY_RBRACKET;
+	case EStdKeyMinus:
+		return CCKEY_MINUS;
+	case EStdKeyEquals:
+		return CCKEY_EQUALS;
+
+	case EStdKeyNkpForwardSlash:
+		return CCKEY_KP_DIVIDE;
+	case EStdKeyNkpAsterisk:
+		return CCKEY_KP_MULTIPLY;
+	case EStdKeyNkpMinus:
+		return CCKEY_KP_MINUS;
+	case EStdKeyNkpPlus:
+		return CCKEY_KP_PLUS;
+	case EStdKeyNkpEnter:
+		return CCKEY_KP_ENTER;
+	case EStdKeyNkp1:
+		return CCKEY_KP1;
+	case EStdKeyNkp2:
+		return CCKEY_KP2;
+	case EStdKeyNkp3:
+		return CCKEY_KP3;
+	case EStdKeyNkp4:
+		return CCKEY_KP4;
+	case EStdKeyNkp5:
+		return CCKEY_KP5;
+	case EStdKeyNkp6:
+		return CCKEY_KP6;
+	case EStdKeyNkp7:
+		return CCKEY_KP7;
+	case EStdKeyNkp8:
+		return CCKEY_KP8;
+	case EStdKeyNkp9:
+		return CCKEY_KP9;
+	case EStdKeyNkp0:
+		return CCKEY_KP0;
+	case EStdKeyNkpFullStop:
+		return CCKEY_KP_DECIMAL;
+
+	case EStdKeyIncVolume:
+		return CCKEY_VOLUME_UP;
+	case EStdKeyDecVolume:
+		return CCKEY_VOLUME_DOWN;
+		
+// softkeys
+	case EStdKeyDevice0: // left soft
+		return CCKEY_F1;
+	case EStdKeyDevice1: // right soft
 		return CCKEY_ESCAPE;
-	case EStdKeyDevice3:
+	case EStdKeyDevice3: // d-pad center
 		return CCKEY_ENTER;
 	}
 	
@@ -342,7 +454,8 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 	iWindowGc->Activate(*iWindow);
 
 	if (iBitmap) {
-		iBitmap->BeginDataAccess();
+//		iBitmap->BeginDataAccess();
+		iBitmap->LockHeap();
 		TUint8* data = (TUint8*) iBitmap->DataAddress();
 		const TUint8* src = (TUint8*) bmp->scan0;
 		for (TInt row = bmp->height - 1; row >= 0; --row) {
@@ -350,7 +463,8 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 			src += bmp->width * BITMAPCOLOR_SIZE;
 			data += iBitmap->DataStride();
 		}
-		iBitmap->EndDataAccess();
+//		iBitmap->EndDataAccess();
+		iBitmap->UnlockHeap();
 		
 		iWindowGc->BitBlt(TPoint(0, 0), iBitmap/*, TRect(r.x, r.y, r.width, r.height)*/);
 	}
