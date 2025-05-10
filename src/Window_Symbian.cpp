@@ -79,7 +79,11 @@ void CWindow::CreateWindowL() {
 	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this) - 1));
 	iWindowGroup.SetOrdinalPosition(0);
 	iWindowGroup.EnableScreenChangeEvents();
+#ifdef CC_BUILD_TOUCH
 	iWindowGroup.EnableReceiptOfFocus(EFalse);
+#else
+	iWindowGroup.EnableReceiptOfFocus(ETrue);
+#endif
 
 	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
 	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
@@ -342,7 +346,8 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 	iWindowGc->Activate(*iWindow);
 
 	if (iBitmap) {
-		iBitmap->BeginDataAccess();
+//		iBitmap->BeginDataAccess();
+		iBitmap->LockHeap();
 		TUint8* data = (TUint8*) iBitmap->DataAddress();
 		const TUint8* src = (TUint8*) bmp->scan0;
 		for (TInt row = bmp->height - 1; row >= 0; --row) {
@@ -350,7 +355,8 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 			src += bmp->width * BITMAPCOLOR_SIZE;
 			data += iBitmap->DataStride();
 		}
-		iBitmap->EndDataAccess();
+//		iBitmap->EndDataAccess();
+		iBitmap->UnlockHeap();
 		
 		iWindowGc->BitBlt(TPoint(0, 0), iBitmap/*, TRect(r.x, r.y, r.width, r.height)*/);
 	}
