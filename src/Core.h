@@ -567,6 +567,7 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_NOMUSIC 
 	#define CC_BUILD_NOSOUNDS
 	#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN
+	#define DEFAULT_SSL_BACKEND CC_SSL_BACKEND_BEARSSL
 #endif
 #endif
 

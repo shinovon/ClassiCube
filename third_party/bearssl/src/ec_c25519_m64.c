@@ -79,7 +79,7 @@ api_xoff(int curve, size_t *len)
 /*
  * Swap two field elements, conditionally on a flag.
  */
-static inline void
+static __inline void
 f255_cswap(uint64_t *a, uint64_t *b, uint32_t ctl)
 {
 	uint64_t m, w;
@@ -94,7 +94,7 @@ f255_cswap(uint64_t *a, uint64_t *b, uint32_t ctl)
 /*
  * Addition in the field.
  */
-static inline void
+static __inline void
 f255_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 #if BR_INT128
@@ -159,7 +159,7 @@ f255_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 /*
  * Subtraction.
  */
-static inline void
+static __inline void
 f255_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 #if BR_INT128
@@ -249,7 +249,7 @@ f255_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
 /*
  * Multiplication.
  */
-static inline void
+static __inline void
 f255_mul(uint64_t *d, uint64_t *a, uint64_t *b)
 {
 #if BR_INT128
@@ -494,7 +494,7 @@ f255_mul(uint64_t *d, uint64_t *a, uint64_t *b)
 /*
  * Multiplication by A24 = 121665.
  */
-static inline void
+static __inline void
 f255_mul_a24(uint64_t *d, const uint64_t *a)
 {
 #if BR_INT128
@@ -561,7 +561,7 @@ f255_mul_a24(uint64_t *d, const uint64_t *a)
 /*
  * Finalize reduction.
  */
-static inline void
+static __inline void
 f255_final_reduce(uint64_t *a)
 {
 #if BR_INT128

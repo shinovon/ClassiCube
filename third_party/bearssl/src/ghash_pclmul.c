@@ -35,7 +35,7 @@
 /*
  * Test CPU support for PCLMULQDQ.
  */
-static inline int
+static __inline int
 pclmul_supported(void)
 {
 	/*
@@ -113,7 +113,7 @@ BR_TARGETS_X86_UP
 
 /*
  * Call pclmulqdq. Clang appears to have trouble with the intrinsic, so,
- * for that compiler, we use inline assembly. Inline assembly is
+ * for that compiler, we use __inline assembly. Inline assembly is
  * potentially a bit slower because the compiler does not understand
  * what the opcode does, and thus cannot optimize instruction
  * scheduling.
@@ -123,14 +123,14 @@ BR_TARGETS_X86_UP
  */
 #if BR_CLANG
 BR_TARGET("sse2")
-static inline __m128i
+static __inline __m128i
 pclmulqdq00(__m128i x, __m128i y)
 {
 	__asm__ ("pclmulqdq $0x00, %1, %0" : "+x" (x) : "x" (y));
 	return x;
 }
 BR_TARGET("sse2")
-static inline __m128i
+static __inline __m128i
 pclmulqdq11(__m128i x, __m128i y)
 {
 	__asm__ ("pclmulqdq $0x11, %1, %0" : "+x" (x) : "x" (y));

@@ -72,7 +72,7 @@ static const uint32_t Ssm0[] = {
 	0x7BB0B0CB, 0xA85454FC, 0x6DBBBBD6, 0x2C16163A
 };
 
-static inline uint32_t
+static __inline uint32_t
 rotr(uint32_t x, int n)
 {
 	return (x << (32 - n)) | (x >> n);

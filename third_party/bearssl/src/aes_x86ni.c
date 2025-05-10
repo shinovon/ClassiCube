@@ -47,7 +47,7 @@ br_aes_x86ni_supported(void)
 BR_TARGETS_X86_UP
 
 BR_TARGET("sse2,aes")
-static inline __m128i
+static __inline __m128i
 expand_step128(__m128i k, __m128i k2)
 {
 	k = _mm_xor_si128(k, _mm_slli_si128(k, 4));
@@ -58,7 +58,7 @@ expand_step128(__m128i k, __m128i k2)
 }
 
 BR_TARGET("sse2,aes")
-static inline void
+static __inline void
 expand_step192(__m128i *t1, __m128i *t2, __m128i *t3)
 {
 	__m128i t4;
@@ -78,7 +78,7 @@ expand_step192(__m128i *t1, __m128i *t2, __m128i *t3)
 }
 
 BR_TARGET("sse2,aes")
-static inline void
+static __inline void
 expand_step256_1(__m128i *t1, __m128i *t2)
 {
 	__m128i t4;
@@ -94,7 +94,7 @@ expand_step256_1(__m128i *t1, __m128i *t2)
 }
 
 BR_TARGET("sse2,aes")
-static inline void
+static __inline void
 expand_step256_2(__m128i *t1, __m128i *t3)
 {
 	__m128i t2, t4;

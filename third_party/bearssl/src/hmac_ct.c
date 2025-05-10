@@ -24,14 +24,14 @@
 
 #include "inner.h"
 
-static inline size_t
+static __inline size_t
 hash_size(const br_hash_class *dig)
 {
 	return (unsigned)(dig->desc >> BR_HASHDESC_OUT_OFF)
 		& BR_HASHDESC_OUT_MASK;
 }
 
-static inline size_t
+static __inline size_t
 block_size(const br_hash_class *dig)
 {
 	unsigned ls;

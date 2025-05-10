@@ -24,7 +24,7 @@
 
 #include "inner.h"
 
-static inline void
+static __inline void
 add_round_key(uint64_t *q, const uint64_t *sk)
 {
 	q[0] ^= sk[0];
@@ -37,7 +37,7 @@ add_round_key(uint64_t *q, const uint64_t *sk)
 	q[7] ^= sk[7];
 }
 
-static inline void
+static __inline void
 shift_rows(uint64_t *q)
 {
 	int i;
@@ -56,13 +56,13 @@ shift_rows(uint64_t *q)
 	}
 }
 
-static inline uint64_t
+static __inline uint64_t
 rotr32(uint64_t x)
 {
 	return (x << 32) | (x >> 32);
 }
 
-static inline void
+static __inline void
 mix_columns(uint64_t *q)
 {
 	uint64_t q0, q1, q2, q3, q4, q5, q6, q7;

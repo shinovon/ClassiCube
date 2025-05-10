@@ -276,7 +276,7 @@ void br_hmac_drbg_update(br_hmac_drbg_context *ctx,
  * \param ctx   HMAC_DRBG context.
  * \return  the hash function vtable.
  */
-static inline const br_hash_class *
+static __inline const br_hash_class *
 br_hmac_drbg_get_hash(const br_hmac_drbg_context *ctx)
 {
 	return ctx->digest_class;

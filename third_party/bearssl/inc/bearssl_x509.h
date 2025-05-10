@@ -827,7 +827,7 @@ void br_x509_minimal_init(br_x509_minimal_context *ctx,
  * \param id     hash function identifier (from 1 to 6).
  * \param impl   hash function implementation (or `NULL`).
  */
-static inline void
+static __inline void
 br_x509_minimal_set_hash(br_x509_minimal_context *ctx,
 	int id, const br_hash_class *impl)
 {
@@ -846,7 +846,7 @@ br_x509_minimal_set_hash(br_x509_minimal_context *ctx,
  * \param ctx    validation context.
  * \param irsa   RSA signature verification implementation (or `0`).
  */
-static inline void
+static __inline void
 br_x509_minimal_set_rsa(br_x509_minimal_context *ctx,
 	br_rsa_pkcs1_vrfy irsa)
 {
@@ -870,7 +870,7 @@ br_x509_minimal_set_rsa(br_x509_minimal_context *ctx,
  * \param iec      elliptic curve implementation (or `NULL`).
  * \param iecdsa   ECDSA implementation (or `0`).
  */
-static inline void
+static __inline void
 br_x509_minimal_set_ecdsa(br_x509_minimal_context *ctx,
 	const br_ec_impl *iec, br_ecdsa_vrfy iecdsa)
 {
@@ -920,7 +920,7 @@ void br_x509_minimal_init_full(br_x509_minimal_context *ctx,
  * \param days      days since January 1st, 0 AD (Gregorian calendar).
  * \param seconds   seconds since midnight (0 to 86400).
  */
-static inline void
+static __inline void
 br_x509_minimal_set_time(br_x509_minimal_context *ctx,
 	uint32_t days, uint32_t seconds)
 {
@@ -942,7 +942,7 @@ br_x509_minimal_set_time(br_x509_minimal_context *ctx,
  * \param tctx   context for callback invocation.
  * \param cb     callback function.
  */
-static inline void
+static __inline void
 br_x509_minimal_set_time_callback(br_x509_minimal_context *ctx,
 	void *itime_ctx, br_x509_time_check itime)
 {
@@ -963,7 +963,7 @@ br_x509_minimal_set_time_callback(br_x509_minimal_context *ctx,
  * \param ctx           validation context.
  * \param byte_length   minimum RSA key length, **in bytes** (not bits).
  */
-static inline void
+static __inline void
 br_x509_minimal_set_minrsa(br_x509_minimal_context *ctx, int byte_length)
 {
 	ctx->min_rsa_size = (int16_t)(byte_length - 128);
@@ -981,7 +981,7 @@ br_x509_minimal_set_minrsa(br_x509_minimal_context *ctx, int byte_length)
  * \param elts       array of name element structures to fill.
  * \param num_elts   number of name element structures to fill.
  */
-static inline void
+static __inline void
 br_x509_minimal_set_name_elements(br_x509_minimal_context *ctx,
 	br_name_element *elts, size_t num_elts)
 {
@@ -1090,7 +1090,7 @@ void br_x509_decoder_push(br_x509_decoder_context *ctx,
  * \param ctx   X.509 decoder context.
  * \return  the public key, or `NULL` on unfinished/error.
  */
-static inline br_x509_pkey *
+static __inline br_x509_pkey *
 br_x509_decoder_get_pkey(br_x509_decoder_context *ctx)
 {
 	if (ctx->decoded && ctx->err == 0) {
@@ -1110,7 +1110,7 @@ br_x509_decoder_get_pkey(br_x509_decoder_context *ctx)
  * \param ctx   X.509 decoder context.
  * \return  0 on successful decoding, or a non-zero error code.
  */
-static inline int
+static __inline int
 br_x509_decoder_last_error(br_x509_decoder_context *ctx)
 {
 	if (ctx->err != 0) {
@@ -1132,7 +1132,7 @@ br_x509_decoder_last_error(br_x509_decoder_context *ctx)
  * \param ctx   X.509 decoder context.
  * \return  the "isCA" flag.
  */
-static inline int
+static __inline int
 br_x509_decoder_isCA(br_x509_decoder_context *ctx)
 {
 	return ctx->isCA;
@@ -1148,7 +1148,7 @@ br_x509_decoder_isCA(br_x509_decoder_context *ctx)
  * \param ctx   X.509 decoder context.
  * \return  the issuing CA key type.
  */
-static inline int
+static __inline int
 br_x509_decoder_get_signer_key_type(br_x509_decoder_context *ctx)
 {
 	return ctx->signer_key_type;
@@ -1163,7 +1163,7 @@ br_x509_decoder_get_signer_key_type(br_x509_decoder_context *ctx)
  * \param ctx   X.509 decoder context.
  * \return  the signature hash function identifier.
  */
-static inline int
+static __inline int
 br_x509_decoder_get_signer_hash_id(br_x509_decoder_context *ctx)
 {
 	return ctx->signer_hash_id;
@@ -1253,7 +1253,7 @@ void br_skey_decoder_push(br_skey_decoder_context *ctx,
  * \param ctx   key decoder context.
  * \return  0 on successful decoding, or a non-zero error code.
  */
-static inline int
+static __inline int
 br_skey_decoder_last_error(const br_skey_decoder_context *ctx)
 {
 	if (ctx->err != 0) {
@@ -1274,7 +1274,7 @@ br_skey_decoder_last_error(const br_skey_decoder_context *ctx)
  * \param ctx   key decoder context.
  * \return  decoded private key type, or 0.
  */
-static inline int
+static __inline int
 br_skey_decoder_key_type(const br_skey_decoder_context *ctx)
 {
 	if (ctx->err == 0) {
@@ -1295,7 +1295,7 @@ br_skey_decoder_key_type(const br_skey_decoder_context *ctx)
  * \param ctx   key decoder context.
  * \return  decoded RSA private key, or `NULL`.
  */
-static inline const br_rsa_private_key *
+static __inline const br_rsa_private_key *
 br_skey_decoder_get_rsa(const br_skey_decoder_context *ctx)
 {
 	if (ctx->err == 0 && ctx->key_type == BR_KEYTYPE_RSA) {
@@ -1316,7 +1316,7 @@ br_skey_decoder_get_rsa(const br_skey_decoder_context *ctx)
  * \param ctx   key decoder context.
  * \return  decoded EC private key, or `NULL`.
  */
-static inline const br_ec_private_key *
+static __inline const br_ec_private_key *
 br_skey_decoder_get_ec(const br_skey_decoder_context *ctx)
 {
 	if (ctx->err == 0 && ctx->key_type == BR_KEYTYPE_EC) {

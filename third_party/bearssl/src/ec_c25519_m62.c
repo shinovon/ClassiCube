@@ -79,7 +79,7 @@ api_xoff(int curve, size_t *len)
 /*
  * Swap two field elements, conditionally on a flag.
  */
-static inline void
+static __inline void
 f255_cswap(uint64_t *a, uint64_t *b, uint32_t ctl)
 {
 	uint64_t m, w;
@@ -95,7 +95,7 @@ f255_cswap(uint64_t *a, uint64_t *b, uint32_t ctl)
 /*
  * Addition with no carry propagation. Limbs double in size.
  */
-static inline void
+static __inline void
 f255_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 	d[0] = a[0] + b[0];
@@ -112,7 +112,7 @@ f255_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
  * limbs will fit on 51 bits, except the low limb, which may have
  * value up to 2^51+19455.
  */
-static inline void
+static __inline void
 f255_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 	uint64_t cc, w;
@@ -186,7 +186,7 @@ f255_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
  * On output, limb 0 is at most 2^51 + 155647, and other limbs fit
  * on 51 bits each.
  */
-static inline void
+static __inline void
 f255_mul(uint64_t *d, uint64_t *a, uint64_t *b)
 {
 	uint64_t t[10], hi, lo, w, cc;
@@ -281,7 +281,7 @@ f255_mul(uint64_t *d, uint64_t *a, uint64_t *b)
  * Multiplication by A24 = 121665.
  * Input must have limbs of 60 bits at most.
  */
-static inline void
+static __inline void
 f255_mul_a24(uint64_t *d, const uint64_t *a)
 {
 	uint64_t t[5], cc, w;
@@ -333,7 +333,7 @@ f255_mul_a24(uint64_t *d, const uint64_t *a)
  * On input, limbs must fit on 51 bits, except possibly the low limb,
  * which may be slightly above 2^51.
  */
-static inline void
+static __inline void
 f255_final_reduce(uint64_t *a)
 {
 	uint64_t t[5], cc, w;

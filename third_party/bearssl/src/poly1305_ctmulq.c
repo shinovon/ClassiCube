@@ -295,7 +295,7 @@ poly1305_inner_small(uint64_t *acc, uint64_t *r, const void *data, size_t len)
 	acc[2] = a2;
 }
 
-static inline void
+static __inline void
 poly1305_inner(uint64_t *acc, uint64_t *r, const void *data, size_t len)
 {
 	if (len >= 64) {
