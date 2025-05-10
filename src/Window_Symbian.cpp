@@ -75,7 +75,7 @@ void CWindow::CreateWindowL() {
 	User::LeaveIfError(iWsScreenDevice->Construct());
 
 	iWindowGroup = RWindowGroup(iWsSession);
-	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this)));
+	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this) - 1));
 	iWindowGroup.SetOrdinalPosition(0);
 	iWindowGroup.EnableScreenChangeEvents();
 	iWindowGroup.EnableReceiptOfFocus(EFalse);
@@ -89,7 +89,7 @@ void CWindow::CreateWindowL() {
 
 	iWindow = new (ELeave) RWindow(iWsSession);
 
-	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this) - 1);
+	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
 
 	TPixelsTwipsAndRotation pixnrot;
@@ -233,11 +233,6 @@ static int ConvertKey(TInt aScanCode) {
 
 void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	TInt eventType = aWsEvent.Type();
-//	cc_string msg; char msgB[64];
-//	String_InitArray(msg, msgB);
-//	String_AppendConst(&msg, "HandleWsEvent: ");
-//	String_AppendInt(&msg, (int) eventType);
-//	Logger_Log(&msg);
 	switch (eventType) {
 	case EEventKeyDown: {
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), true);
@@ -266,26 +261,28 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		}
 		break;
 	}
-	case EEventFocusLost: {
-		WindowInfo.Focused = false;
-		
-		Event_RaiseVoid(&WindowEvents.FocusChanged);
-		break;
-	}
-	case EEventFocusGained: {
-		WindowInfo.Focused = true;
-		
-		Event_RaiseVoid(&WindowEvents.FocusChanged);
-		break;
-	}
-	case EEventWindowVisibilityChanged: {
-		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
-			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
-
-			Event_RaiseVoid(&WindowEvents.InactiveChanged);
-		}
-		break;
-	}
+//	case EEventFocusLost: {
+//		if (!WindowInfo.Focused) break;
+//		WindowInfo.Focused = false;
+//		
+//		Event_RaiseVoid(&WindowEvents.FocusChanged);
+//		break;
+//	}
+//	case EEventFocusGained: {
+//		if (WindowInfo.Focused) break;
+//		WindowInfo.Focused = true;
+//		
+//		Event_RaiseVoid(&WindowEvents.FocusChanged);
+//		break;
+//	}
+//	case EEventWindowVisibilityChanged: {
+//		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
+//			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
+//
+//			Event_RaiseVoid(&WindowEvents.InactiveChanged);
+//		}
+//		break;
+//	}
 #ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
