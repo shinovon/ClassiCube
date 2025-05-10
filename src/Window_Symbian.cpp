@@ -20,6 +20,7 @@ extern "C" {
 #include "Gui.h"
 #include "Graphics.h"
 #include "Game.h"
+#include "VirtualKeyboard.h"
 }
 
 static cc_bool launcherMode;
@@ -129,6 +130,7 @@ void CWindow::CreateWindowL() {
 	WindowInfo.Height = h;
 	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
 	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
+	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 	
 	iWsSession.EventReadyCancel();
 }
@@ -314,6 +316,10 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 
 void CWindow::AllocFrameBuffer(int width, int height) {
 	FreeFrameBuffer();
+	if (!iWindowGc) {
+		iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
+		iWindowGc->Construct();
+	}
 	iBitmap = new CFbsBitmap();
 	iBitmap->Create(TSize(width, height), EColor16MA);
 }
@@ -330,10 +336,7 @@ void CWindow::FreeFrameBuffer() {
 }
 
 void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
-	if (!iWindowGc) {
-		iWindowGc = new (ELeave) CWindowGc(iWsScreenDevice);
-		iWindowGc->Construct();
-	}
+	if (!iWindowGc) return;
 	iWindow->Invalidate(/*TRect(r.x, r.y, r.width, r.height)*/);
 	iWindow->BeginRedraw();
 	iWindowGc->Activate(*iWindow);
@@ -475,11 +478,17 @@ void ShowDialogCore(const char* title, const char* msg) {
 
 // TODO
 
-void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) { }
+void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) {
+	VirtualKeyboard_Open(args, launcherMode);
+}
 
-void OnscreenKeyboard_SetText(const cc_string* text) { }
+void OnscreenKeyboard_SetText(const cc_string* text) {
+	VirtualKeyboard_SetText(text);
+}
 
-void OnscreenKeyboard_Close(void) { }
+void OnscreenKeyboard_Close(void) {
+	VirtualKeyboard_Close();
+}
 
 void Window_LockLandscapeOrientation(cc_bool lock) {
 	// TODO
