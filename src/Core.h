@@ -555,8 +555,7 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_POSIX
 	#define CC_BUILD_GLES
 	#define CC_BUILD_EGL
-	#define CC_BUILD_SMALLSTACK
-	#define CC_BUILD_TINYSTACK
+	#define CC_BUILD_MAXSTACK (16 * 1024)
 	#define CC_BUILD_LOWMEM
 	#define CC_BUILD_NOMUSIC 
 	#define CC_BUILD_NOSOUNDS

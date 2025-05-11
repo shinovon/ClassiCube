@@ -563,7 +563,7 @@ static void NotchyGen_CreateSurfaceLayer(void) {
 	int hIndex = 0, index;
 	BlockRaw above;
 	int x, y, z;
-#ifdef CC_BUILD_TINYSTACK
+#if CC_BUILD_MAXSTACK <= (16 * 1024)
 	struct NoiseBuffer { 
 		struct OctaveNoise n1, n2;
 	};
