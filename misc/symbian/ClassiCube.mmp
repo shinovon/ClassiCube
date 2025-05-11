@@ -20,20 +20,13 @@ USERINCLUDE ../../src/freetype
 MACRO SYMBIAN_OE_POSIX_SIGNALS
 
 LIBRARY euser.lib
-LIBRARY efsrv.lib
-LIBRARY apparc.lib
 LIBRARY apgrfx.lib
 LIBRARY cone.lib
-LIBRARY eikcore.lib
 LIBRARY avkon.lib
 LIBRARY fbscli.lib
 LIBRARY ws32.lib
-LIBRARY gdi.lib
 
 LIBRARY libgles_cm.lib
-
-//LIBRARY estlib.lib
-
 LIBRARY libc.lib
 LIBRARY libm.lib
 LIBRARY libdl.lib

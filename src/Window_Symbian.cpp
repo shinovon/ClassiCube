@@ -356,8 +356,9 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), false);
 		break;
 	}
-	case EEventScreenDeviceChanged: {
-		TPixelsTwipsAndRotation pixnrot; 
+	case EEventScreenDeviceChanged:
+	case 27: /* EEventDisplayChanged */ {
+		TPixelsTwipsAndRotation pixnrot;
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		if (pixnrot.iPixelSize != iWindow->Size()) {
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
@@ -373,30 +374,35 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
 		}
+		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
-//	case EEventFocusLost: {
-//		if (!WindowInfo.Focused) break;
-//		WindowInfo.Focused = false;
-//		
-//		Event_RaiseVoid(&WindowEvents.FocusChanged);
-//		break;
-//	}
-//	case EEventFocusGained: {
-//		if (WindowInfo.Focused) break;
-//		WindowInfo.Focused = true;
-//		
-//		Event_RaiseVoid(&WindowEvents.FocusChanged);
-//		break;
-//	}
-//	case EEventWindowVisibilityChanged: {
-//		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
-//			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
-//
-//			Event_RaiseVoid(&WindowEvents.InactiveChanged);
-//		}
-//		break;
-//	}
+	case EEventFocusLost: {
+		if (!WindowInfo.Focused) break;
+		WindowInfo.Focused = false;
+		
+		Event_RaiseVoid(&WindowEvents.FocusChanged);
+		break;
+	}
+	case EEventFocusGained: {
+		if (!WindowInfo.Focused) {
+			WindowInfo.Focused = true;
+			
+			Event_RaiseVoid(&WindowEvents.FocusChanged);
+		}
+		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
+		break;
+	}
+#if 0 // TODO
+	case EEventWindowVisibilityChanged: {
+		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
+			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::EFullyVisible) == 0;
+
+			Event_RaiseVoid(&WindowEvents.InactiveChanged);
+		}
+		break;
+	}
+#endif
 #ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
@@ -589,8 +595,6 @@ void ShowDialogCore(const char* title, const char* msg) {
 	Logger_Log(&msg2);
 	
 }
-
-// TODO
 
 void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) {
 	VirtualKeyboard_Open(args, launcherMode);
