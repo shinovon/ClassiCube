@@ -810,7 +810,6 @@ static void LocalPlayer_DoRespawn(struct LocalPlayer* p) {
 	BlockID block;
 	float height, spawnY;
 	int y;
-	struct EntityLocation* prev;
 
 	if (!World.Loaded) return;
 	IVec3_Floor(&pos, &spawn);	
