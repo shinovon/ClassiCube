@@ -418,16 +418,13 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		}
 		break;
 	}
-#if 0 // TODO
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
 			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::EFullyVisible) == 0;
-
 			Event_RaiseVoid(&WindowEvents.InactiveChanged);
 		}
 		break;
 	}
-#endif
 #ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
@@ -590,7 +587,9 @@ cc_result Window_EnterFullscreen(void) { return 0; }
 
 cc_result Window_ExitFullscreen(void)  { return 0; }
 
-int Window_IsObscured(void)            { return 0; }
+int Window_IsObscured(void) {
+	return WindowInfo.Inactive;
+}
 
 void Window_Show(void) { }
 
