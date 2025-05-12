@@ -12,11 +12,6 @@ extern "C" {
 
 extern "C" void Symbian_Init(void);
 
-static cc_result Process_RawGetExePath(char* path, int* len) {
-	// TODO
-	
-	return 0;
-}
 const struct UpdaterInfo Updater_Info = {
 	"&eRedownload and reinstall to update", 0, NULL
 };
@@ -43,8 +38,7 @@ cc_result Process_StartOpen(const cc_string* args) {
 }
 
 cc_result Platform_SetDefaultCurrentDirectory(int argc, char **argv) {
-	// TODO
-	//return chdir("C:\\data\\classicube") == -1 ? errno : 0;
+	// Directory is already set by platform: !:/private/e212a5c2
 	return 0;
 }
 
@@ -83,13 +77,16 @@ void Mem_Free(void* mem) {
 static void ExceptionHandler(TExcType type) {
 	cc_string msg; char msgB[64];
 	String_InitArray(msg, msgB);
-	String_AppendConst(&msg, "ExcType: ");
+	String_AppendConst(&msg, "Exception: ");
 	String_AppendInt(&msg, (int) type);
-	Logger_Log(&msg);
-	User::HandleException(NULL);
+	msg.buffer[msg.length] = '\0';
+	
+	Logger_DoAbort(0, msg.buffer, 0);
+	
+	User::HandleException((TUint32*) &type);
 }
 
-void Symbian_Init(void) {
+void CrashHandler_Install(void) {
 #if !defined _DEBUG
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif

@@ -104,7 +104,9 @@ void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return (void*) m
 void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return (void*) memcpy( dst, src,   numBytes); }
 void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*) memmove(dst, src,   numBytes); }
 
-#ifndef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
+/* implemented in Platform_Symbian.cpp */
+#else
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? malloc(size) : NULL;
@@ -138,7 +140,6 @@ void Platform_Log(const char* msg, int len) {
 	/* Avoid "ignoring return value of 'write' declared with attribute 'warn_unused_result'" warning */
 	ret = write(STDOUT_FILENO, msg,  len);
 	ret = write(STDOUT_FILENO, "\n",   1);
-	
 }
 #endif
 
@@ -202,6 +203,7 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /* "... These functions are part of the Timers option and need not be available on all implementations..." */
 cc_uint64 Stopwatch_Measure(void) {
 #if defined CC_BUILD_SYMBIAN
+	/* TODO use CLOCK_REALTIME */
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return tv.tv_sec * 1000000000LL + (tv.tv_usec * 1000);
@@ -273,6 +275,8 @@ static void SignalHandler(int sig, siginfo_t* info, void* ctx) {
 	Logger_DoAbort(0, msg.buffer, ctx);
 }
 
+#if defined CC_BUILD_SYMBAIN
+/* implemented in Platform_Symbian.cpp */
 void CrashHandler_Install(void) {
 	struct sigaction sa = { 0 };
 	/* sigemptyset(&sa.sa_mask); */
@@ -286,6 +290,7 @@ void CrashHandler_Install(void) {
 	sigaction(SIGABRT, &sa, NULL);
 	sigaction(SIGFPE,  &sa, NULL);
 }
+#endif
 
 void Process_Abort2(cc_result result, const char* raw_msg) {
 	Logger_DoAbort(result, raw_msg, NULL);
@@ -457,7 +462,7 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	
 	*handle = ptr;
 	pthread_attr_init(&attrs);
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 	if (stackSize >= 64 * 1024) {
 		stackSize = 64 * 1024;
 	}

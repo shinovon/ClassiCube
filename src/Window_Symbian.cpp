@@ -45,7 +45,7 @@ public:
 	TWsEvent iWsEvent;
 	TRequestStatus iWsEventStatus;
 	RWindow* iWindow;
-	
+
 private:
 	CWindow();
 	void ConstructL();
@@ -90,6 +90,7 @@ void CWindow::CreateWindowL() {
 	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
 	iWindowGroupName->SetHidden(EFalse);
 	iWindowGroupName->SetSystem(EFalse);
+	iWindowGroupName->SetRespondsToShutdownEvent(ETrue);
 	iWindowGroupName->SetWindowGroupName(iWindowGroup);
 
 	iWindow = new (ELeave) RWindow(iWsSession);
@@ -100,14 +101,20 @@ void CWindow::CreateWindowL() {
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 
+	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
-	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
+	iWindow->SetNonFading(ETrue);
+	iWindow->SetShadowDisabled(ETrue);
+	iWindow->EnableRedrawStore(ETrue);
 	iWindow->EnableVisibilityChangeEvents();
+	iWindow->SetNonTransparent();
+	iWindow->SetBackgroundColor();
+	// Enable drag events
 	iWindow->PointerFilter(EPointerFilterDrag, 0);
 	
 	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
@@ -153,6 +160,10 @@ CWindow::~CWindow() {
 		iWindow->Close();
 		delete iWindow;
 		iWindow = NULL;
+	}
+	if (iWsScreenDevice) {
+		delete iWsScreenDevice;
+		iWsScreenDevice = NULL;
 	}
 }
 
@@ -393,6 +404,20 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
+	// shutdown request from task manager
+	case KAknShutOrHideApp:
+	case KAknUidValueEndKeyCloseEvent: {
+		RequestClose();
+		break;
+	}
+	// shutdown request from system (out of memory)
+	case EEventUser: {
+		TApaSystemEvent apaSystemEvent = *(TApaSystemEvent*) aWsEvent.EventData();
+		if (apaSystemEvent == EApaSystemEventShutdown) {
+			RequestClose();
+		}
+		break;
+	}
 #if 0 // TODO
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
@@ -489,6 +514,7 @@ void CWindow::ProcessEvents(float delta) {
 }
 
 void CWindow::RequestClose() {
+	WindowInfo.Exists = false;
 	Event_RaiseVoid(&WindowEvents.Closing);
 }
 
@@ -531,6 +557,11 @@ void Window_Init(void) {
 }
 
 void Window_Free(void) {
+	if (window) {
+		delete window;
+		window = NULL;
+	}
+	
 	CCoeEnv::Static()->DestroyEnvironment();
 	delete CCoeEnv::Static();
 }

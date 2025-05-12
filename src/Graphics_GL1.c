@@ -21,7 +21,7 @@
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
 #define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
 #include "../misc/opengl/GL1Funcs.h"
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 #include "../misc/opengl/GL2Funcs.h"
 #endif
 
