@@ -242,7 +242,6 @@ int main(int argc, char** argv) {
 	return 0;
 }
 #else
-
 /* NOTE: main_real is used for when compiling with MinGW without linking to startup files. */
 /*  Normally, the final code produced for "main" is our "main" combined with crt's main */
 /*  (mingw-w64-crt/crt/gccmain.c) - alas this immediately crashes the game on startup. */
