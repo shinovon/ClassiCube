@@ -105,6 +105,16 @@ void CWindow::CreateWindowL() {
 	
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
+
+	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
+	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
+	if (w <= 360) {
+		DisplayInfo.ScaleX = 0.5f;
+		DisplayInfo.ScaleY = 0.5f;
+	} else {
+		DisplayInfo.ScaleX = 1;
+		DisplayInfo.ScaleY = 1;
+	}
 }
 
 CWindow::CWindow() {
@@ -161,10 +171,6 @@ void CWindow::ConstructL() {
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
 
-	DisplayInfo.ScaleX = 1;
-	DisplayInfo.ScaleY = 1;
-	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
-	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
 	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 
 	TRAP(err, CreateWindowL());
