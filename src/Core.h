@@ -560,11 +560,18 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_NOMUSIC 
 	#define CC_BUILD_NOSOUNDS
 	#undef  CC_BUILD_PLUGINS
-	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL2
 	#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN
 
-	#define CC_BUILD_SYMBIAN_MULTITOUCH /* Symbian^3 */
-	#define CC_BUILD_TOUCH /* S60v5 */
+#if defined CC_BUILD_SYMBIAN_3 /* Symbian^3 */
+	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL2
+	#define CC_BUILD_SYMBIAN_MULTITOUCH
+	#define CC_BUILD_TOUCH
+#else
+	#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
+	#if CC_BUILD_SYMBIAN_S60V5 /* S60v5 */
+		#define CC_BUILD_TOUCH
+	#endif
+#endif
 #endif
 #endif
 

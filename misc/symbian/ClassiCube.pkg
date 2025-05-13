@@ -14,7 +14,16 @@ IF( version(0x20009a80, <, 1, 5, 0) ) AND NOT (EXISTS("Z:\sys\bin\libc.dll") OR 
     "incompatible_openc.txt"-"", FT, FORCEABORT
 ENDIF
 
-"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube.exe"-"!:\sys\bin\ClassiCube.exe"
+IF exists("z:\system\install\Series60v5.2.sis")
+	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_sym3.exe"-"!:\sys\bin\ClassiCube.exe"
+ELSE
+	IF exists("z:\system\install\Series60v5.0.sis")
+		"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v5.exe"-"!:\sys\bin\ClassiCube.exe"
+	ELSE
+		"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v3.exe"-"!:\sys\bin\ClassiCube.exe"
+	ENDIF
+ENDIF
+
 "$(EPOCROOT)\epoc32\data\z\private\10003a3f\import\apps\classicube_reg.rsc" - "!:\private\10003a3f\import\apps\classicube_reg.rsc"
 "$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"
 "$(EPOCROOT)\epoc32\data\z\resource\apps\classicube_icon.mif" - "!:\resource\apps\classicube_icon.mif"

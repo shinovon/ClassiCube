@@ -236,3 +236,4 @@ UpgradeLog*.htm
 ABLD.BAT
 !*.mmp
 !*.pkg
+*.sis
