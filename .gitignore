@@ -235,5 +235,6 @@ UpgradeLog*.htm
 .project
 ABLD.BAT
 !*.mmp
+!*.mmh
 !*.pkg
 *.sis

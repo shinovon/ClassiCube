@@ -167,7 +167,7 @@ void CWindow::ConstructL() {
 	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
 	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 
-	TRAPD(err, CreateWindowL());
+	TRAP(err, CreateWindowL());
 	if (err) {
 		User::Panic(_L("Window creation failed"), err);
 	}
