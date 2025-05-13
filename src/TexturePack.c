@@ -529,13 +529,13 @@ static cc_result ExtractPng(struct Stream* stream) {
 
 static cc_bool needReload;
 static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (32 * 1024)
 	struct ZipEntry* entries = Mem_TryAllocCleared(512, sizeof(struct ZipEntry));
 #else
 	struct ZipEntry entries[512];
 #endif
 	cc_result res;
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (32 * 1024)
 	if (!entries) return ERR_OUT_OF_MEMORY;
 #endif
 
@@ -553,7 +553,7 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 	if (res == PNG_ERR_INVALID_SIG) {
 		/* file isn't a .png image, probably a .zip archive then */
 
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (32 * 1024)
 		res = Zip_Extract(stream, SelectZipEntry, ProcessZipEntry,
 							entries, 512);
 #else
@@ -566,7 +566,7 @@ static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 		Logger_SysWarn2(res, "decoding", path);
 	}
 	ret:
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (32 * 1024)
 	Mem_Free(entries);
 #endif
 	return res;

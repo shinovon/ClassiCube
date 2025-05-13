@@ -10,6 +10,7 @@
 #include <aknnotewrappers.h>
 #include <apgwgnam.h>
 #include <stdlib.h>
+#include <apgcli.h>
 extern "C" {
 #include <stdapis/string.h>
 #include <gles/egl.h>
@@ -40,12 +41,13 @@ public:
 	void ProcessEvents(float delta);
 	void RequestClose();
 	void InitEvents();
+	cc_result OpenBrowser(const cc_string* url);
 	~CWindow();
 	
 	TWsEvent iWsEvent;
 	TRequestStatus iWsEventStatus;
 	RWindow* iWindow;
-	
+
 private:
 	CWindow();
 	void ConstructL();
@@ -72,6 +74,67 @@ CWindow* CWindow::NewL() {
 }
 
 void CWindow::CreateWindowL() {
+	TPixelsTwipsAndRotation pixnrot;
+	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
+
+	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
+#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
+	iWindow->EnableAdvancedPointers();
+#endif
+	iWindow->Activate();
+	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
+	iWindow->SetVisible(ETrue);
+	iWindow->SetNonFading(ETrue);
+	iWindow->SetShadowDisabled(ETrue);
+	iWindow->EnableRedrawStore(ETrue);
+	iWindow->EnableVisibilityChangeEvents();
+	iWindow->SetNonTransparent();
+	iWindow->SetBackgroundColor();
+	// Enable drag events
+	iWindow->PointerFilter(EPointerFilterDrag, 0);
+
+	WindowInfo.Focused = true;
+	WindowInfo.Exists = true;
+	WindowInfo.Handle.ptr = (void*) iWindow;
+	
+	TInt w = pixnrot.iPixelSize.iWidth,
+		h = pixnrot.iPixelSize.iHeight;
+	
+	DisplayInfo.Width = w;
+	DisplayInfo.Height = h;
+	
+	WindowInfo.Width = w;
+	WindowInfo.Height = h;
+}
+
+CWindow::CWindow() {
+	
+}
+
+CWindow::~CWindow() {
+	if (iWindowGc) {
+		delete iWindowGc;
+		iWindowGc = NULL;
+	}
+	if (iWindow) {
+		iWindow->SetOrdinalPosition(KOrdinalPositionSwitchToOwningWindow);
+		iWindow->Close();
+		delete iWindow;
+		iWindow = NULL;
+	}
+	if (iWsScreenDevice) {
+		delete iWsScreenDevice;
+		iWsScreenDevice = NULL;
+	}
+}
+
+void CWindow::ConstructL() {
+	CCoeEnv* env = CCoeEnv::Static();
+	if (!env) {
+		User::Panic(_L("CoeEnv::Static not initialized"), 0);
+	}
+	
+	iWsSession = env->WsSession();
 	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
 	User::LeaveIfError(iWsScreenDevice->Construct());
 
@@ -90,6 +153,7 @@ void CWindow::CreateWindowL() {
 	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
 	iWindowGroupName->SetHidden(EFalse);
 	iWindowGroupName->SetSystem(EFalse);
+	iWindowGroupName->SetRespondsToShutdownEvent(ETrue);
 	iWindowGroupName->SetWindowGroupName(iWindowGroup);
 
 	iWindow = new (ELeave) RWindow(iWsSession);
@@ -97,76 +161,23 @@ void CWindow::CreateWindowL() {
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
 
-	TPixelsTwipsAndRotation pixnrot;
-	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
+	DisplayInfo.ScaleX = 1;
+	DisplayInfo.ScaleY = 1;
+	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
+	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
+	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 
-#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
-	iWindow->EnableAdvancedPointers();
-#endif
-	iWindow->Activate();
-	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
-	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
-	iWindow->SetVisible(ETrue);
-	iWindow->EnableVisibilityChangeEvents();
-	iWindow->PointerFilter(EPointerFilterDrag, 0);
-	
+	TRAP(err, CreateWindowL());
+	if (err) {
+		User::Panic(_L("Window creation failed"), err);
+	}
+
 	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
 	CApaWindowGroupName* rootWindGroupName = 0;
 	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession, rootWin.Identifier()));
 	if (rootWindGroupName) {
 		rootWindGroupName->SetHidden(ETrue);
 		rootWindGroupName->SetWindowGroupName(rootWin);
-	}
-
-	WindowInfo.Focused = true;
-	WindowInfo.Exists = true;
-	WindowInfo.Handle.ptr = (void*) iWindow;
-	
-	TInt w = pixnrot.iPixelSize.iWidth,
-		h = pixnrot.iPixelSize.iHeight;
-	
-	DisplayInfo.Width = w;
-	DisplayInfo.Height = h;
-	DisplayInfo.ScaleX = 1;
-	DisplayInfo.ScaleY = 1;
-	
-	WindowInfo.Width = w;
-	WindowInfo.Height = h;
-	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
-	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
-	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
-	
-	iWsSession.EventReadyCancel();
-}
-
-CWindow::CWindow() {
-	
-}
-
-CWindow::~CWindow() {
-	if (iWindowGc) {
-		delete iWindowGc;
-		iWindowGc = NULL;
-	}
-	if (iWindow) {
-		iWindow->SetOrdinalPosition(KOrdinalPositionSwitchToOwningWindow);
-		iWindow->Close();
-		delete iWindow;
-		iWindow = NULL;
-	}
-}
-
-void CWindow::ConstructL() {
-	CCoeEnv* env = CCoeEnv::Static();
-	if (!env) {
-		User::Panic(_L("CoeEnv::Static not initialized"), 0);
-	}
-	
-	iWsSession = env->WsSession();
-	
-	TRAPD(err, CreateWindowL());
-	if (err) {
-		User::Panic(_L("Window creation failed"), err);
 	}
 	
 	TDisplayMode displayMode = iWindow->DisplayMode();
@@ -191,6 +202,8 @@ void CWindow::ConstructL() {
 	}
 	
 	DisplayInfo.Depth = bufferSize;
+	
+	iWsSession.EventReadyCancel();
 }
 
 static int ConvertKey(TInt aScanCode) {
@@ -356,8 +369,9 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Input_Set(ConvertKey(aWsEvent.Key()->iScanCode), false);
 		break;
 	}
-	case EEventScreenDeviceChanged: {
-		TPixelsTwipsAndRotation pixnrot; 
+	case EEventScreenDeviceChanged:
+	case 27: /* EEventDisplayChanged */ {
+		TPixelsTwipsAndRotation pixnrot;
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		if (pixnrot.iPixelSize != iWindow->Size()) {
 			iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
@@ -373,30 +387,48 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 			
 			Event_RaiseVoid(&WindowEvents.Resized);
 		}
+		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
-//	case EEventFocusLost: {
-//		if (!WindowInfo.Focused) break;
-//		WindowInfo.Focused = false;
-//		
-//		Event_RaiseVoid(&WindowEvents.FocusChanged);
-//		break;
-//	}
-//	case EEventFocusGained: {
-//		if (WindowInfo.Focused) break;
-//		WindowInfo.Focused = true;
-//		
-//		Event_RaiseVoid(&WindowEvents.FocusChanged);
-//		break;
-//	}
-//	case EEventWindowVisibilityChanged: {
-//		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
-//			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::ECanBeSeen) == 0;
-//
-//			Event_RaiseVoid(&WindowEvents.InactiveChanged);
-//		}
-//		break;
-//	}
+	case EEventFocusLost: {
+#if 0 // TODO
+		if (!WindowInfo.Focused) break;
+		WindowInfo.Focused = false;
+		
+		Event_RaiseVoid(&WindowEvents.FocusChanged);
+#endif
+		break;
+	}
+	case EEventFocusGained: {
+		if (!WindowInfo.Focused) {
+			WindowInfo.Focused = true;
+			
+			Event_RaiseVoid(&WindowEvents.FocusChanged);
+		}
+		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
+		break;
+	}
+	// shutdown request from task manager
+	case KAknShutOrHideApp:
+	case KAknUidValueEndKeyCloseEvent: {
+		RequestClose();
+		break;
+	}
+	// shutdown request from system (out of memory)
+	case EEventUser: {
+		TApaSystemEvent apaSystemEvent = *(TApaSystemEvent*) aWsEvent.EventData();
+		if (apaSystemEvent == EApaSystemEventShutdown) {
+			RequestClose();
+		}
+		break;
+	}
+	case EEventWindowVisibilityChanged: {
+		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
+			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::EFullyVisible) == 0;
+			Event_RaiseVoid(&WindowEvents.InactiveChanged);
+		}
+		break;
+	}
 #ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
@@ -483,6 +515,7 @@ void CWindow::ProcessEvents(float delta) {
 }
 
 void CWindow::RequestClose() {
+	WindowInfo.Exists = false;
 	Event_RaiseVoid(&WindowEvents.Closing);
 }
 
@@ -496,6 +529,30 @@ void CWindow::InitEvents() {
 	iEventsInitialized = ETrue;
 	iWsEventStatus = KRequestPending;
 	iWsSession.EventReady(&iWsEventStatus);
+}
+
+cc_result CWindow::OpenBrowser(const cc_string* url) {
+#if 0
+	TUid browserUid = {0x1020724d};
+	TApaTaskList tasklist(window->iWsSession);
+	TApaTask task = tasklist.FindApp(browserUid);
+	TPtrC des;
+	// TODO convert url to utf16
+	
+	if (task.Exists()) {
+		task.BringToForeground();
+		
+		
+	} else {
+		RApaLsSession ls;
+		if (!ls.Connect()) {
+			TThreadId tid;
+			ls.StartDocument(des, browserUid, tid);
+			ls.Close();
+		}
+	}
+#endif
+	return ERR_NOT_SUPPORTED;
 }
 
 //
@@ -525,6 +582,11 @@ void Window_Init(void) {
 }
 
 void Window_Free(void) {
+	if (window) {
+		delete window;
+		window = NULL;
+	}
+	
 	CCoeEnv::Static()->DestroyEnvironment();
 	delete CCoeEnv::Static();
 }
@@ -553,7 +615,9 @@ cc_result Window_EnterFullscreen(void) { return 0; }
 
 cc_result Window_ExitFullscreen(void)  { return 0; }
 
-int Window_IsObscured(void)            { return 0; }
+int Window_IsObscured(void) {
+	return WindowInfo.Inactive;
+}
 
 void Window_Show(void) { }
 
@@ -589,8 +653,6 @@ void ShowDialogCore(const char* title, const char* msg) {
 	Logger_Log(&msg2);
 	
 }
-
-// TODO
 
 void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) {
 	VirtualKeyboard_Open(args, launcherMode);
@@ -636,6 +698,7 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	Mem_Free(bmp->scan0);
 }
 
+#if CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
 void GLContext_Create(void) {
 	static EGLint attribs[] = {
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
@@ -652,6 +715,13 @@ void GLContext_Create(void) {
 	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
 	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 	GLContext_InitSurface();
+}
+#endif
+
+cc_result Process_StartOpen(const cc_string* args) {
+	TInt err = 0;
+	TRAP(err, err = window->OpenBrowser(args));
+	return (cc_result) err;
 }
 
 #endif

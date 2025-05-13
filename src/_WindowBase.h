@@ -116,7 +116,7 @@ static cc_uintptr ctx_visualID;
 static void GLContext_InitSurface(void); // replacement in Window_Switch.c for handheld/docked resolution fix
 #else
 static void GLContext_InitSurface(void) {
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
 #else
 	EGLNativeWindowType window = (EGLNativeWindowType)Window_Main.Handle.ptr;
@@ -145,7 +145,8 @@ static void DumpEGLConfig(EGLConfig config) {
 	eglGetConfigAttrib(ctx_display, config, EGL_ALPHA_SIZE,       &alpha);
 	eglGetConfigAttrib(ctx_display, config, EGL_DEPTH_SIZE,       &depth);
 	eglGetConfigAttrib(ctx_display, config, EGL_NATIVE_VISUAL_ID, &vid);
-#ifndef CC_BUILD_SYMBIAN
+#if !defined CC_BUILD_SYMBIAN || CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
+	/* Symbian 9.2-9.4 only support EGL 1.1 */
 	eglGetConfigAttrib(ctx_display, config, EGL_RENDERABLE_TYPE,  &mode);
 #endif
 
@@ -169,7 +170,9 @@ static void ChooseEGLConfig(EGLConfig* configs, EGLint num_configs) {
 	}
 }
 
-#ifndef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN && CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
+/* Implemented in Window_Symbian.cpp */
+#else
 void GLContext_Create(void) {
 #if CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
 	static EGLint context_attribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
@@ -257,7 +260,7 @@ cc_bool GLContext_SwapBuffers(void) {
 	EGLint err;
 	if (!ctx_surface) return false;
 	if (eglSwapBuffers(ctx_display, ctx_surface)) return true;
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 	if (GLContext_TryRestore() && eglSwapBuffers(ctx_display, ctx_surface)) {
 		return true;
 	}

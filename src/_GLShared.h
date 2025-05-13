@@ -371,6 +371,10 @@ void Gfx_EndFrame(void) {
 #if CC_GFX_BACKEND == CC_GFX_BACKEND_GL1
 	if (Window_IsObscured()) {
 		TickReducedPerformance();
+#if defined CC_BUILD_SYMBIAN
+		/* eglSwapBuffers on Symbian 9.2 renders on top of everything */
+		return;
+#endif
 	} else {
 		EndReducedPerformance();
 	}

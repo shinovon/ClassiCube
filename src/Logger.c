@@ -446,7 +446,12 @@ void Logger_Backtrace(cc_string* trace, void* ctx) {
 	}
 	String_AppendConst(trace, _NL);
 }
-#elif defined CC_BUILD_POSIX && !defined CC_BUILD_SYMBIAN
+#elif defined CC_BUILD_SYMBIAN
+void Logger_Backtrace(cc_string* trace, void* ctx) {
+	String_AppendConst(trace, "-- backtrace unimplemented --");
+	/* There is no dladdr on Symbian */
+}
+#elif defined CC_BUILD_POSIX
 /* musl etc - rely on unwind from GCC instead */
 	#define CC_BACKTRACE_UNWIND
 #else

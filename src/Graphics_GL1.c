@@ -21,7 +21,7 @@
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
 #define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
 #include "../misc/opengl/GL1Funcs.h"
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 #include "../misc/opengl/GL2Funcs.h"
 #endif
 
@@ -30,9 +30,11 @@ static GLuint activeList;
 #define gl_DYNAMICLISTID 1234567891
 static void* dynamicListData;
 static cc_uint16 gl_indices[GFX_MAX_INDICES];
+#define GL_INDICES
 #else
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (64 * 1024)
 static cc_uint16 gl_indices[GFX_MAX_INDICES];
+#define GL_INDICES
 #endif
 /* OpenGL functions use stdcall instead of cdecl on Windows */
 static void (APIENTRY *_glBindBuffer)(GLenum target, GfxResourceID buffer); /* NOTE: buffer is actually a GLuint in OpenGL */
@@ -102,7 +104,7 @@ void Gfx_Create(void) {
 *#########################################################################################################################*/
 #ifndef CC_BUILD_GL11
 GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) {
-#ifndef CC_BUILD_SMALLSTACK
+#ifndef GL_INDICES
 	cc_uint16* gl_indices[GFX_MAX_INDICES];
 #endif
 	GfxResourceID id = NULL;

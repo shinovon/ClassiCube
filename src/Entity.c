@@ -802,6 +802,7 @@ static void LocalPlayers_OnNewMap(void) {
 static cc_bool LocalPlayer_IsSolidCollide(BlockID b) { return Blocks.Collide[b] == COLLIDE_SOLID; }
 
 static void LocalPlayer_DoRespawn(struct LocalPlayer* p) {
+	struct EntityLocation* prev;
 	struct LocationUpdate update;
 	struct AABB bb;
 	Vec3 spawn = p->Spawn;
@@ -809,7 +810,6 @@ static void LocalPlayer_DoRespawn(struct LocalPlayer* p) {
 	BlockID block;
 	float height, spawnY;
 	int y;
-	struct EntityLocation* prev;
 
 	if (!World.Loaded) return;
 	IVec3_Floor(&pos, &spawn);	

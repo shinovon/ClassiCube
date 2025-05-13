@@ -1,6 +1,7 @@
 #include "Core.h"
 #if defined CC_BUILD_POSIX
 
+#define CC_XTEA_ENCRYPTION
 #include "_PlatformBase.h"
 #include "Stream.h"
 #include "ExtMath.h"
@@ -103,7 +104,9 @@ void* Mem_Set(void*  dst, cc_uint8 value,  unsigned numBytes) { return (void*) m
 void* Mem_Copy(void* dst, const void* src, unsigned numBytes) { return (void*) memcpy( dst, src,   numBytes); }
 void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*) memmove(dst, src,   numBytes); }
 
-#ifndef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
+/* implemented in Platform_Symbian.cpp */
+#else
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? malloc(size) : NULL;
@@ -137,7 +140,6 @@ void Platform_Log(const char* msg, int len) {
 	/* Avoid "ignoring return value of 'write' declared with attribute 'warn_unused_result'" warning */
 	ret = write(STDOUT_FILENO, msg,  len);
 	ret = write(STDOUT_FILENO, "\n",   1);
-	
 }
 #endif
 
@@ -201,6 +203,7 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /* "... These functions are part of the Timers option and need not be available on all implementations..." */
 cc_uint64 Stopwatch_Measure(void) {
 #if defined CC_BUILD_SYMBIAN
+	/* TODO use CLOCK_REALTIME */
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return tv.tv_sec * 1000000000LL + (tv.tv_usec * 1000);
@@ -272,6 +275,8 @@ static void SignalHandler(int sig, siginfo_t* info, void* ctx) {
 	Logger_DoAbort(0, msg.buffer, ctx);
 }
 
+#if defined CC_BUILD_SYMBAIN
+/* implemented in Platform_Symbian.cpp */
 void CrashHandler_Install(void) {
 	struct sigaction sa = { 0 };
 	/* sigemptyset(&sa.sa_mask); */
@@ -285,6 +290,7 @@ void CrashHandler_Install(void) {
 	sigaction(SIGABRT, &sa, NULL);
 	sigaction(SIGFPE,  &sa, NULL);
 }
+#endif
 
 void Process_Abort2(cc_result result, const char* raw_msg) {
 	Logger_DoAbort(result, raw_msg, NULL);
@@ -456,7 +462,7 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	
 	*handle = ptr;
 	pthread_attr_init(&attrs);
-#ifdef CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN
 	if (stackSize >= 64 * 1024) {
 		stackSize = 64 * 1024;
 	}
@@ -940,6 +946,7 @@ void Process_Exit(cc_result code) { exit(code); }
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
 #elif defined CC_BUILD_SYMBIAN
+/* implemented in Window_Symbian.cpp */
 #elif defined CC_BUILD_MACOS
 cc_result Process_StartOpen(const cc_string* args) {
 	UInt8 str[NATIVE_STR_LEN];
@@ -1354,15 +1361,16 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 static void Platform_InitPosix(void) {
-	cc_uintptr addr;
 	struct sigaction sa = { 0 };
+	cc_uintptr addr;
 	sa.sa_handler = SIG_IGN;
 
 	sigaction(SIGCHLD, &sa, NULL);
 	/* So writing to closed socket doesn't raise SIGPIPE */
 	sigaction(SIGPIPE, &sa, NULL);
 
-	/* Log runtime address to ease investigating crashes */
+	/* Log runtime address of a known function to ease investigating crashes */
+	/* (on platforms with ASLR, function addresses change every time when run) */
 	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
 }
@@ -1435,41 +1443,6 @@ void Platform_Init(void) {
 /*########################################################################################################################*
 *-------------------------------------------------------Encryption--------------------------------------------------------*
 *#########################################################################################################################*/
-/* Encrypts data using XTEA block cipher, with OS specific method to get machine-specific key */
-
-static void EncipherBlock(cc_uint32* v, const cc_uint32* key, cc_string* dst) {
-	cc_uint32 v0 = v[0], v1 = v[1], sum = 0, delta = 0x9E3779B9;
-	int i;
-
-    for (i = 0; i < 12; i++) 
-	{
-        v0  += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + key[sum & 3]);
-        sum += delta;
-        v1  += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + key[(sum>>11) & 3]);
-    }
-    v[0] = v0; v[1] = v1;
-	String_AppendAll(dst, v, 8);
-}
-
-static void DecipherBlock(cc_uint32* v, const cc_uint32* key) {
-	cc_uint32 v0 = v[0], v1 = v[1], delta = 0x9E3779B9, sum = delta * 12;
-	int i;
-
-    for (i = 0; i < 12; i++) 
-	{
-        v1  -= (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + key[(sum>>11) & 3]);
-        sum -= delta;
-        v0  -= (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + key[sum & 3]);
-    }
-    v[0] = v0; v[1] = v1;
-}
-
-#define ENC1 0xCC005EC0
-#define ENC2 0x0DA4A0DE
-#define ENC3 0xC0DED000
-#define MACHINEID_LEN 32
-#define ENC_SIZE 8 /* 2 32 bit ints per block */
-
 /* "b3 c5a-0d9" --> 0xB3C5A0D9 */
 static void DecodeMachineID(char* tmp, int len, cc_uint32* key) {
 	int hex[MACHINEID_LEN] = { 0 }, i, j, c;
@@ -1615,58 +1588,18 @@ static cc_result GetMachineID(cc_uint32* key) {
 static cc_result GetMachineID(cc_uint32* key) { return ERR_NOT_SUPPORTED; }
 #endif
 
-cc_result Platform_Encrypt(const void* data, int len, cc_string* dst) {
-	const cc_uint8* src = (const cc_uint8*)data;
-	cc_uint32 header[4], key[4];
-	cc_result res;
-	if ((res = GetMachineID(key))) return res;
-
-	header[0] = ENC1; header[1] = ENC2;
-	header[2] = ENC3; header[3] = len;
-	EncipherBlock(header + 0, key, dst);
-	EncipherBlock(header + 2, key, dst);
-
-	for (; len > 0; len -= ENC_SIZE, src += ENC_SIZE) 
-	{
-		header[0] = 0; header[1] = 0;
-		Mem_Copy(header, src, min(len, ENC_SIZE));
-		EncipherBlock(header, key, dst);
-	}
-	return 0;
-}
-
-cc_result Platform_Decrypt(const void* data, int len, cc_string* dst) {
-	const cc_uint8* src = (const cc_uint8*)data;
-	cc_uint32 header[4], key[4];
-	cc_result res;
-	int dataLen;
-
-	/* Total size must be >= header size */
-	if (len < 16) return ERR_END_OF_STREAM;
-	if ((res = GetMachineID(key))) return res;
-
-	Mem_Copy(header, src, 16);
-	DecipherBlock(header + 0, key);
-	DecipherBlock(header + 2, key);
-
-	if (header[0] != ENC1 || header[1] != ENC2 || header[2] != ENC3) return ERR_INVALID_ARGUMENT;
-	len -= 16; src += 16;
-
-	if (header[3] > len) return ERR_INVALID_ARGUMENT;
-	dataLen = header[3];
-
-	for (; dataLen > 0; len -= ENC_SIZE, src += ENC_SIZE, dataLen -= ENC_SIZE) 
-	{
-		header[0] = 0; header[1] = 0;
-		Mem_Copy(header, src, min(len, ENC_SIZE));
-
-		DecipherBlock(header, key);
-		String_AppendAll(dst, header, min(dataLen, ENC_SIZE));
-	}
-	return 0;
-}
 
 cc_result Platform_GetEntropy(void* data, int len) {
+#if defined CC_BUILD_SYMBIAN
+    cc_uint32 rnd = 0, i;
+    for (i = 0; i < len; ++i) {
+        if (i % 4 == 0)
+            rnd = rand();
+        ((cc_uint8*) data)[i] = rnd;
+        rnd >>= 8;
+    }
+    return 0;
+#else
 	int ret;
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) return ERR_NOT_SUPPORTED;
@@ -1675,6 +1608,7 @@ cc_result Platform_GetEntropy(void* data, int len) {
 	ret = read(fd, data, len);
 	close(fd);
 	return ret == -1 ? errno : 0;
+#endif
 }
 
 

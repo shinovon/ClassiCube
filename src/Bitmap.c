@@ -358,10 +358,8 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 	int curY;
 
 	/* idat decompressor */
-#ifdef CC_BUILD_TINYSTACK
+#if CC_BUILD_MAXSTACK <= (50 * 1024)
 	struct InflateState* inflate = (struct InflateState*)temp_mem;
-#elif defined CC_BUILD_SMALLSTACK
-	struct InflateState* inflate = (struct InflateState*) Mem_TryAlloc(1, sizeof(struct InflateState));
 #else
 	struct InflateState _inflate;
 	struct InflateState* inflate = &_inflate;
@@ -369,21 +367,13 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 	struct Stream compStream, datStream;
 	struct ZLibHeader zlibHeader;
 	cc_uint8* data = NULL;
-#if defined CC_BUILD_SMALLSTACK
-	if (!inflate) {
-		return ERR_OUT_OF_MEMORY;
-	}
-#endif
 
 	bmp->width = 0; bmp->height = 0;
 	bmp->scan0 = NULL;
 
 	res = Stream_Read(stream, tmp, PNG_SIG_SIZE);
-	if (res) goto ret;
-	if (!Png_Detect(tmp, PNG_SIG_SIZE)) {
-		res = PNG_ERR_INVALID_SIG;
-		goto ret;
-	}
+	if (res) return res;
+	if (!Png_Detect(tmp, PNG_SIG_SIZE)) return PNG_ERR_INVALID_SIG;
 
 	colorspace = 0xFF; /* Unknown colour space */
 	trnsColor  = BITMAPCOLOR_BLACK;
@@ -394,55 +384,31 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 
 	for (;;) {
 		res = Stream_Read(stream,   tmp, 8);
-		if (res) goto ret;
+		if (res) return res;
 		dataSize = Stream_GetU32_BE(tmp + 0);
 		fourCC   = Stream_GetU32_BE(tmp + 4);
 
 		switch (fourCC) {
 		/* 11.2.2 IHDR Image header */
 		case PNG_FourCC('I','H','D','R'): {
-			if (dataSize != PNG_IHDR_SIZE) {
-				res = PNG_ERR_INVALID_HDR_SIZE;
-				goto ret;
-			}
+			if (dataSize != PNG_IHDR_SIZE) return PNG_ERR_INVALID_HDR_SIZE;
 			res = Stream_Read(stream, tmp, PNG_IHDR_SIZE);
-			if (res) goto ret;
+			if (res) return res;
 
 			bmp->width  = (int)Stream_GetU32_BE(tmp + 0);
 			bmp->height = (int)Stream_GetU32_BE(tmp + 4);
-			if (bmp->width  < 0 || bmp->width  > PNG_MAX_DIMS) {
-				res = PNG_ERR_TOO_WIDE;
-				goto ret;
-			}
-			if (bmp->height < 0 || bmp->height > PNG_MAX_DIMS) {
-				res = PNG_ERR_TOO_TALL;
-				goto ret;
-			}
+			if (bmp->width  < 0 || bmp->width  > PNG_MAX_DIMS) return PNG_ERR_TOO_WIDE;
+			if (bmp->height < 0 || bmp->height > PNG_MAX_DIMS) return PNG_ERR_TOO_TALL;
 
 			bitsPerSample = tmp[8]; colorspace = tmp[9];
-			if (bitsPerSample == 16) {
-				res = PNG_ERR_16BITSAMPLES;
-				goto ret;
-			}
+			if (bitsPerSample == 16) return PNG_ERR_16BITSAMPLES;
 
 			rowExpander = Png_GetExpander(colorspace, bitsPerSample);
-			if (!rowExpander) {
-				res = PNG_ERR_INVALID_COL_BPP;
-				goto ret;
-			}
+			if (!rowExpander) return PNG_ERR_INVALID_COL_BPP;
 
-			if (tmp[10] != 0) {
-				res = PNG_ERR_COMP_METHOD;
-				goto ret;
-			}
-			if (tmp[11] != 0) {
-				res = PNG_ERR_FILTER;
-				goto ret;
-			}
-			if (tmp[12] != 0) {
-				res = PNG_ERR_INTERLACED;
-				goto ret;
-			}
+			if (tmp[10] != 0) return PNG_ERR_COMP_METHOD;
+			if (tmp[11] != 0) return PNG_ERR_FILTER;
+			if (tmp[12] != 0) return PNG_ERR_INTERLACED;
 
 			bytesPerPixel = ((samplesPerPixel[colorspace] * bitsPerSample) + 7) >> 3;
 			scanlineSize  = ((samplesPerPixel[colorspace] * bitsPerSample * bmp->width) + 7) >> 3;
@@ -450,27 +416,18 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 
 			data = (cc_uint8*)Mem_TryAlloc(bmp->height, max(scanlineBytes, bmp->width * 4));
 			bmp->scan0 = (BitmapCol*)data;
-			if (!bmp->scan0) {
-				res = ERR_OUT_OF_MEMORY;
-				goto ret;
-			}
+			if (!bmp->scan0) return ERR_OUT_OF_MEMORY;
 
 			bufferLen = bmp->height * scanlineBytes;
 		} break;
 
 		/* 11.2.3 PLTE Palette */
 		case PNG_FourCC('P','L','T','E'): {
-			if (dataSize > PNG_PALETTE * 3) {
-				res = PNG_ERR_PAL_SIZE;
-				goto ret;
-			}
-			if ((dataSize % 3) != 0) {
-				res = PNG_ERR_PAL_SIZE;
-				goto ret;
-			}
+			if (dataSize > PNG_PALETTE * 3) return PNG_ERR_PAL_SIZE;
+			if ((dataSize % 3) != 0)        return PNG_ERR_PAL_SIZE;
 
 			res = Stream_Read(stream, buffer, dataSize);
-			if (res) goto ret;
+			if (res) return res;
 
 			for (i = 0; i < dataSize; i += 3) {
 				palette[i / 3] &= BITMAPCOLOR_A_MASK; /* set RGB to 0 */
@@ -483,24 +440,18 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 		/* 11.3.2.1 tRNS Transparency */
 		case PNG_FourCC('t','R','N','S'): {
 			if (colorspace == PNG_COLOR_GRAYSCALE) {
-				if (dataSize != 2) {
-					res = PNG_ERR_TRANS_COUNT;
-					goto ret;
-				}
+				if (dataSize != 2) return PNG_ERR_TRANS_COUNT;
 
 				res = Stream_Read(stream, buffer, dataSize);
-				if (res) goto ret;
+				if (res) return res;
 
 				/* RGB is always two bytes */
 				trnsColor = ExpandRGB(bitsPerSample, buffer[1], buffer[1], buffer[1]);
 			} else if (colorspace == PNG_COLOR_INDEXED) {
-				if (dataSize > PNG_PALETTE) {
-					res = PNG_ERR_TRANS_COUNT;
-					goto ret;
-				}
+				if (dataSize > PNG_PALETTE) return PNG_ERR_TRANS_COUNT;
 
 				res = Stream_Read(stream, buffer, dataSize);
-				if (res) goto ret;
+				if (res) return res;
 
 				/* set alpha component of palette */
 				for (i = 0; i < dataSize; i++) {
@@ -508,19 +459,15 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 					palette[i] |= BitmapColor_A_Bits(buffer[i]);
 				}
 			} else if (colorspace == PNG_COLOR_RGB) {
-				if (dataSize != 6) {
-					res = PNG_ERR_TRANS_COUNT;
-					goto ret;
-				}
+				if (dataSize != 6) return PNG_ERR_TRANS_COUNT;
 
 				res = Stream_Read(stream, buffer, dataSize);
-				if (res) goto ret;
+				if (res) return res;
 
 				/* R,G,B are always two bytes */
 				trnsColor = ExpandRGB(bitsPerSample, buffer[1], buffer[3], buffer[5]);
 			} else {
-				res = PNG_ERR_TRANS_INVALID;
-				goto ret;
+				return PNG_ERR_TRANS_INVALID;
 			}
 		} break;
 
@@ -531,18 +478,15 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 
 			/* TODO: This assumes zlib header will be in 1 IDAT chunk */
 			while (!zlibHeader.done) {
-				if ((res = ZLibHeader_Read(&datStream, &zlibHeader))) goto ret;
+				if ((res = ZLibHeader_Read(&datStream, &zlibHeader))) return res;
 			}
 
-			if (!bmp->scan0) {
-				res = PNG_ERR_NO_DATA;
-				goto ret;
-			}
+			if (!bmp->scan0) return PNG_ERR_NO_DATA;
 			if (rowY >= bmp->height) break;
 			left = bufferLen - bufferIdx;
 
 			res  = compStream.Read(&compStream, &data[bufferIdx], left, &read);
-			if (res) goto ret;
+			if (res) return res;
 			if (!read) break;
 
 			available += read;
@@ -552,10 +496,7 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 			/* NOTE: Need to check height too, in case IDAT is corrupted and has extra data */
 			for (; available >= scanlineBytes && rowY < bmp->height; rowY++, available -= scanlineBytes) {
 				cc_uint8* scanline = &data[rowY * scanlineBytes];
-				if (scanline[0] > PNG_FILTER_PAETH) {
-					res = PNG_ERR_INVALID_SCANLINE;
-					goto ret;
-				}
+				if (scanline[0] > PNG_FILTER_PAETH) return PNG_ERR_INVALID_SCANLINE;
 
 				if (rowY == 0) {
 					/* First row, prior is assumed as 0 */
@@ -594,30 +535,22 @@ cc_result Png_Decode(struct Bitmap* bmp, struct Stream* stream) {
 			}
 
 			if (!BitmapCol_A(trnsColor)) ComputeTransparency(bmp, trnsColor);
-			res = 0;
-			goto ret;
+			return 0;
 		} break;
 
 		/* 11.2.5 IEND Image trailer */
 		case PNG_FourCC('I','E','N','D'):
 			/* Reading all image data should be handled by above if in the IDAT chunk */
 			/* If we reached here, it means not all of the image data was read */
-			res = PNG_ERR_REACHED_IEND;
-			goto ret;
+			return PNG_ERR_REACHED_IEND;
 
 		default:
-			if ((res = stream->Skip(stream, dataSize))) goto ret;
+			if ((res = stream->Skip(stream, dataSize))) return res;
 			break;
 		}
 
-		if ((res = stream->Skip(stream, 4))) goto ret; /* Skip CRC32 */
+		if ((res = stream->Skip(stream, 4))) return res; /* Skip CRC32 */
 	}
-	
-	ret:
-#if defined CC_BUILD_SMALLSTACK && !defined CC_BUILD_TINYSTACK 
-	Mem_Free(inflate);
-#endif
-	return res;
 }
 #endif
 
@@ -733,7 +666,7 @@ static cc_result Png_EncodeCore(struct Bitmap* bmp, struct Stream* stream, cc_ui
 	cc_uint8*  curLine = buffer + (bmp->width * 4) * 1;
 	cc_uint8* bestLine = buffer + (bmp->width * 4) * 2;
 
-#ifdef CC_BUILD_SMALLSTACK
+#if CC_BUILD_MAXSTACK <= (50 * 1024)
 	struct ZLibState* zlState = Mem_TryAlloc(1, sizeof(struct ZLibState));
 #else
 	struct ZLibState _zlState;
