@@ -10,6 +10,7 @@
 #include <aknnotewrappers.h>
 #include <apgwgnam.h>
 #include <stdlib.h>
+#include <apgcli.h>
 extern "C" {
 #include <stdapis/string.h>
 #include <gles/egl.h>
@@ -40,6 +41,7 @@ public:
 	void ProcessEvents(float delta);
 	void RequestClose();
 	void InitEvents();
+	cc_result OpenBrowser(const cc_string* url);
 	~CWindow();
 	
 	TWsEvent iWsEvent;
@@ -388,6 +390,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
+#if 0 // TODO
 	case EEventFocusLost: {
 		if (!WindowInfo.Focused) break;
 		WindowInfo.Focused = false;
@@ -404,6 +407,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
+#endif
 	// shutdown request from task manager
 	case KAknShutOrHideApp:
 	case KAknUidValueEndKeyCloseEvent: {
@@ -525,6 +529,30 @@ void CWindow::InitEvents() {
 	iEventsInitialized = ETrue;
 	iWsEventStatus = KRequestPending;
 	iWsSession.EventReady(&iWsEventStatus);
+}
+
+cc_result CWindow::OpenBrowser(const cc_string* url) {
+#if 0
+	TUid browserUid = {0x1020724d};
+	TApaTaskList tasklist(window->iWsSession);
+	TApaTask task = tasklist.FindApp(browserUid);
+	TPtrC des;
+	// TODO convert url to utf16
+	
+	if (task.Exists()) {
+		task.BringToForeground();
+		
+		
+	} else {
+		RApaLsSession ls;
+		if (!ls.Connect()) {
+			TThreadId tid;
+			ls.StartDocument(des, browserUid, tid);
+			ls.Close();
+		}
+	}
+#endif
+	return ERR_NOT_SUPPORTED;
 }
 
 //
@@ -686,6 +714,12 @@ void GLContext_Create(void) {
 	ctx_context = eglCreateContext(ctx_display, ctx_config, EGL_NO_CONTEXT, NULL);
 	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 	GLContext_InitSurface();
+}
+
+cc_result Process_StartOpen(const cc_string* args) {
+	TInt err = 0;
+	TRAP(err, err = window->OpenBrowser(args));
+	return (cc_result) err;
 }
 
 #endif

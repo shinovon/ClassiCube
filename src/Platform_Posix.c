@@ -946,6 +946,7 @@ void Process_Exit(cc_result code) { exit(code); }
 #elif defined CC_BUILD_IOS
 /* implemented in interop_ios.m */
 #elif defined CC_BUILD_SYMBIAN
+/* implemented in Window_Symbian.cpp */
 #elif defined CC_BUILD_MACOS
 cc_result Process_StartOpen(const cc_string* args) {
 	UInt8 str[NATIVE_STR_LEN];
@@ -1587,7 +1588,18 @@ static cc_result GetMachineID(cc_uint32* key) {
 static cc_result GetMachineID(cc_uint32* key) { return ERR_NOT_SUPPORTED; }
 #endif
 
+
 cc_result Platform_GetEntropy(void* data, int len) {
+#if defined CC_BUILD_SYMBIAN
+    cc_uint32 rnd = 0, i;
+    for (i = 0; i < len; ++i) {
+        if (i % 4 == 0)
+            rnd = rand();
+        ((cc_uint8*) data)[i] = rnd;
+        rnd >>= 8;
+    }
+    return 0;
+#else
 	int ret;
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) return ERR_NOT_SUPPORTED;
@@ -1596,6 +1608,7 @@ cc_result Platform_GetEntropy(void* data, int len) {
 	ret = read(fd, data, len);
 	close(fd);
 	return ret == -1 ? errno : 0;
+#endif
 }
 
 

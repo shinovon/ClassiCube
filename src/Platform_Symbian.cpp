@@ -33,10 +33,6 @@ cc_result Updater_SetNewBuildTime(cc_uint64 timestamp) {
 	return ERR_NOT_SUPPORTED;
 }
 
-cc_result Process_StartOpen(const cc_string* args) {
-	return ERR_NOT_SUPPORTED;
-}
-
 cc_result Platform_SetDefaultCurrentDirectory(int argc, char **argv) {
 	// Directory is already set by platform: !:/private/e212a5c2
 	return 0;
