@@ -698,6 +698,7 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	Mem_Free(bmp->scan0);
 }
 
+#if CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
 void GLContext_Create(void) {
 	static EGLint attribs[] = {
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
@@ -715,6 +716,7 @@ void GLContext_Create(void) {
 	if (!ctx_context) Process_Abort2(eglGetError(), "Failed to create EGL context");
 	GLContext_InitSurface();
 }
+#endif
 
 cc_result Process_StartOpen(const cc_string* args) {
 	TInt err = 0;

@@ -26,7 +26,12 @@ LIBRARY avkon.lib
 LIBRARY fbscli.lib
 LIBRARY ws32.lib
 
+#if 1
+LIBRARY libglesv2.lib
+LIBRARY libegl.lib
+#else
 LIBRARY libgles_cm.lib
+#endif
 LIBRARY libc.lib
 LIBRARY libm.lib
 LIBRARY libdl.lib

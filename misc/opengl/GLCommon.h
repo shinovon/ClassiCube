@@ -6,6 +6,9 @@
 	#define NOIME
 	#include <windows.h>
 	#define GLAPI WINGDIAPI
+#elif defined CC_BUILD_SYMBIAN
+	#define GLAPI IMPORT_C
+	#define APIENTRY
 #else
 	#define GLAPI extern
 	#define APIENTRY

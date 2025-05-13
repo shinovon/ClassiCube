@@ -145,7 +145,7 @@ static void DumpEGLConfig(EGLConfig config) {
 	eglGetConfigAttrib(ctx_display, config, EGL_ALPHA_SIZE,       &alpha);
 	eglGetConfigAttrib(ctx_display, config, EGL_DEPTH_SIZE,       &depth);
 	eglGetConfigAttrib(ctx_display, config, EGL_NATIVE_VISUAL_ID, &vid);
-#if !defined CC_BUILD_SYMBIAN
+#if !defined CC_BUILD_SYMBIAN || CC_GFX_BACKEND == CC_GFX_BACKEND_GL2
 	/* Symbian 9.2-9.4 only support EGL 1.1 */
 	eglGetConfigAttrib(ctx_display, config, EGL_RENDERABLE_TYPE,  &mode);
 #endif
@@ -170,7 +170,7 @@ static void ChooseEGLConfig(EGLConfig* configs, EGLint num_configs) {
 	}
 }
 
-#if defined CC_BUILD_SYMBIAN
+#if defined CC_BUILD_SYMBIAN && CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
 /* Implemented in Window_Symbian.cpp */
 #else
 void GLContext_Create(void) {
