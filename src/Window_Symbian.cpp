@@ -390,12 +390,13 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
-#if 0 // TODO
 	case EEventFocusLost: {
+#if 0 // TODO
 		if (!WindowInfo.Focused) break;
 		WindowInfo.Focused = false;
 		
 		Event_RaiseVoid(&WindowEvents.FocusChanged);
+#endif
 		break;
 	}
 	case EEventFocusGained: {
@@ -407,7 +408,6 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
-#endif
 	// shutdown request from task manager
 	case KAknShutOrHideApp:
 	case KAknUidValueEndKeyCloseEvent: {
