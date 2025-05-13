@@ -12,4 +12,8 @@ TARGETPATH \resource\apps
 LANG SC
 END
 
+START RESOURCE classicube_reg.rss
+TARGETPATH \private\10003a3f\import\apps
+END
+
 #include "ClassiCube_common.mmh"

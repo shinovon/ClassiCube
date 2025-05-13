@@ -74,32 +74,6 @@ CWindow* CWindow::NewL() {
 }
 
 void CWindow::CreateWindowL() {
-	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
-	User::LeaveIfError(iWsScreenDevice->Construct());
-
-	iWindowGroup = RWindowGroup(iWsSession);
-	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this) - 1));
-	iWindowGroup.SetOrdinalPosition(0);
-	iWindowGroup.EnableScreenChangeEvents();
-#ifdef CC_BUILD_TOUCH
-	iWindowGroup.EnableReceiptOfFocus(EFalse);
-#else
-	iWindowGroup.EnableReceiptOfFocus(ETrue);
-#endif
-
-	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
-	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
-	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
-	iWindowGroupName->SetHidden(EFalse);
-	iWindowGroupName->SetSystem(EFalse);
-	iWindowGroupName->SetRespondsToShutdownEvent(ETrue);
-	iWindowGroupName->SetWindowGroupName(iWindowGroup);
-
-	iWindow = new (ELeave) RWindow(iWsSession);
-
-	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
-	User::LeaveIfError(err);
-
 	TPixelsTwipsAndRotation pixnrot;
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 
@@ -118,14 +92,6 @@ void CWindow::CreateWindowL() {
 	iWindow->SetBackgroundColor();
 	// Enable drag events
 	iWindow->PointerFilter(EPointerFilterDrag, 0);
-	
-	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
-	CApaWindowGroupName* rootWindGroupName = 0;
-	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession, rootWin.Identifier()));
-	if (rootWindGroupName) {
-		rootWindGroupName->SetHidden(ETrue);
-		rootWindGroupName->SetWindowGroupName(rootWin);
-	}
 
 	WindowInfo.Focused = true;
 	WindowInfo.Exists = true;
@@ -136,16 +102,9 @@ void CWindow::CreateWindowL() {
 	
 	DisplayInfo.Width = w;
 	DisplayInfo.Height = h;
-	DisplayInfo.ScaleX = 1;
-	DisplayInfo.ScaleY = 1;
 	
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
-	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
-	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
-	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
-	
-	iWsSession.EventReadyCancel();
 }
 
 CWindow::CWindow() {
@@ -176,10 +135,49 @@ void CWindow::ConstructL() {
 	}
 	
 	iWsSession = env->WsSession();
-	
+	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
+	User::LeaveIfError(iWsScreenDevice->Construct());
+
+	iWindowGroup = RWindowGroup(iWsSession);
+	User::LeaveIfError(iWindowGroup.Construct(reinterpret_cast<TUint32>(this) - 1));
+	iWindowGroup.SetOrdinalPosition(0);
+	iWindowGroup.EnableScreenChangeEvents();
+#ifdef CC_BUILD_TOUCH
+	iWindowGroup.EnableReceiptOfFocus(EFalse);
+#else
+	iWindowGroup.EnableReceiptOfFocus(ETrue);
+#endif
+
+	iWindowGroupName = CApaWindowGroupName::NewL(iWsSession, iWindowGroup.Identifier());
+	iWindowGroupName->SetAppUid(TUid::Uid(0xE212A5C2));
+	iWindowGroupName->SetCaptionL(_L("ClassiCube"));
+	iWindowGroupName->SetHidden(EFalse);
+	iWindowGroupName->SetSystem(EFalse);
+	iWindowGroupName->SetRespondsToShutdownEvent(ETrue);
+	iWindowGroupName->SetWindowGroupName(iWindowGroup);
+
+	iWindow = new (ELeave) RWindow(iWsSession);
+
+	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
+	User::LeaveIfError(err);
+
+	DisplayInfo.ScaleX = 1;
+	DisplayInfo.ScaleY = 1;
+	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
+	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
+	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
+
 	TRAPD(err, CreateWindowL());
 	if (err) {
 		User::Panic(_L("Window creation failed"), err);
+	}
+
+	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
+	CApaWindowGroupName* rootWindGroupName = 0;
+	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession, rootWin.Identifier()));
+	if (rootWindGroupName) {
+		rootWindGroupName->SetHidden(ETrue);
+		rootWindGroupName->SetWindowGroupName(rootWin);
 	}
 	
 	TDisplayMode displayMode = iWindow->DisplayMode();
@@ -204,6 +202,8 @@ void CWindow::ConstructL() {
 	}
 	
 	DisplayInfo.Depth = bufferSize;
+	
+	iWsSession.EventReadyCancel();
 }
 
 static int ConvertKey(TInt aScanCode) {
