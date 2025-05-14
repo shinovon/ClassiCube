@@ -78,18 +78,19 @@ void CWindow::CreateWindowL() {
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 
 	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
+	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
-	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
 	iWindow->SetNonFading(ETrue);
 	iWindow->SetShadowDisabled(ETrue);
-	iWindow->EnableRedrawStore(ETrue);
+	iWindow->EnableRedrawStore(EFalse);
 	iWindow->EnableVisibilityChangeEvents();
 	iWindow->SetNonTransparent();
 	iWindow->SetBackgroundColor();
+	iWindow->SetOrdinalPosition(0);
 	// Enable drag events
 	iWindow->PointerFilter(EPointerFilterDrag, 0);
 
@@ -139,6 +140,10 @@ CWindow::~CWindow() {
 }
 
 void CWindow::ConstructL() {
+	delete CActiveScheduler::Current();            
+	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
+	CActiveScheduler::Install(actScheduler);
+	
 	CCoeEnv* env = CCoeEnv::Static();
 	if (!env) {
 		User::Panic(_L("CoeEnv::Static not initialized"), 0);
@@ -376,7 +381,8 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	case EEventScreenDeviceChanged:
-	case 27: /* EEventDisplayChanged */ {
+	//case 27: /* EEventDisplayChanged */
+	{
 		TPixelsTwipsAndRotation pixnrot;
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		if (pixnrot.iPixelSize != iWindow->Size()) {
@@ -512,6 +518,13 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 }
 
 void CWindow::ProcessEvents(float delta) {
+	RThread thread;
+	TInt error = KErrNone;
+	while (thread.RequestCount()) {
+		CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
+		User::WaitForAnyRequest();
+	}
+	
 	while (iWsEventStatus != KRequestPending) {
 		iWsSession.GetEvent(window->iWsEvent);
 		HandleWsEvent(window->iWsEvent);
