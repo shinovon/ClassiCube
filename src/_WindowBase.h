@@ -145,7 +145,7 @@ static void DumpEGLConfig(EGLConfig config) {
 	eglGetConfigAttrib(ctx_display, config, EGL_ALPHA_SIZE,       &alpha);
 	eglGetConfigAttrib(ctx_display, config, EGL_DEPTH_SIZE,       &depth);
 	eglGetConfigAttrib(ctx_display, config, EGL_NATIVE_VISUAL_ID, &vid);
-#if !defined EGL_RENDERABLE_TYPE
+#if defined EGL_RENDERABLE_TYPE
 	/* e.g Symbian 9.2-9.4 only support EGL 1.1 */
 	eglGetConfigAttrib(ctx_display, config, EGL_RENDERABLE_TYPE,  &mode);
 #endif
