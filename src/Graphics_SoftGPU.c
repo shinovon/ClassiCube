@@ -217,9 +217,11 @@ static GfxResourceID Gfx_AllocStaticVb(VertexFormat fmt, int count) {
 void Gfx_BindVb(GfxResourceID vb) { gfx_vertices = vb; }
 
 void Gfx_DeleteVb(GfxResourceID* vb) {
-	GfxResourceID data = *vb;
-	if (data) Mem_Free(data);
-	*vb = 0;
+	if (vb) {
+		GfxResourceID data = *vb;
+		if (data) Mem_Free(data);
+		*vb = 0;
+	}
 }
 
 void* Gfx_LockVb(GfxResourceID vb, VertexFormat fmt, int count) {
