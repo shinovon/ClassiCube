@@ -78,18 +78,19 @@ void CWindow::CreateWindowL() {
 	iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 
 	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
+	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 #ifdef CC_BUILD_SYMBIAN_MULTITOUCH
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
-	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
 	iWindow->SetVisible(ETrue);
 	iWindow->SetNonFading(ETrue);
 	iWindow->SetShadowDisabled(ETrue);
-	iWindow->EnableRedrawStore(ETrue);
+	iWindow->EnableRedrawStore(EFalse);
 	iWindow->EnableVisibilityChangeEvents();
 	iWindow->SetNonTransparent();
 	iWindow->SetBackgroundColor();
+	iWindow->SetOrdinalPosition(0);
 	// Enable drag events
 	iWindow->PointerFilter(EPointerFilterDrag, 0);
 
@@ -105,6 +106,16 @@ void CWindow::CreateWindowL() {
 	
 	WindowInfo.Width = w;
 	WindowInfo.Height = h;
+
+	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
+	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
+	if (w <= 360) {
+		DisplayInfo.ScaleX = 0.5f;
+		DisplayInfo.ScaleY = 0.5f;
+	} else {
+		DisplayInfo.ScaleX = 1;
+		DisplayInfo.ScaleY = 1;
+	}
 }
 
 CWindow::CWindow() {
@@ -129,6 +140,10 @@ CWindow::~CWindow() {
 }
 
 void CWindow::ConstructL() {
+	delete CActiveScheduler::Current();            
+	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();    
+	CActiveScheduler::Install(actScheduler);
+	
 	CCoeEnv* env = CCoeEnv::Static();
 	if (!env) {
 		User::Panic(_L("CoeEnv::Static not initialized"), 0);
@@ -161,10 +176,6 @@ void CWindow::ConstructL() {
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
 
-	DisplayInfo.ScaleX = 1;
-	DisplayInfo.ScaleY = 1;
-	WindowInfo.UIScaleX = DEFAULT_UI_SCALE_X;
-	WindowInfo.UIScaleY = DEFAULT_UI_SCALE_Y;
 	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 
 	TRAP(err, CreateWindowL());
@@ -370,7 +381,8 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	case EEventScreenDeviceChanged:
-	case 27: /* EEventDisplayChanged */ {
+	//case 27: /* EEventDisplayChanged */
+	{
 		TPixelsTwipsAndRotation pixnrot;
 		iWsScreenDevice->GetScreenModeSizeAndRotation(iWsScreenDevice->CurrentScreenMode(), pixnrot);
 		if (pixnrot.iPixelSize != iWindow->Size()) {
@@ -506,6 +518,13 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 }
 
 void CWindow::ProcessEvents(float delta) {
+	RThread thread;
+	TInt error = KErrNone;
+	while (thread.RequestCount()) {
+		CActiveScheduler::RunIfReady(error, CActive::EPriorityIdle);
+		User::WaitForAnyRequest();
+	}
+	
 	while (iWsEventStatus != KRequestPending) {
 		iWsSession.GetEvent(window->iWsEvent);
 		HandleWsEvent(window->iWsEvent);
@@ -698,7 +717,7 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	Mem_Free(bmp->scan0);
 }
 
-#if CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
+#if CC_GFX_BACKEND == CC_GFX_BACKEND_GL1
 void GLContext_Create(void) {
 	static EGLint attribs[] = {
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,

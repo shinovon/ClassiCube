@@ -555,8 +555,8 @@ static void GLBackend_Init(void) {
 	
 	glGetIntegerv(_GL_MAJOR_VERSION, &major);
 	glGetIntegerv(_GL_MINOR_VERSION, &minor);
-	
 	customMipmapsLevels = major >= 3 && minor >= 2;
+
 	Platform_Log2("BGRA support - Ext: %t, Apple: %t", &has_ext_bgra, &has_apl_bgra);
 	convert_rgba = PIXEL_FORMAT != GL_RGBA && !has_ext_bgra && !has_apl_bgra;
 #endif
