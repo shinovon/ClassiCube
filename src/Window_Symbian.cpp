@@ -717,7 +717,7 @@ void Window_FreeFramebuffer(struct Bitmap* bmp) {
 	Mem_Free(bmp->scan0);
 }
 
-#if CC_GFX_BACKEND != CC_GFX_BACKEND_GL2
+#if CC_GFX_BACKEND == CC_GFX_BACKEND_GL1
 void GLContext_Create(void) {
 	static EGLint attribs[] = {
 		EGL_SURFACE_TYPE,      EGL_WINDOW_BIT,
