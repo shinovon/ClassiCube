@@ -498,6 +498,7 @@ cc_result SSL_Init(cc_socket socket, const cc_string* host_, void** out_ctx) {
 	if (!ctx) return ERR_OUT_OF_MEMORY;
 	*out_ctx = (void*)ctx;
 	
+#if defined CC_BUILD_SYMBIAN
 	{
 		TAs[3].pkey.key.ec.curve = BR_EC_secp384r1;
 		TAs[3].pkey.key.ec.q = (unsigned char *)TA3_EC_Q;
@@ -507,6 +508,7 @@ cc_result SSL_Init(cc_socket socket, const cc_string* host_, void** out_ctx) {
 		TAs[6].pkey.key.ec.q = (unsigned char *)TA6_EC_Q;
 		TAs[6].pkey.key.ec.qlen = sizeof TA6_EC_Q;
 	}
+#endif
 	
 	br_ssl_client_init_full(&ctx->sc, &ctx->xc, TAs, TAs_NUM);
 	InjectEntropy(ctx);

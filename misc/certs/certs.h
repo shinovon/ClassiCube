@@ -299,7 +299,11 @@ static const unsigned char TA6_EC_Q[] = {
 	0x8A
 };
 
-static br_x509_trust_anchor TAs[7] = {
+static
+#ifndef CC_BUILD_SYMBIAN
+const
+#endif
+br_x509_trust_anchor TAs[7] = {
 	{
 		{ (unsigned char *)TA0_DN, sizeof TA0_DN },
 		BR_X509_TA_CA,
@@ -337,7 +341,17 @@ static br_x509_trust_anchor TAs[7] = {
 		{ (unsigned char *)TA3_DN, sizeof TA3_DN },
 		BR_X509_TA_CA,
 		{
+			
+#if defined CC_BUILD_SYMBIAN
 			BR_KEYTYPE_EC
+			/* set in SSL.c */
+#else
+			BR_KEYTYPE_EC,
+			{ .ec = {
+				BR_EC_secp384r1,
+				(unsigned char *)TA3_EC_Q, sizeof TA3_EC_Q,
+			} }
+#endif
 		}
 	},
 	{
@@ -366,7 +380,16 @@ static br_x509_trust_anchor TAs[7] = {
 		{ (unsigned char *)TA6_DN, sizeof TA6_DN },
 		BR_X509_TA_CA,
 		{
+#if defined CC_BUILD_SYMBIAN
+			BR_KEYTYPE_EC
+			/* set in SSL.c */
+#else
 			BR_KEYTYPE_EC,
+			{ .ec = {
+				BR_EC_secp384r1,
+				(unsigned char *)TA6_EC_Q, sizeof TA6_EC_Q,
+			} }
+#endif
 		}
 	}
 };

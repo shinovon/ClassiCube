@@ -441,7 +441,7 @@
  * Encoding/decoding functions.
  *
  * 32-bit and 64-bit decoding, both little-endian and big-endian, is
- * implemented with the __inline functions below.
+ * implemented with the inline functions below.
  *
  * When allowed by some compile-time options (autodetected or provided),
  * optimised code is used, to perform direct memory access when the
