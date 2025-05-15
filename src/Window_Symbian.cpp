@@ -421,8 +421,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		break;
 	}
 	// shutdown request from task manager
-	case KAknShutOrHideApp:
-	case KAknUidValueEndKeyCloseEvent: {
+	case KAknShutOrHideApp: {
 		RequestClose();
 		break;
 	}

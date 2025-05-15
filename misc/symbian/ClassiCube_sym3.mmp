@@ -1,6 +1,9 @@
 TARGET		  ClassiCube_sym3.exe
 
 MACRO CC_BUILD_SYMBIAN_3
+MACRO CC_BUILD_SYMBIAN_LIBGLESV2
+
+ARMFPU vfpv2
 
 LIBRARY libglesv2.lib
 LIBRARY libegl.lib

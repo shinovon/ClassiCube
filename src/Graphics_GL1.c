@@ -706,12 +706,20 @@ static void FallbackOpenGL(void) {
 
 static void GLBackend_Init(void) {
 #if defined CC_BUILD_SYMBIAN
+	static const cc_string bgra_ext = String_FromConst("EXT_texture_format_BGRA8888");
+	static const cc_string bgra_sym = String_FromConst("GL_IMG_texture_format_BGRA8888");
+	cc_string extensions = String_FromReadonly((const char*)_glGetString(GL_EXTENSIONS));
+	
+	cc_bool has_ext_bgra = String_CaselessContains(&extensions, &bgra_ext);
+	cc_bool has_sym_bgra = String_CaselessContains(&extensions, &bgra_sym);
+	
 	_glGenBuffers    = glGenBuffers;
 	_glDeleteBuffers = glDeleteBuffers;
 	_glBindBuffer    = glBindBuffer;
 	_glBufferData    = glBufferData;
 	_glBufferSubData = glBufferSubData;
-	convert_rgba = true;
+	
+	convert_rgba = PIXEL_FORMAT != GL_RGBA && !has_ext_bgra && !has_sym_bgra;
 #else
 	static const struct DynamicLibSym coreVboFuncs[] = {
 		DynamicLib_ReqSym2("glBindBuffer",    glBindBuffer), DynamicLib_ReqSym2("glDeleteBuffers", glDeleteBuffers),
