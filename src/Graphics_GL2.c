@@ -541,25 +541,23 @@ static void GLBackend_Init(void) {
 	#define _GL_MAJOR_VERSION 33307
 	#define _GL_MINOR_VERSION 33308
 
-#if defined CC_BUILD_SYMBIAN
-	convert_rgba = true;
-#else
 	GLint major = 0, minor = 0;
 
-	static const cc_string bgra_ext   = String_FromConst("EXT_texture_format_BGRA8888");
+	static const cc_string bgra_ext = String_FromConst("EXT_texture_format_BGRA8888");
 	static const cc_string bgra_apl = String_FromConst("APPLE_texture_format_BGRA8888");
+	static const cc_string bgra_sym = String_FromConst("GL_IMG_texture_format_BGRA8888");
 	cc_string extensions = String_FromReadonly((const char*)_glGetString(GL_EXTENSIONS));
 	
 	cc_bool has_ext_bgra = String_CaselessContains(&extensions, &bgra_ext);
 	cc_bool has_apl_bgra = String_CaselessContains(&extensions, &bgra_apl);
+	cc_bool has_sym_bgra = String_CaselessContains(&extensions, &bgra_sym);
 	
 	glGetIntegerv(_GL_MAJOR_VERSION, &major);
 	glGetIntegerv(_GL_MINOR_VERSION, &minor);
 	customMipmapsLevels = major >= 3 && minor >= 2;
 
 	Platform_Log2("BGRA support - Ext: %t, Apple: %t", &has_ext_bgra, &has_apl_bgra);
-	convert_rgba = PIXEL_FORMAT != GL_RGBA && !has_ext_bgra && !has_apl_bgra;
-#endif
+	convert_rgba = PIXEL_FORMAT != GL_RGBA && !has_ext_bgra && !has_apl_bgra && !has_sym_bgra;
 #else
     customMipmapsLevels = true;
     const GLubyte* ver  = glGetString(GL_VERSION);
