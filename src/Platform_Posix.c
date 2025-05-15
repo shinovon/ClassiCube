@@ -803,7 +803,16 @@ cc_result Socket_Create(cc_socket* s, cc_sockaddr* addr, cc_bool nonblocking) {
 
 	if (nonblocking) {
 		int blocking_raw = -1; /* non-blocking mode */
-		ioctl(*s, FIONBIO, &blocking_raw);
+#if defined CC_BUILD_SYMBIAN
+		int res = fcntl(*s, F_GETFL, 0);
+		if (res < 0) return errno;
+		
+		res = fcntl(*s, F_SETFL, res | O_NONBLOCK);
+		if (res < 0) return errno;
+#else
+		int err = ioctl(*s, FIONBIO, &blocking_raw);
+		if (err == -1) return errno;
+#endif
 	}
 	return 0;
 }
