@@ -97,6 +97,9 @@ void CWindow::CreateWindowL() {
 	WindowInfo.Focused = true;
 	WindowInfo.Exists = true;
 	WindowInfo.Handle.ptr = (void*) iWindow;
+#ifdef CC_BUILD_TOUCH
+	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
+#endif
 	
 	TInt w = pixnrot.iPixelSize.iWidth,
 		h = pixnrot.iPixelSize.iHeight;
@@ -175,8 +178,6 @@ void CWindow::ConstructL() {
 
 	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
-
-	WindowInfo.SoftKeyboard = SOFT_KEYBOARD_VIRTUAL;
 
 	TRAP(err, CreateWindowL());
 	if (err) {
@@ -308,8 +309,8 @@ static int ConvertKey(TInt aScanCode) {
 		return CCKEY_SEMICOLON;
 	case EStdKeySingleQuote:
 		return CCKEY_QUOTE;
-//	case EStdKeyHash:
-//		return '#';
+	case EStdKeyHash:
+		return '#';
 	case EStdKeySquareBracketLeft:
 		return CCKEY_LBRACKET;
 	case EStdKeySquareBracketRight:

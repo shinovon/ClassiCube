@@ -277,9 +277,9 @@ static cc_bool VirtualKeyboard_OnInputDown(int key, struct InputDevice* device) 
 
 	if (deltaX || deltaY) {
 		VirtualKeyboard_Scroll(deltaX, deltaY);
-	} else if (key == CCPAD_START  || key == CCPAD_1) {
+	} else if (key == CCPAD_START  || key == CCPAD_1 || key == CCKEY_ENTER) {
 		VirtualKeyboard_ClickSelected();
-	} else if (key == CCPAD_SELECT || key == CCPAD_2) {
+	} else if (key == CCPAD_SELECT || key == CCPAD_2 || key == CCKEY_ESCAPE) {
 		VirtualKeyboard_Close();
 	} else if (key == CCPAD_3) {
 		VirtualKeyboard_Backspace();

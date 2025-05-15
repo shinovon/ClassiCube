@@ -49,7 +49,7 @@ SOURCE aes_big_cbcdec.c aes_big_cbcenc.c aes_big_ctr.c aes_big_ctrcbc.c aes_big_
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
 EPOCSTACKSIZE 0x14000
-EPOCHEAPSIZE 0x80000 0x1000000
+EPOCHEAPSIZE 0x80000 0x4000000
 
 #ifdef _DEBUG
 DEBUGGABLE_UDEBONLY
