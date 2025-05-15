@@ -44,7 +44,7 @@ SOURCE Animations.c Audio.c AudioBackend.c AxisLinesRenderer.c Bitmap.c Block.c 
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
 EPOCSTACKSIZE 0x14000
-EPOCHEAPSIZE 0x80000 0x1000000
+EPOCHEAPSIZE 0x80000 0x4000000
 
 #ifdef _DEBUG
 DEBUGGABLE_UDEBONLY
