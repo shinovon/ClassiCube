@@ -6,8 +6,8 @@
 [0x1028315F], 0, 0, 0, {"S60ProductID"}
 [0x20022E6D], 0, 0, 0, {"S60ProductID"}
 
-%{""}
-:""
+%{"ClassiCube"}
+:"ClassiCube"
 
 ; Check OpenC versions
 IF( version(0x20009a80, <, 1, 5, 0) ) AND NOT (EXISTS("Z:\sys\bin\libc.dll") OR EXISTS("C:\sys\bin\libc.dll"))
