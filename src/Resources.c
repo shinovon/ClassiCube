@@ -65,7 +65,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 	struct Stream stream;
 	cc_result res;
 #if CC_BUILD_MAXSTACK <= (16 * 1024)
-	struct ZipEntry* entries = Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = (struct ZipEntry*)Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
 	if (!entries) { Logger_SysWarn2(ERR_OUT_OF_MEMORY, "allocating", path); return; }
 #else
 	struct ZipEntry entries[64];
@@ -90,7 +90,7 @@ static void ZipFile_InspectEntries(const cc_string* path, Zip_SelectEntry select
 
 static cc_result ZipEntry_ExtractData(struct ResourceZipEntry* e, struct Stream* data, struct ZipEntry* source) {
 	cc_uint32 size = source->UncompressedSize;
-	e->value.data  = Mem_TryAlloc(size, 1);
+	e->value.data  = (cc_uint8*)Mem_TryAlloc(size, 1);
 	e->size        = size;
 
 	if (!e->value.data) return ERR_OUT_OF_MEMORY;
@@ -750,7 +750,7 @@ static cc_result CCTextures_ExtractZip(struct HttpRequest* req) {
 	struct Stream src;
 	cc_result res;
 #if CC_BUILD_MAXSTACK <= (16 * 1024)
-	struct ZipEntry* entries = Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = (struct ZipEntry*)Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
 	if (!entries) return ERR_OUT_OF_MEMORY;
 #else
 	struct ZipEntry entries[64];
@@ -931,7 +931,7 @@ static cc_result ClassicPatcher_ExtractFiles(struct HttpRequest* req) {
 	struct Stream src;
 	cc_result res;
 #if CC_BUILD_MAXSTACK <= (16 * 1024)
-	struct ZipEntry* entries = Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = (struct ZipEntry*)Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
 	if (!entries) return ERR_OUT_OF_MEMORY;
 #else
 	struct ZipEntry entries[64];
@@ -1057,7 +1057,7 @@ static cc_result ModernPatcher_ProcessEntry(const cc_string* path, struct Stream
 static cc_result ModernPatcher_ExtractFiles(struct HttpRequest* req) {
 	struct Stream src;
 #if CC_BUILD_MAXSTACK <= (16 * 1024)
-	struct ZipEntry* entries = Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = (struct ZipEntry*)Mem_TryAllocCleared(64, sizeof(struct ZipEntry));
 	if (!entries) return ERR_OUT_OF_MEMORY;
 #else
 	struct ZipEntry entries[64];

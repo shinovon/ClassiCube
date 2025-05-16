@@ -530,7 +530,7 @@ static cc_result ExtractPng(struct Stream* stream) {
 static cc_bool needReload;
 static cc_result ExtractFrom(struct Stream* stream, const cc_string* path) {
 #if CC_BUILD_MAXSTACK <= (32 * 1024)
-	struct ZipEntry* entries = Mem_TryAllocCleared(512, sizeof(struct ZipEntry));
+	struct ZipEntry* entries = (struct ZipEntry*)Mem_TryAllocCleared(512, sizeof(struct ZipEntry));
 #else
 	struct ZipEntry entries[512];
 #endif

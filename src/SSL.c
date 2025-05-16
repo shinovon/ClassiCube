@@ -494,7 +494,7 @@ cc_result SSL_Init(cc_socket socket, const cc_string* host_, void** out_ctx) {
 	char host[NATIVE_STR_LEN];
 	String_EncodeUtf8(host, host_);
 	
-	ctx = Mem_TryAlloc(1, sizeof(SSLContext));
+	ctx = (SSLContext*)Mem_TryAlloc(1, sizeof(SSLContext));
 	if (!ctx) return ERR_OUT_OF_MEMORY;
 	*out_ctx = (void*)ctx;
 	

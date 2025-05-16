@@ -667,7 +667,7 @@ static cc_result Png_EncodeCore(struct Bitmap* bmp, struct Stream* stream, cc_ui
 	cc_uint8* bestLine = buffer + (bmp->width * 4) * 2;
 
 #if CC_BUILD_MAXSTACK <= (50 * 1024)
-	struct ZLibState* zlState = Mem_TryAlloc(1, sizeof(struct ZLibState));
+	struct ZLibState* zlState = (struct ZLibState*)Mem_TryAlloc(1, sizeof(struct ZLibState));
 #else
 	struct ZLibState _zlState;
 	struct ZLibState* zlState = &_zlState;
