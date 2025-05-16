@@ -1436,12 +1436,19 @@ void Platform_Init(void) {
 	Platform_InitPosix();
 	Platform_InitSpecific();
 }
+#elif defined CC_BUILD_SYMBIAN
+
+extern void Symbian_Stopwatch_Init(void);
+void Platform_Init(void) {
+	Platform_SingleProcess = true;
+	Symbian_Stopwatch_Init();
+	Platform_InitPosix();
+}
 #else
 void Platform_Init(void) {
 	#ifdef CC_BUILD_MOBILE
 	Platform_SingleProcess = true;
 	#endif
-	
 	Platform_InitPosix();
 }
 #endif
@@ -1590,6 +1597,13 @@ static cc_result GetMachineID(cc_uint32* key) {
 
     DecodeMachineID(strBuffer, str.length, key);
     return 0;
+}
+#elif defined CC_BUILD_SYMBIAN
+
+extern cc_result Symbian_GetMachineID(cc_uint32* key);
+
+static cc_result GetMachineID(cc_uint32* key) {
+	return Symbian_GetMachineID(key);
 }
 #else
 static cc_result GetMachineID(cc_uint32* key) { return ERR_NOT_SUPPORTED; }

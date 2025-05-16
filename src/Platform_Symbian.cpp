@@ -87,8 +87,14 @@ void CrashHandler_Install(void) {
 #if !defined _DEBUG
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
-	/* TODO: place in Platform_Init */
-	HAL::Get(HAL::ENanoTickPeriod, tickPeriod);
+}
+
+extern "C" void Symbian_Stopwatch_Init(void);
+
+void Symbian_Stopwatch_Init(void) {
+	if (HAL::Get(HAL::ENanoTickPeriod, tickPeriod) != KErrNone) {
+		User::Panic(_L("Could not init timer"), 0);
+	}
 }
 
 cc_uint64 Stopwatch_Measure(void) {
@@ -98,6 +104,23 @@ cc_uint64 Stopwatch_Measure(void) {
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 	if (end < beg) return 0;
 	return (end - beg) * tickPeriod;
+}
+
+#define MACHINE_KEY "Symbian_Symbian_"
+
+extern "C" cc_result Symbian_GetMachineID(cc_uint32* key);
+
+cc_result Symbian_GetMachineID(cc_uint32* key) {
+	TInt res;
+	Mem_Copy(key, MACHINE_KEY, sizeof(MACHINE_KEY) - 1);
+
+	if (HAL::Get(HAL::ESerialNumber, res) == KErrNone) {
+		key[0] = res;
+	}
+	if (HAL::Get(HAL::EMachineUid, res) == KErrNone) {
+		key[1] = res;
+	}
+	return 0;
 }
 
 #endif
