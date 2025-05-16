@@ -569,7 +569,7 @@ cc_result SSL_WriteAll(void* ctx_, const cc_uint8* data, cc_uint32 count) {
 	int res = br_sslio_write_all(&ctx->ioc, data, count);
 	
 	if (res < 0) {
-		if (!ctx->writeError) {
+		if (ctx->writeError) {
 			return ctx->writeError;
 		} else {
 			int err = br_ssl_engine_last_error(&ctx->sc.eng);
