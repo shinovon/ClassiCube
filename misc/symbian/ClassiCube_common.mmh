@@ -24,6 +24,7 @@ LIBRARY cone.lib
 LIBRARY avkon.lib
 LIBRARY fbscli.lib
 LIBRARY ws32.lib
+LIBRARY hal.lib
 
 LIBRARY libc.lib
 LIBRARY libm.lib

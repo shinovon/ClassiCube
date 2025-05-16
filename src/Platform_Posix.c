@@ -152,8 +152,11 @@ TimeMS DateTime_CurrentUTC(void) {
 void DateTime_CurrentLocal(struct cc_datetime* t) {
 	struct timeval cur;
 	struct tm loc_time;
+	time_t s;
+	
 	gettimeofday(&cur, NULL);
-	localtime_r(&cur.tv_sec, &loc_time);
+	s = cur.tv_sec;
+	localtime_r(&s, &loc_time);
 
 	t->year   = loc_time.tm_year + 1900;
 	t->month  = loc_time.tm_mon  + 1;
@@ -171,6 +174,8 @@ void DateTime_CurrentLocal(struct cc_datetime* t) {
 
 #if defined CC_BUILD_HAIKU || defined CC_BUILD_BEOS
 /* Implemented in interop_BeOS.cpp */
+#elif defined CC_BUILD_SYMBIAN
+/* Implemented in Platform_Symbian.cpp */
 #elif defined CC_BUILD_DARWIN
 static cc_uint64 sw_freqMul, sw_freqDiv;
 static void Stopwatch_Init(void) {
@@ -202,21 +207,14 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /* clock_gettime is optional, see http://pubs.opengroup.org/onlinepubs/009696899/functions/clock_getres.html */
 /* "... These functions are part of the Timers option and need not be available on all implementations..." */
 cc_uint64 Stopwatch_Measure(void) {
-#if defined CC_BUILD_SYMBIAN
-	/* TODO use CLOCK_REALTIME */
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return tv.tv_sec * 1000000000LL + (tv.tv_usec * 1000);
-#else
 	struct timespec t;
-	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX || defined CC_BUILD_SYMBIAN
+	#if defined CC_BUILD_IRIX || defined CC_BUILD_HPUX
 	clock_gettime(CLOCK_REALTIME, &t);
 	#else
 	/* TODO: CLOCK_MONOTONIC_RAW ?? */
 	clock_gettime(CLOCK_MONOTONIC, &t);
 	#endif
 	return (cc_uint64)t.tv_sec * NS_PER_SEC + t.tv_nsec;
-#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {

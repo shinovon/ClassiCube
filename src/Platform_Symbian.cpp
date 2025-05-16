@@ -9,8 +9,9 @@ extern "C" {
 #include <errno.h>
 }
 #include <e32base.h>
+#include <hal.h>
 
-extern "C" void Symbian_Init(void);
+TInt tickPeriod;
 
 const struct UpdaterInfo Updater_Info = {
 	"&eRedownload and reinstall to update", 0, NULL
@@ -86,6 +87,17 @@ void CrashHandler_Install(void) {
 #if !defined _DEBUG
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
+	/* TODO: place in Platform_Init */
+	HAL::Get(HAL::ENanoTickPeriod, tickPeriod);
+}
+
+cc_uint64 Stopwatch_Measure(void) {
+	return (cc_uint64)User::NTickCount();
+}
+
+cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
+	if (end < beg) return 0;
+	return (end - beg) * tickPeriod;
 }
 
 #endif
