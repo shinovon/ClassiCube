@@ -201,7 +201,7 @@ static const uint32_t S8[] = {
 	0x00000820, 0x00020020, 0x08000000, 0x08020800
 };
 
-static __inline uint32_t
+static inline uint32_t
 Fconf(uint32_t r0, uint32_t skl, uint32_t skr)
 {
 	uint32_t r1;

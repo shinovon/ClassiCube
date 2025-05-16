@@ -100,7 +100,7 @@ inv_shift_rows(uint64_t *q)
 	}
 }
 
-static __inline uint64_t
+static inline uint64_t
 rotr32(uint64_t x)
 {
 	return (x << 32) | (x >> 32);

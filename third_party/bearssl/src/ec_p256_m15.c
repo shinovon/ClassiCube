@@ -95,7 +95,7 @@ le13_to_be8(unsigned char *dst, size_t len, const uint32_t *src)
  * value is the resulting carry. The source (w) and destination (d)
  * arrays may be identical, but shall not overlap partially.
  */
-static __inline uint32_t
+static inline uint32_t
 norm13(uint32_t *d, const uint32_t *w, size_t len)
 {
 	size_t u;
@@ -350,7 +350,7 @@ mul20(uint32_t *d, const uint32_t *a, const uint32_t *b)
 #undef CPR
 }
 
-static __inline void
+static inline void
 square20(uint32_t *d, const uint32_t *a)
 {
 	mul20(d, a, a);

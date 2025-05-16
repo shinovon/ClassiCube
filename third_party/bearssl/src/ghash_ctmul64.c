@@ -29,7 +29,7 @@
  * and bit reversal of 64-bit words.
  */
 
-static __inline uint64_t
+static inline uint64_t
 bmul64(uint64_t x, uint64_t y)
 {
 	uint64_t x0, x1, x2, x3;

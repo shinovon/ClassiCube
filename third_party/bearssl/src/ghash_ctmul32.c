@@ -45,7 +45,7 @@
 /*
  * Multiplication in GF(2)[X], truncated to its low 32 bits.
  */
-static __inline uint32_t
+static inline uint32_t
 bmul32(uint32_t x, uint32_t y)
 {
 	uint32_t x0, x1, x2, x3;

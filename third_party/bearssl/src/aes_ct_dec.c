@@ -111,7 +111,7 @@ inv_shift_rows(uint32_t *q)
 	}
 }
 
-static __inline uint32_t
+static inline uint32_t
 rotr16(uint32_t x)
 {
 	return (x << 16) | (x >> 16);

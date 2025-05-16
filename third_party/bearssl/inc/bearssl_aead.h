@@ -741,7 +741,7 @@ void br_eax_flip(br_eax_context *ctx);
  * \param ctx   EAX context structure.
  * \param st    captured state to update.
  */
-static __inline void
+static inline void
 br_eax_get_aad_mac(const br_eax_context *ctx, br_eax_state *st)
 {
 	memcpy(st->st[1], ctx->head, sizeof ctx->head);

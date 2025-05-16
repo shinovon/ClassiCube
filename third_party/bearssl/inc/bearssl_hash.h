@@ -1142,7 +1142,7 @@ void br_multihash_zero(br_multihash_context *ctx);
  * \param id     the hash function symbolic identifier.
  * \param impl   the hash function vtable, or `NULL`.
  */
-static __inline void
+static inline void
 br_multihash_setimpl(br_multihash_context *ctx,
 	int id, const br_hash_class *impl)
 {
@@ -1164,7 +1164,7 @@ br_multihash_setimpl(br_multihash_context *ctx,
  * \param id     the hash function symbolic identifier.
  * \return  the hash function vtable, or `NULL`.
  */
-static __inline const br_hash_class *
+static inline const br_hash_class *
 br_multihash_getimpl(const br_multihash_context *ctx, int id)
 {
 	return ctx->impl[id - 1];

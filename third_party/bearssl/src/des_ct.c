@@ -60,7 +60,7 @@ static const unsigned char QR1[] = {
  * 32-bit rotation. The C compiler is supposed to recognize it as a
  * rotation and use the local architecture rotation opcode (if available).
  */
-static __inline uint32_t
+static inline uint32_t
 rotl(uint32_t x, int n)
 {
 	return (x << n) | (x >> (32 - n));
@@ -180,7 +180,7 @@ br_des_ct_keysched(uint32_t *skey, const void *key, size_t key_len)
  * DES confusion function. This function performs expansion E (32 to
  * 48 bits), XOR with subkey, S-boxes, and permutation P.
  */
-static __inline uint32_t
+static inline uint32_t
 Fconf(uint32_t r0, const uint32_t *sk)
 {
 	/*

@@ -470,7 +470,7 @@ typedef union {
 	unsigned char b[sizeof(uint64_t)];
 } br_union_u64;
 
-static __inline void
+static inline void
 br_enc16le(void *dst, unsigned x)
 {
 #if BR_LE_UNALIGNED
@@ -484,7 +484,7 @@ br_enc16le(void *dst, unsigned x)
 #endif
 }
 
-static __inline void
+static inline void
 br_enc16be(void *dst, unsigned x)
 {
 #if BR_BE_UNALIGNED
@@ -498,7 +498,7 @@ br_enc16be(void *dst, unsigned x)
 #endif
 }
 
-static __inline unsigned
+static inline unsigned
 br_dec16le(const void *src)
 {
 #if BR_LE_UNALIGNED
@@ -511,7 +511,7 @@ br_dec16le(const void *src)
 #endif
 }
 
-static __inline unsigned
+static inline unsigned
 br_dec16be(const void *src)
 {
 #if BR_BE_UNALIGNED
@@ -524,7 +524,7 @@ br_dec16be(const void *src)
 #endif
 }
 
-static __inline void
+static inline void
 br_enc32le(void *dst, uint32_t x)
 {
 #if BR_LE_UNALIGNED
@@ -540,7 +540,7 @@ br_enc32le(void *dst, uint32_t x)
 #endif
 }
 
-static __inline void
+static inline void
 br_enc32be(void *dst, uint32_t x)
 {
 #if BR_BE_UNALIGNED
@@ -556,7 +556,7 @@ br_enc32be(void *dst, uint32_t x)
 #endif
 }
 
-static __inline uint32_t
+static inline uint32_t
 br_dec32le(const void *src)
 {
 #if BR_LE_UNALIGNED
@@ -572,7 +572,7 @@ br_dec32le(const void *src)
 #endif
 }
 
-static __inline uint32_t
+static inline uint32_t
 br_dec32be(const void *src)
 {
 #if BR_BE_UNALIGNED
@@ -588,7 +588,7 @@ br_dec32be(const void *src)
 #endif
 }
 
-static __inline void
+static inline void
 br_enc64le(void *dst, uint64_t x)
 {
 #if BR_LE_UNALIGNED
@@ -602,7 +602,7 @@ br_enc64le(void *dst, uint64_t x)
 #endif
 }
 
-static __inline void
+static inline void
 br_enc64be(void *dst, uint64_t x)
 {
 #if BR_BE_UNALIGNED
@@ -616,7 +616,7 @@ br_enc64be(void *dst, uint64_t x)
 #endif
 }
 
-static __inline uint64_t
+static inline uint64_t
 br_dec64le(const void *src)
 {
 #if BR_LE_UNALIGNED
@@ -630,7 +630,7 @@ br_dec64le(const void *src)
 #endif
 }
 
-static __inline uint64_t
+static inline uint64_t
 br_dec64be(const void *src)
 {
 #if BR_BE_UNALIGNED
@@ -665,7 +665,7 @@ void br_range_enc64be(void *dst, const uint64_t *v, size_t num);
 /*
  * Byte-swap a 32-bit integer.
  */
-static __inline uint32_t
+static inline uint32_t
 br_swap32(uint32_t x)
 {
 	x = ((x & (uint32_t)0x00FF00FF) << 8)
@@ -707,7 +707,7 @@ void br_tls_phash(void *dst, size_t len,
  * Copy all configured hash implementations from a multihash context
  * to another.
  */
-static __inline void
+static inline void
 br_multihash_copyimpl(br_multihash_context *dst,
 	const br_multihash_context *src)
 {
@@ -743,7 +743,7 @@ br_multihash_copyimpl(br_multihash_context *dst,
 /*
  * Negate a boolean.
  */
-static __inline uint32_t
+static inline uint32_t
 NOT(uint32_t ctl)
 {
 	return ctl ^ 1;
@@ -752,7 +752,7 @@ NOT(uint32_t ctl)
 /*
  * Multiplexer: returns x if ctl == 1, y if ctl == 0.
  */
-static __inline uint32_t
+static inline uint32_t
 MUX(uint32_t ctl, uint32_t x, uint32_t y)
 {
 	return y ^ (-ctl & (x ^ y));
@@ -761,7 +761,7 @@ MUX(uint32_t ctl, uint32_t x, uint32_t y)
 /*
  * Equality check: returns 1 if x == y, 0 otherwise.
  */
-static __inline uint32_t
+static inline uint32_t
 EQ(uint32_t x, uint32_t y)
 {
 	uint32_t q;
@@ -773,7 +773,7 @@ EQ(uint32_t x, uint32_t y)
 /*
  * Inequality check: returns 1 if x != y, 0 otherwise.
  */
-static __inline uint32_t
+static inline uint32_t
 NEQ(uint32_t x, uint32_t y)
 {
 	uint32_t q;
@@ -785,7 +785,7 @@ NEQ(uint32_t x, uint32_t y)
 /*
  * Comparison: returns 1 if x > y, 0 otherwise.
  */
-static __inline uint32_t
+static inline uint32_t
 GT(uint32_t x, uint32_t y)
 {
 	/*
@@ -817,7 +817,7 @@ GT(uint32_t x, uint32_t y)
  * General comparison: returned value is -1, 0 or 1, depending on
  * whether x is lower than, equal to, or greater than y.
  */
-static __inline int32_t
+static inline int32_t
 CMP(uint32_t x, uint32_t y)
 {
 	return (int32_t)GT(x, y) | -(int32_t)GT(y, x);
@@ -826,7 +826,7 @@ CMP(uint32_t x, uint32_t y)
 /*
  * Returns 1 if x == 0, 0 otherwise. Take care that the operand is signed.
  */
-static __inline uint32_t
+static inline uint32_t
 EQ0(int32_t x)
 {
 	uint32_t q;
@@ -838,7 +838,7 @@ EQ0(int32_t x)
 /*
  * Returns 1 if x > 0, 0 otherwise. Take care that the operand is signed.
  */
-static __inline uint32_t
+static inline uint32_t
 GT0(int32_t x)
 {
 	/*
@@ -853,7 +853,7 @@ GT0(int32_t x)
 /*
  * Returns 1 if x >= 0, 0 otherwise. Take care that the operand is signed.
  */
-static __inline uint32_t
+static inline uint32_t
 GE0(int32_t x)
 {
 	return ~(uint32_t)x >> 31;
@@ -862,7 +862,7 @@ GE0(int32_t x)
 /*
  * Returns 1 if x < 0, 0 otherwise. Take care that the operand is signed.
  */
-static __inline uint32_t
+static inline uint32_t
 LT0(int32_t x)
 {
 	return (uint32_t)x >> 31;
@@ -871,7 +871,7 @@ LT0(int32_t x)
 /*
  * Returns 1 if x <= 0, 0 otherwise. Take care that the operand is signed.
  */
-static __inline uint32_t
+static inline uint32_t
 LE0(int32_t x)
 {
 	uint32_t q;
@@ -897,7 +897,7 @@ void br_ccopy(uint32_t ctl, void *dst, const void *src, size_t len);
  * Compute the bit length of a 32-bit integer. Returned value is between 0
  * and 32 (inclusive).
  */
-static __inline uint32_t
+static inline uint32_t
 BIT_LENGTH(uint32_t x)
 {
 	uint32_t k, c;
@@ -914,7 +914,7 @@ BIT_LENGTH(uint32_t x)
 /*
  * Compute the minimum of x and y.
  */
-static __inline uint32_t
+static inline uint32_t
 MIN(uint32_t x, uint32_t y)
 {
 	return MUX(GT(x, y), y, x);
@@ -923,7 +923,7 @@ MIN(uint32_t x, uint32_t y)
 /*
  * Compute the maximum of x and y.
  */
-static __inline uint32_t
+static inline uint32_t
 MAX(uint32_t x, uint32_t y)
 {
 	return MUX(GT(x, y), x, y);
@@ -955,7 +955,7 @@ MAX(uint32_t x, uint32_t y)
                        * (uint64_t)((y) | (uint32_t)0x80000000) \
                        - ((uint64_t)(x) << 31) - ((uint64_t)(y) << 31) \
                        - ((uint64_t)1 << 62))
-static __inline uint32_t
+static inline uint32_t
 MUL31_lo(uint32_t x, uint32_t y)
 {
 	uint32_t xl, xh;
@@ -1032,7 +1032,7 @@ uint32_t br_divrem(uint32_t hi, uint32_t lo, uint32_t d, uint32_t *r);
  * Wrapper for br_divrem(); the remainder is returned, and the quotient
  * is discarded.
  */
-static __inline uint32_t
+static inline uint32_t
 br_rem(uint32_t hi, uint32_t lo, uint32_t d)
 {
 	uint32_t r;
@@ -1045,7 +1045,7 @@ br_rem(uint32_t hi, uint32_t lo, uint32_t d)
  * Wrapper for br_divrem(); the quotient is returned, and the remainder
  * is discarded.
  */
-static __inline uint32_t
+static inline uint32_t
 br_div(uint32_t hi, uint32_t lo, uint32_t d)
 {
 	uint32_t r;
@@ -1162,7 +1162,7 @@ void br_i32_muladd_small(uint32_t *x, uint32_t z, const uint32_t *m);
  * The word MUST entirely fit within the word elements corresponding
  * to the announced bit length of a[].
  */
-static __inline uint32_t
+static inline uint32_t
 br_i32_word(const uint32_t *a, uint32_t off)
 {
 	size_t u;
@@ -1217,7 +1217,7 @@ void br_i32_mulacc(uint32_t *d, const uint32_t *a, const uint32_t *b);
  * Zeroize an integer. The announced bit length is set to the provided
  * value, and the corresponding words are set to 0.
  */
-static __inline void
+static inline void
 br_i32_zero(uint32_t *x, uint32_t bit_len)
 {
 	*x ++ = bit_len;
@@ -1365,7 +1365,7 @@ uint32_t br_i31_decode_mod(uint32_t *x,
  * value, and the corresponding words are set to 0. The ENCODED bit length
  * is expected here.
  */
-static __inline void
+static inline void
 br_i31_zero(uint32_t *x, uint32_t bit_len)
 {
 	*x ++ = bit_len;
@@ -1519,7 +1519,7 @@ uint32_t br_i31_moddiv(uint32_t *x, const uint32_t *y,
  * FIXME: document "i15" functions.
  */
 
-static __inline void
+static inline void
 br_i15_zero(uint16_t *x, uint16_t bit_len)
 {
 	*x ++ = bit_len;
@@ -1599,7 +1599,7 @@ uint32_t br_i62_modpow_opt_as_i31(uint32_t *x,
 
 /* ==================================================================== */
 
-static __inline size_t
+static inline size_t
 br_digest_size(const br_hash_class *digest_class)
 {
 	return (size_t)(digest_class->desc >> BR_HASHDESC_OUT_OFF)
@@ -2162,7 +2162,7 @@ void br_ssl_engine_fail(br_ssl_engine_context *cc, int err);
 /*
  * Test whether the engine is closed (normally or as a failure).
  */
-static __inline int
+static inline int
 br_ssl_engine_closed(const br_ssl_engine_context *cc)
 {
 	return cc->iomode == BR_IO_FAILED;
@@ -2193,7 +2193,7 @@ void br_ssl_engine_flush_record(br_ssl_engine_context *cc);
 /*
  * Test whether there is some accumulated payload to send.
  */
-static __inline int
+static inline int
 br_ssl_engine_has_pld_to_send(const br_ssl_engine_context *rc)
 {
 	return rc->oxa != rc->oxb && rc->oxa != rc->oxc;
@@ -2510,7 +2510,7 @@ BR_TARGETS_X86_DOWN
 #define br_bswap32   _byteswap_ulong
 #endif
 
-static __inline int
+static inline int
 br_cpuid(uint32_t mask_eax, uint32_t mask_ebx,
 	uint32_t mask_ecx, uint32_t mask_edx)
 {

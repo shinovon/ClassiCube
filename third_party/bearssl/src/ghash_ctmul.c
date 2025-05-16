@@ -67,7 +67,7 @@
 		(l) = (uint32_t)mul32tmp; \
 	} while (0)
 
-static __inline void
+static inline void
 bmul(uint32_t *hi, uint32_t *lo, uint32_t x, uint32_t y)
 {
 	uint32_t x0, x1, x2, x3;
@@ -161,7 +161,7 @@ bmul(uint32_t *hi, uint32_t *lo, uint32_t x, uint32_t y)
  * Simple multiplication in GF(2)[X], using 16 integer multiplications.
  */
 
-static __inline void
+static inline void
 bmul(uint32_t *hi, uint32_t *lo, uint32_t x, uint32_t y)
 {
 	uint32_t x0, x1, x2, x3;

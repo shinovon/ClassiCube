@@ -1124,7 +1124,7 @@ typedef struct {
  * \param cc   SSL engine context.
  * \return  the flags.
  */
-static __inline uint32_t
+static inline uint32_t
 br_ssl_engine_get_flags(br_ssl_engine_context *cc)
 {
 	return cc->flags;
@@ -1136,7 +1136,7 @@ br_ssl_engine_get_flags(br_ssl_engine_context *cc)
  * \param cc      SSL engine context.
  * \param flags   new value for all flags.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_all_flags(br_ssl_engine_context *cc, uint32_t flags)
 {
 	cc->flags = flags;
@@ -1151,7 +1151,7 @@ br_ssl_engine_set_all_flags(br_ssl_engine_context *cc, uint32_t flags)
  * \param cc      SSL engine context.
  * \param flags   additional set flags.
  */
-static __inline void
+static inline void
 br_ssl_engine_add_flags(br_ssl_engine_context *cc, uint32_t flags)
 {
 	cc->flags |= flags;
@@ -1166,7 +1166,7 @@ br_ssl_engine_add_flags(br_ssl_engine_context *cc, uint32_t flags)
  * \param cc      SSL engine context.
  * \param flags   flags to remove.
  */
-static __inline void
+static inline void
 br_ssl_engine_remove_flags(br_ssl_engine_context *cc, uint32_t flags)
 {
 	cc->flags &= ~flags;
@@ -1246,7 +1246,7 @@ br_ssl_engine_remove_flags(br_ssl_engine_context *cc, uint32_t flags)
  * \param version_min   minimum supported TLS version.
  * \param version_max   maximum supported TLS version.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_versions(br_ssl_engine_context *cc,
 	unsigned version_min, unsigned version_max)
 {
@@ -1284,7 +1284,7 @@ void br_ssl_engine_set_suites(br_ssl_engine_context *cc,
  * \param cc        SSL engine context.
  * \param x509ctx   X.509 certificate validation context.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_x509(br_ssl_engine_context *cc, const br_x509_class **x509ctx)
 {
 	cc->x509ctx = x509ctx;
@@ -1319,7 +1319,7 @@ br_ssl_engine_set_x509(br_ssl_engine_context *cc, const br_x509_class **x509ctx)
  * \param names   list of protocol names (zero-terminated).
  * \param num     number of protocol names (MUST be 1 or more).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_protocol_names(br_ssl_engine_context *ctx,
 	const char **names, size_t num)
 {
@@ -1340,7 +1340,7 @@ br_ssl_engine_set_protocol_names(br_ssl_engine_context *ctx,
  *
  * \return  the selected protocol, or `NULL`.
  */
-static __inline const char *
+static inline const char *
 br_ssl_engine_get_selected_protocol(br_ssl_engine_context *ctx)
 {
 	unsigned k;
@@ -1361,7 +1361,7 @@ br_ssl_engine_get_selected_protocol(br_ssl_engine_context *ctx)
  * \param id     hash function identifier.
  * \param impl   hash function implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_hash(br_ssl_engine_context *ctx,
 	int id, const br_hash_class *impl)
 {
@@ -1378,7 +1378,7 @@ br_ssl_engine_set_hash(br_ssl_engine_context *ctx,
  * \param id    hash function identifier.
  * \return  the hash function implementation (or `NULL`).
  */
-static __inline const br_hash_class *
+static inline const br_hash_class *
 br_ssl_engine_get_hash(br_ssl_engine_context *ctx, int id)
 {
 	return br_multihash_getimpl(&ctx->mhash, id);
@@ -1393,7 +1393,7 @@ br_ssl_engine_get_hash(br_ssl_engine_context *ctx, int id)
  * \param cc     SSL engine context.
  * \param impl   PRF implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_prf10(br_ssl_engine_context *cc, br_tls_prf_impl impl)
 {
 	cc->prf10 = impl;
@@ -1408,7 +1408,7 @@ br_ssl_engine_set_prf10(br_ssl_engine_context *cc, br_tls_prf_impl impl)
  * \param cc     SSL engine context.
  * \param impl   PRF implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_prf_sha256(br_ssl_engine_context *cc, br_tls_prf_impl impl)
 {
 	cc->prf_sha256 = impl;
@@ -1423,7 +1423,7 @@ br_ssl_engine_set_prf_sha256(br_ssl_engine_context *cc, br_tls_prf_impl impl)
  * \param cc     SSL engine context.
  * \param impl   PRF implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_prf_sha384(br_ssl_engine_context *cc, br_tls_prf_impl impl)
 {
 	cc->prf_sha384 = impl;
@@ -1436,7 +1436,7 @@ br_ssl_engine_set_prf_sha384(br_ssl_engine_context *cc, br_tls_prf_impl impl)
  * \param impl_enc   AES/CBC encryption implementation (or `NULL`).
  * \param impl_dec   AES/CBC decryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_aes_cbc(br_ssl_engine_context *cc,
 	const br_block_cbcenc_class *impl_enc,
 	const br_block_cbcdec_class *impl_dec)
@@ -1463,7 +1463,7 @@ void br_ssl_engine_set_default_aes_cbc(br_ssl_engine_context *cc);
  * \param cc     SSL engine context.
  * \param impl   AES/CTR encryption/decryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_aes_ctr(br_ssl_engine_context *cc,
 	const br_block_ctr_class *impl)
 {
@@ -1489,7 +1489,7 @@ void br_ssl_engine_set_default_aes_gcm(br_ssl_engine_context *cc);
  * \param impl_enc   DES/CBC encryption implementation (or `NULL`).
  * \param impl_dec   DES/CBC decryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_des_cbc(br_ssl_engine_context *cc,
 	const br_block_cbcenc_class *impl_enc,
 	const br_block_cbcdec_class *impl_dec)
@@ -1516,7 +1516,7 @@ void br_ssl_engine_set_default_des_cbc(br_ssl_engine_context *cc);
  * \param cc     SSL engine context.
  * \param impl   GHASH implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_ghash(br_ssl_engine_context *cc, br_ghash impl)
 {
 	cc->ighash = impl;
@@ -1528,7 +1528,7 @@ br_ssl_engine_set_ghash(br_ssl_engine_context *cc, br_ghash impl)
  * \param cc        SSL engine context.
  * \param ichacha   ChaCha20 implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_chacha20(br_ssl_engine_context *cc,
 	br_chacha20_run ichacha)
 {
@@ -1541,7 +1541,7 @@ br_ssl_engine_set_chacha20(br_ssl_engine_context *cc,
  * \param cc      SSL engine context.
  * \param ipoly   Poly1305 implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_poly1305(br_ssl_engine_context *cc,
 	br_poly1305_run ipoly)
 {
@@ -1566,7 +1566,7 @@ void br_ssl_engine_set_default_chapol(br_ssl_engine_context *cc);
  * \param cc     SSL engine context.
  * \param impl   AES/CTR+CBC encryption/decryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_aes_ctrcbc(br_ssl_engine_context *cc,
 	const br_block_ctrcbc_class *impl)
 {
@@ -1592,7 +1592,7 @@ void br_ssl_engine_set_default_aes_ccm(br_ssl_engine_context *cc);
  * \param impl_in    record CBC decryption implementation (or `NULL`).
  * \param impl_out   record CBC encryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_cbc(br_ssl_engine_context *cc,
 	const br_sslrec_in_cbc_class *impl_in,
 	const br_sslrec_out_cbc_class *impl_out)
@@ -1608,7 +1608,7 @@ br_ssl_engine_set_cbc(br_ssl_engine_context *cc,
  * \param impl_in    record GCM decryption implementation (or `NULL`).
  * \param impl_out   record GCM encryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_gcm(br_ssl_engine_context *cc,
 	const br_sslrec_in_gcm_class *impl_in,
 	const br_sslrec_out_gcm_class *impl_out)
@@ -1624,7 +1624,7 @@ br_ssl_engine_set_gcm(br_ssl_engine_context *cc,
  * \param impl_in    record CCM decryption implementation (or `NULL`).
  * \param impl_out   record CCM encryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_ccm(br_ssl_engine_context *cc,
 	const br_sslrec_in_ccm_class *impl_in,
 	const br_sslrec_out_ccm_class *impl_out)
@@ -1641,7 +1641,7 @@ br_ssl_engine_set_ccm(br_ssl_engine_context *cc,
  * \param impl_in    record ChaCha20 decryption implementation (or `NULL`).
  * \param impl_out   record ChaCha20 encryption implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_chapol(br_ssl_engine_context *cc,
 	const br_sslrec_in_chapol_class *impl_in,
 	const br_sslrec_out_chapol_class *impl_out)
@@ -1659,7 +1659,7 @@ br_ssl_engine_set_chapol(br_ssl_engine_context *cc,
  * \param cc    SSL engine context.
  * \param iec   EC implementation (or `NULL`).
  */
-static __inline void
+static inline void
 br_ssl_engine_set_ec(br_ssl_engine_context *cc, const br_ec_impl *iec)
 {
 	cc->iec = iec;
@@ -1682,7 +1682,7 @@ void br_ssl_engine_set_default_ec(br_ssl_engine_context *cc);
  * \param cc   SSL engine context.
  * \return  the EC implementation.
  */
-static __inline const br_ec_impl *
+static inline const br_ec_impl *
 br_ssl_engine_get_ec(br_ssl_engine_context *cc)
 {
 	return cc->iec;
@@ -1699,7 +1699,7 @@ br_ssl_engine_get_ec(br_ssl_engine_context *cc)
  * \param cc         SSL engine context.
  * \param irsavrfy   RSA signature verification implementation.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_rsavrfy(br_ssl_engine_context *cc, br_rsa_pkcs1_vrfy irsavrfy)
 {
 	cc->irsavrfy = irsavrfy;
@@ -1722,7 +1722,7 @@ void br_ssl_engine_set_default_rsavrfy(br_ssl_engine_context *cc);
  * \param cc   SSL engine context.
  * \return  the RSA signature verification implementation.
  */
-static __inline br_rsa_pkcs1_vrfy
+static inline br_rsa_pkcs1_vrfy
 br_ssl_engine_get_rsavrfy(br_ssl_engine_context *cc)
 {
 	return cc->irsavrfy;
@@ -1743,7 +1743,7 @@ br_ssl_engine_get_rsavrfy(br_ssl_engine_context *cc)
  * \param cc       client context.
  * \param iecdsa   ECDSA verification implementation.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_ecdsa(br_ssl_engine_context *cc, br_ecdsa_vrfy iecdsa)
 {
 	cc->iecdsa = iecdsa;
@@ -1768,7 +1768,7 @@ void br_ssl_engine_set_default_ecdsa(br_ssl_engine_context *cc);
  * \param cc   SSL engine context.
  * \return  the ECDSA signature verification implementation.
  */
-static __inline br_ecdsa_vrfy
+static inline br_ecdsa_vrfy
 br_ssl_engine_get_ecdsa(br_ssl_engine_context *cc)
 {
 	return cc->iecdsa;
@@ -1880,7 +1880,7 @@ void br_ssl_engine_inject_entropy(br_ssl_engine_context *cc,
  * \param cc   SSL engine context.
  * \return  the server name (possibly empty).
  */
-static __inline const char *
+static inline const char *
 br_ssl_engine_get_server_name(const br_ssl_engine_context *cc)
 {
 	return cc->server_name;
@@ -1896,7 +1896,7 @@ br_ssl_engine_get_server_name(const br_ssl_engine_context *cc)
  * \param cc   SSL engine context.
  * \return  the protocol version.
  */
-static __inline unsigned
+static inline unsigned
 br_ssl_engine_get_version(const br_ssl_engine_context *cc)
 {
 	return cc->session.version;
@@ -1917,7 +1917,7 @@ br_ssl_engine_get_version(const br_ssl_engine_context *cc)
  * \param cc   SSL engine context.
  * \param pp   destination structure for the session parameters.
  */
-static __inline void
+static inline void
 br_ssl_engine_get_session_parameters(const br_ssl_engine_context *cc,
 	br_ssl_session_parameters *pp)
 {
@@ -1934,7 +1934,7 @@ br_ssl_engine_get_session_parameters(const br_ssl_engine_context *cc,
  * \param cc   SSL engine context.
  * \param pp   source structure for the session parameters.
  */
-static __inline void
+static inline void
 br_ssl_engine_set_session_parameters(br_ssl_engine_context *cc,
 	const br_ssl_session_parameters *pp)
 {
@@ -1954,7 +1954,7 @@ br_ssl_engine_set_session_parameters(br_ssl_engine_context *cc,
  * @param cc   SSL engine context.
  * @return  the ECDHE curve identifier.
  */
-static __inline int
+static inline int
 br_ssl_engine_get_ecdhe_curve(br_ssl_engine_context *cc)
 {
 	return cc->ecdhe_curve;
@@ -2028,7 +2028,7 @@ unsigned br_ssl_engine_current_state(const br_ssl_engine_context *cc);
  * \param cc   SSL engine context.
  * \return  0, or a non-zero error code.
  */
-static __inline int
+static inline int
 br_ssl_engine_last_error(const br_ssl_engine_context *cc)
 {
 	return cc->err;
@@ -2687,7 +2687,7 @@ struct br_ssl_client_context_ {
  * \param cc   client context.
  * \return  the server-supported hash functions and signature algorithms.
  */
-static __inline uint32_t
+static inline uint32_t
 br_ssl_client_get_server_hashes(const br_ssl_client_context *cc)
 {
 	return cc->hashes;
@@ -2702,7 +2702,7 @@ br_ssl_client_get_server_hashes(const br_ssl_client_context *cc)
  *
  * \return  the server's public key curve ID, or 0.
  */
-static __inline int
+static inline int
 br_ssl_client_get_server_curve(const br_ssl_client_context *cc)
 {
 	return cc->server_curve;
@@ -2755,7 +2755,7 @@ void br_ssl_client_zero(br_ssl_client_context *cc);
  * \param cc     client context.
  * \param pctx   certificate handler context (pointer to its vtable field).
  */
-static __inline void
+static inline void
 br_ssl_client_set_client_certificate(br_ssl_client_context *cc,
 	const br_ssl_client_certificate_class **pctx)
 {
@@ -2771,7 +2771,7 @@ br_ssl_client_set_client_certificate(br_ssl_client_context *cc,
  * \param cc        client context.
  * \param irsapub   RSA public-key encryption implementation.
  */
-static __inline void
+static inline void
 br_ssl_client_set_rsapub(br_ssl_client_context *cc, br_rsa_public irsapub)
 {
 	cc->irsapub = irsapub;
@@ -2805,7 +2805,7 @@ void br_ssl_client_set_default_rsapub(br_ssl_client_context *cc);
  * \param cc    client context.
  * \param len   minimum ClientHello length (in bytes).
  */
-static __inline void
+static inline void
 br_ssl_client_set_min_clienthello_len(br_ssl_client_context *cc, uint16_t len)
 {
 	cc->min_clienthello_len = len;
@@ -2853,7 +2853,7 @@ int br_ssl_client_reset(br_ssl_client_context *cc,
  *
  * \param cc   client context.
  */
-static __inline void
+static inline void
 br_ssl_client_forget_session(br_ssl_client_context *cc)
 {
 	cc->eng.session.session_id_len = 0;
@@ -3697,7 +3697,7 @@ void br_ssl_server_init_minf2c(br_ssl_server_context *cc,
  * \param num   receives the array size (number of suites).
  * \return  the translated common cipher suites, in preference order.
  */
-static __inline const br_suite_translated *
+static inline const br_suite_translated *
 br_ssl_server_get_client_suites(const br_ssl_server_context *cc, size_t *num)
 {
 	*num = cc->client_suites_num;
@@ -3734,7 +3734,7 @@ br_ssl_server_get_client_suites(const br_ssl_server_context *cc, size_t *num)
  * \param cc   server context.
  * \return  the client-supported hash functions and signature algorithms.
  */
-static __inline uint32_t
+static inline uint32_t
 br_ssl_server_get_client_hashes(const br_ssl_server_context *cc)
 {
 	return cc->hashes;
@@ -3748,7 +3748,7 @@ br_ssl_server_get_client_hashes(const br_ssl_server_context *cc)
  * \param cc   server context.
  * \return  the client-supported elliptic curves.
  */
-static __inline uint32_t
+static inline uint32_t
 br_ssl_server_get_client_curves(const br_ssl_server_context *cc)
 {
 	return cc->curves;
@@ -3775,7 +3775,7 @@ void br_ssl_server_zero(br_ssl_server_context *cc);
  * \param cc     server context.
  * \param pctx   policy context (pointer to its vtable field).
  */
-static __inline void
+static inline void
 br_ssl_server_set_policy(br_ssl_server_context *cc,
 	const br_ssl_server_policy_class **pctx)
 {
@@ -3854,7 +3854,7 @@ void br_ssl_server_set_single_ec(br_ssl_server_context *cc,
  * \param ta_names   encoded trust anchor names.
  * \param num        number of encoded trust anchor names.
  */
-static __inline void
+static inline void
 br_ssl_server_set_trust_anchor_names(br_ssl_server_context *cc,
 	const br_x500_name *ta_names, size_t num)
 {
@@ -3881,7 +3881,7 @@ br_ssl_server_set_trust_anchor_names(br_ssl_server_context *cc,
  * \param tas   trust anchors (only names are used).
  * \param num   number of trust anchors.
  */
-static __inline void
+static inline void
 br_ssl_server_set_trust_anchor_names_alt(br_ssl_server_context *cc,
 	const br_x509_trust_anchor *tas, size_t num)
 {
@@ -3899,7 +3899,7 @@ br_ssl_server_set_trust_anchor_names_alt(br_ssl_server_context *cc,
  * \param cc       server context.
  * \param vtable   session cache context.
  */
-static __inline void
+static inline void
 br_ssl_server_set_cache(br_ssl_server_context *cc,
 	const br_ssl_session_cache_class **vtable)
 {

@@ -172,7 +172,7 @@ br_aes_big_keysched_inv(uint32_t *skey, const void *key, size_t key_len)
 	return num_rounds;
 }
 
-static __inline uint32_t
+static inline uint32_t
 rotr(uint32_t x, int n)
 {
 	return (x << (32 - n)) | (x >> n);

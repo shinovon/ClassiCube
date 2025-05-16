@@ -103,7 +103,7 @@ inv_shift_rows(unsigned *state)
 	state[15] = tmp;
 }
 
-static __inline unsigned
+static inline unsigned
 gf256red(unsigned x)
 {
 	unsigned y;

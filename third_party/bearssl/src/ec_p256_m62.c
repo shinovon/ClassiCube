@@ -103,7 +103,7 @@ static const uint64_t P256_B_MONTY[] = {
  * On input, limbs may be up to 63 bits each; on output, they will
  * be up to one bit more than on input.
  */
-static __inline void
+static inline void
 f256_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 	d[0] = a[0] + b[0];
@@ -118,7 +118,7 @@ f256_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
  * Input: limbs can go up to 61 bits each.
  * Output: partially reduced.
  */
-static __inline void
+static inline void
 f256_partial_reduce(uint64_t *a)
 {
 	uint64_t w, cc, s;
@@ -161,7 +161,7 @@ f256_partial_reduce(uint64_t *a)
  * integer will be less than 2^268 + 2^217.
  * Output: partially reduced.
  */
-static __inline void
+static inline void
 f256_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 	uint64_t t[5], w, s, cc;
@@ -434,7 +434,7 @@ f256_montymul(uint64_t *d, const uint64_t *a, const uint64_t *b)
  * multiplication (inline, should be optimized away).
  * TODO: see if some extra speed can be gained here.
  */
-static __inline void
+static inline void
 f256_montysquare(uint64_t *d, const uint64_t *a)
 {
 	f256_montymul(d, a, a);
@@ -530,7 +530,7 @@ f256_invert(uint64_t *d, const uint64_t *a)
  * On output, limbs a[0] to a[3] fit on 52 bits each, limb a[4] fits
  * on 48 bits, and the integer is less than p.
  */
-static __inline void
+static inline void
 f256_final_reduce(uint64_t *a)
 {
 	uint64_t r[5], t[5], w, cc;

@@ -171,7 +171,7 @@ size_t br_pem_decoder_push(br_pem_decoder_context *ctx,
  * \param dest       callback for receiving decoded data.
  * \param dest_ctx   opaque context pointer for the `dest` callback.
  */
-static __inline void
+static inline void
 br_pem_decoder_setdest(br_pem_decoder_context *ctx,
 	void (*dest)(void *dest_ctx, const void *src, size_t len),
 	void *dest_ctx)
@@ -230,7 +230,7 @@ int br_pem_decoder_event(br_pem_decoder_context *ctx);
  * \param ctx   decoder context.
  * \return  the current object name.
  */
-static __inline const char *
+static inline const char *
 br_pem_decoder_name(br_pem_decoder_context *ctx)
 {
 	return ctx->name;

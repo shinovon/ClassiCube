@@ -111,7 +111,7 @@ typedef struct {
 	size_t point_len;
 } curve_params;
 
-static __inline const curve_params *
+static inline const curve_params *
 id_to_curve(int curve)
 {
 	static const curve_params pp[] = {
@@ -536,13 +536,13 @@ point_zero(jacobian *P, const curve_params *cc)
 	P->c[0][0] = P->c[1][0] = P->c[2][0] = cc->p[0];
 }
 
-static __inline void
+static inline void
 point_double(jacobian *P, const curve_params *cc)
 {
 	run_code(P, P, cc, code_double);
 }
 
-static __inline uint32_t
+static inline uint32_t
 point_add(jacobian *P1, const jacobian *P2, const curve_params *cc)
 {
 	return run_code(P1, P2, cc, code_add);

@@ -92,7 +92,7 @@ static const uint64_t P256_B_MONTY[] = {
 /*
  * Addition in the field.
  */
-static __inline void
+static inline void
 f256_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 #if BR_INT128
@@ -174,7 +174,7 @@ f256_add(uint64_t *d, const uint64_t *a, const uint64_t *b)
 /*
  * Subtraction in the field.
  */
-static __inline void
+static inline void
 f256_sub(uint64_t *d, const uint64_t *a, const uint64_t *b)
 {
 #if BR_INT128
@@ -495,7 +495,7 @@ f256_montymul(uint64_t *d, const uint64_t *a, const uint64_t *b)
  * multiplication (inline, should be optimized away).
  * TODO: see if some extra speed can be gained here.
  */
-static __inline void
+static inline void
 f256_montysquare(uint64_t *d, const uint64_t *a)
 {
 	f256_montymul(d, a, a);
@@ -592,7 +592,7 @@ f256_invert(uint64_t *d, const uint64_t *a)
  * Input value fits on 256 bits. This function subtracts p if and only
  * if the input is greater than or equal to p.
  */
-static __inline void
+static inline void
 f256_final_reduce(uint64_t *a)
 {
 #if BR_INT128
