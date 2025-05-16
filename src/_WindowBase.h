@@ -116,10 +116,10 @@ static cc_uintptr ctx_visualID;
 static void GLContext_InitSurface(void); // replacement in Window_Switch.c for handheld/docked resolution fix
 #else
 static void GLContext_InitSurface(void) {
-#if defined CC_BUILD_SYMBIAN
-	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
-#else
+#if defined EGLNativeWindowType
 	EGLNativeWindowType window = (EGLNativeWindowType)Window_Main.Handle.ptr;
+#else
+	NativeWindowType window = (NativeWindowType)Window_Main.Handle.ptr;
 #endif
 	if (!window) return; /* window not created or lost */
 	ctx_surface = eglCreateWindowSurface(ctx_display, ctx_config, window, NULL);
