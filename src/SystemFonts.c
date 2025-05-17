@@ -540,7 +540,7 @@ static cc_string font_candidates[] = {
 	String_FromConst("Nokia Sans TitleSmBd S60"),
 	String_FromConst("Nokia Sans S60"),
 	String_FromConst("Nokia Hindi S60"),
-	String_FromConst("Seies 60 Sans TitleSmBd"),
+	String_FromConst("Series 60 Sans TitleSmBd"),
 	String_FromConst("Series 60 Sans"),
 	String_FromConst("Series 60 Hindi"),
 	String_FromConst("Series 60 Korean"),
