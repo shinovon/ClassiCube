@@ -1449,6 +1449,7 @@ void Platform_Init(void) {
 	#ifdef CC_BUILD_MOBILE
 	Platform_SingleProcess = true;
 	#endif
+
 	Platform_InitPosix();
 }
 #endif
@@ -1608,7 +1609,6 @@ static cc_result GetMachineID(cc_uint32* key) {
 #else
 static cc_result GetMachineID(cc_uint32* key) { return ERR_NOT_SUPPORTED; }
 #endif
-
 
 cc_result Platform_GetEntropy(void* data, int len) {
 #if defined CC_BUILD_SYMBIAN
