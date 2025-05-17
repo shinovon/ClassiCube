@@ -79,7 +79,7 @@ void CWindow::CreateWindowL() {
 
 	iWindow->SetExtent(TPoint(0, 0), pixnrot.iPixelSize);
 	iWindow->SetRequiredDisplayMode(iWsScreenDevice->DisplayMode());
-#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
+#ifdef CC_BUILD_SYMBIAN_3
 	iWindow->EnableAdvancedPointers();
 #endif
 	iWindow->Activate();
@@ -443,7 +443,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 	}
 #ifdef CC_BUILD_TOUCH
 	case EEventPointer: {
-#ifdef CC_BUILD_SYMBIAN_MULTITOUCH
+#ifdef CC_BUILD_SYMBIAN_3
 		TAdvancedPointerEvent* pointer = aWsEvent.Pointer();
 		long num = pointer->IsAdvancedPointerEvent() ? pointer->PointerNumber() : 0;
 #else

@@ -569,10 +569,7 @@ typedef cc_uint8  cc_bool;
 #define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
 #endif
 
-#if defined CC_BUILD_SYMBIAN_3 /* Symbian^3 */
-	#define CC_BUILD_SYMBIAN_MULTITOUCH
-	#define CC_BUILD_TOUCH
-#elif CC_BUILD_SYMBIAN_S60V5 /* S60v5 */
+#if defined CC_BUILD_SYMBIAN_3 || defined CC_BUILD_SYMBIAN_S60V5
 	#define CC_BUILD_TOUCH
 #endif
 #endif
