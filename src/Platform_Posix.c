@@ -273,8 +273,9 @@ static void SignalHandler(int sig, siginfo_t* info, void* ctx) {
 	Logger_DoAbort(0, msg.buffer, ctx);
 }
 
-#if defined CC_BUILD_SYMBAIN
+#if defined CC_BUILD_SYMBIAN
 /* implemented in Platform_Symbian.cpp */
+#else
 void CrashHandler_Install(void) {
 	struct sigaction sa = { 0 };
 	/* sigemptyset(&sa.sa_mask); */
