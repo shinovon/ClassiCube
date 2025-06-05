@@ -26,7 +26,7 @@ typedef void GLvoid;
 
 /* NOTE: With the OpenGL 1.1 backend "pointer" arguments are actual pointers, */
 /* but with VBOs they are just offsets instead */
-#ifdef CC_BUILD_GL11
+#if defined CC_BUILD_GL11 || defined CC_BUILD_GLES10
 typedef const void* GLpointer;
 #else
 typedef cc_uintptr GLpointer;

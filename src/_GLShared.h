@@ -178,16 +178,16 @@ GfxResourceID Gfx_AllocTexture(struct Bitmap* bmp, int rowWidth, cc_uint8 flags,
 	GfxResourceID texId = NULL;
 	_glGenTextures(1, (GLuint*)&texId);
 	_glBindTexture(GL_TEXTURE_2D, ptr_to_uint(texId));
-	_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
+	_glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
 
 	if (mipmaps) {
-		_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		_glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 		if (customMipmapsLevels) {
 			int lvls = CalcMipmapsLevels(bmp->width, bmp->height);
-			_glTexParameteri(GL_TEXTURE_2D, _GL_TEXTURE_MAX_LEVEL, lvls);
+			_glTexParameterf(GL_TEXTURE_2D, _GL_TEXTURE_MAX_LEVEL, lvls);
 		}
 	} else {
-		_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
+		_glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
 	}
 
 	if (bmp->width == rowWidth) {

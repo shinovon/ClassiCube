@@ -103,9 +103,7 @@ void Gfx_Create(void) {
 #ifdef CC_BUILD_GLES10
 
 typedef struct legacy_buffer { cc_uint8* data; } legacy_buffer;
-static legacy_buffer* cur_ib;
 static legacy_buffer* cur_vb;
-#define legacy_GetBuffer(target) (target == GL_ELEMENT_ARRAY_BUFFER ? &cur_ib : &cur_vb);
 
 static void APIENTRY _glGenBuffers(GLsizei n, GLuint* buffer) {
 	GfxResourceID* dst = (GfxResourceID*)buffer;
@@ -118,12 +116,12 @@ static void APIENTRY _glDeleteBuffers(GLsizei n, const GLuint* buffer) {
 }
 
 static void APIENTRY _glBindBuffer(GLenum target, GfxResourceID src) {
-	legacy_buffer** buffer = legacy_GetBuffer(target);
+	legacy_buffer** buffer = &cur_vb;
 	*buffer = (legacy_buffer*)src;
 }
 
 static void APIENTRY _glBufferData(GLenum target, cc_uintptr size, const GLvoid* data, GLenum usage) {
-	legacy_buffer* buffer = *legacy_GetBuffer(target);
+	legacy_buffer* buffer = cur_vb;
 	Mem_Free(buffer->data);
 
 	buffer->data = Mem_TryAlloc(size, 1);
@@ -131,7 +129,7 @@ static void APIENTRY _glBufferData(GLenum target, cc_uintptr size, const GLvoid*
 }
 
 static void APIENTRY _glBufferSubData(GLenum target, cc_uintptr offset, cc_uintptr size, const GLvoid* data) {
-	legacy_buffer* buffer = *legacy_GetBuffer(target);
+	legacy_buffer* buffer = cur_vb;
 	Mem_Copy(buffer->data, data, size);
 }
 
@@ -166,7 +164,7 @@ void Gfx_DeleteIb(GfxResourceID* ib) {
 	*ib = 0;
 }
 #else
-GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) { return 0; }
+GfxResourceID Gfx_CreateIb2(int count, Gfx_FillIBFunc fillFunc, void* obj) { return (void*)1; }
 void Gfx_BindIb(GfxResourceID ib) { }
 void Gfx_DeleteIb(GfxResourceID* ib) { }
 #endif
@@ -320,7 +318,7 @@ void Gfx_SetDynamicVbData(GfxResourceID vb, void* vertices, int vCount) {
 *#########################################################################################################################*/
 #ifdef CC_BUILD_GLES10
 	/* point to client side dynamic array */
-	#define VB_PTR ptr_to_uint(cur_vb->data)
+	#define VB_PTR ((cc_uint8*)cur_vb->data)
 	#define IB_PTR gl_indices
 #elif defined CC_BUILD_GL11
 	/* point to client side dynamic array */
@@ -362,13 +360,13 @@ void Gfx_SetVertexFormat(VertexFormat fmt) {
 	gfx_stride = strideSizes[fmt];
 
 	if (fmt == VERTEX_FORMAT_TEXTURED) {
-//		_glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		_glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		_glEnable(GL_TEXTURE_2D);
 
 		gfx_setupVBFunc      = GL_SetupVbTextured;
 		gfx_setupVBRangeFunc = GL_SetupVbTextured_Range;
 	} else {
-//		_glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		_glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		_glDisable(GL_TEXTURE_2D);
 
 		gfx_setupVBFunc      = GL_SetupVbColoured;
@@ -519,8 +517,8 @@ void Gfx_DisableTextureOffset(void) { Gfx_LoadMatrix(2, &Matrix_Identity); }
 static void Gfx_FreeState(void) { FreeDefaultResources(); }
 static void Gfx_RestoreState(void) {
 	InitDefaultResources();
-//	_glEnableClientState(GL_VERTEX_ARRAY);
-//	_glEnableClientState(GL_COLOR_ARRAY);
+	_glEnableClientState(GL_VERTEX_ARRAY);
+	_glEnableClientState(GL_COLOR_ARRAY);
 
 	gfx_format = -1;
 	lastMatrix = -1;
