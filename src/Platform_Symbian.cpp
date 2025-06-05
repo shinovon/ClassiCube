@@ -49,10 +49,13 @@ extern "C" {
 #include <libc/sys/stat.h>
 #include <libc/sys/time.h>
 #include <libc/netdb.h>
+#include <libc/stdlib.h>
 #endif
 }
 #include <e32base.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <e32debug.h>
+#endif
 #include <hal.h>
 
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
@@ -79,17 +82,29 @@ void* Mem_Move(void* dst, const void* src, unsigned numBytes) { return (void*)me
 
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
+#ifdef EKA2
 	return size ? User::Alloc(size) : NULL;
+#else
+	return size ? malloc(size) : NULL;
+#endif
 }
 
 void* Mem_TryAllocCleared(cc_uint32 numElems, cc_uint32 elemsSize) {
+#ifdef EKA2
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? User::AllocZ(size) : NULL;
+#else
+	return calloc(numElems, elemsSize);
+#endif
 }
 
 void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
-	return size ? User::ReAlloc(mem, size) : NULL;
+#ifdef EKA2
+	return size ? User:ReAlloc(mem, size) : NULL;
+#else
+	return size ? realloc(mem, size) : NULL;
+#endif
 }
 
 void Mem_Free(void* mem) {
@@ -142,13 +157,21 @@ void DateTime_CurrentLocal(struct cc_datetime* t) {
 static TInt tickPeriod;
 
 static void Stopwatch_Init(void) {
+#ifdef EKA2
 	if (HAL::Get(HAL::ENanoTickPeriod, tickPeriod) != KErrNone) {
+#else
+	if (HAL::Get(HAL::ESystemTickPeriod, tickPeriod) != KErrNone) {
+#endif
 		User::Panic(_L("Could not init timer"), 0);
 	}
 }
 
 cc_uint64 Stopwatch_Measure(void) {
+#ifdef EKA2
 	return (cc_uint64)User::NTickCount();
+#else
+	return (cc_uint64)User::TickCount();
+#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
@@ -168,12 +191,13 @@ static void ExceptionHandler(TExcType type) {
 	msg.buffer[msg.length] = '\0';
 	
 	Logger_DoAbort(0, msg.buffer, 0);
-	
+#ifdef EKA2
 	User::HandleException((TUint32*) &type);
+#endif
 }
 
 void CrashHandler_Install(void) {
-#if !defined _DEBUG
+#if !defined _DEBUG && defined EKA2
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
 }
@@ -438,10 +462,12 @@ void Waitable_Wait(void* handle) {
 	sem->Wait();
 }
 
+#ifdef EKA2
 void Waitable_WaitFor(void* handle, cc_uint32 milliseconds) {
 	RSemaphore* sem = (RSemaphore*)handle;
 	sem->Wait(milliseconds * 1000);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -815,12 +841,24 @@ extern "C" {
 #include <stdlib.h>
 }
 #include <e32base.h>
+IMPORT_C TInt SpawnPosixServerThread();
 
 TInt E32Main() {
 	CTrapCleanup* c = CTrapCleanup::New();
+	
+	SpawnPosixServerThread();
+	
+	CActiveScheduler* scheduler = new (ELeave) CActiveScheduler();
+	if (!scheduler) {
+		User::Panic(_L("Failed to initialize scheduler"), 0);
+	}
 	int r = main_real(0, 0);
+	
+	delete scheduler;
 	delete c;
+	
 	exit(r);
+	
 	return 0;
 }
 #endif

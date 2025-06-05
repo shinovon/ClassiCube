@@ -184,7 +184,7 @@ void CWindow::CreateWindowL() {
 	}
 }
 
-CWindow::CWindow() {
+CWindow::CWindow() : iWsSession() {
 	
 }
 
@@ -206,16 +206,15 @@ CWindow::~CWindow() {
 }
 
 void CWindow::ConstructL() {
-	delete CActiveScheduler::Current();
-	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();
-	CActiveScheduler::Install(actScheduler);
+//	delete CActiveScheduler::Current();
+//	CActiveScheduler* actScheduler = new (ELeave) CActiveScheduler();
+//	CActiveScheduler::Install(actScheduler);
 	
-	CCoeEnv* env = CCoeEnv::Static();
-	if (!env) {
-		User::Panic(_L("CoeEnv::Static not initialized"), 0);
+	
+	TInt err = iWsSession.Connect();
+	if (err != KErrNone) {
+		User::Panic(_L("Failed to open ws session"), err);
 	}
-	
-	iWsSession = env->WsSession();
 	iWsScreenDevice = new (ELeave) CWsScreenDevice(iWsSession);
 	User::LeaveIfError(iWsScreenDevice->Construct());
 
@@ -239,7 +238,7 @@ void CWindow::ConstructL() {
 
 	iWindow = new (ELeave) RWindow(iWsSession);
 
-	TInt err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
+	err = iWindow->Construct(iWindowGroup, reinterpret_cast<TUint32>(this));
 	User::LeaveIfError(err);
 
 	TRAP(err, CreateWindowL());
@@ -247,13 +246,12 @@ void CWindow::ConstructL() {
 		User::Panic(_L("Window creation failed"), err);
 	}
 
-	RWindowGroup rootWin = CCoeEnv::Static()->RootWin();
-	CApaWindowGroupName* rootWindGroupName = 0;
-	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession, rootWin.Identifier()));
-	if (rootWindGroupName) {
-		rootWindGroupName->SetHidden(ETrue);
-		rootWindGroupName->SetWindowGroupName(rootWin);
-	}
+//	CApaWindowGroupName* rootWindGroupName = 0;
+//	TRAP_IGNORE(rootWindGroupName = CApaWindowGroupName::NewL(iWsSession));
+//	if (rootWindGroupName) {
+//		rootWindGroupName->SetHidden(ETrue);
+//		rootWindGroupName->SetWindowGroupName(rootWin);
+//	}
 	
 	TDisplayMode displayMode = iWindow->DisplayMode();
 	TInt bufferSize = 0;
@@ -484,13 +482,13 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
-#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	// shutdown request from task manager
-	case KAknShutOrHideApp: {
+	case 0x10285A1D /*KAknShutOrHideApp*/: {
 		WindowInfo.Exists = false;
 		RequestClose();
 		break;
 	}
+#ifndef _UIQ3_SDK_
 	// shutdown request from system (out of memory)
 	case EEventUser: {
 		TApaSystemEvent apaSystemEvent = *(TApaSystemEvent*) aWsEvent.EventData();
@@ -503,7 +501,9 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 #endif
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
+#ifdef EKA2 // TODO
 			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::EFullyVisible) == 0;
+#endif
 			Event_RaiseVoid(&WindowEvents.InactiveChanged);
 		}
 		break;
@@ -572,7 +572,11 @@ void CWindow::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 		for (TInt row = bmp->height - 1; row >= 0; --row) {
 			memcpy(data, src, bmp->width * BITMAPCOLOR_SIZE);
 			src += bmp->width * BITMAPCOLOR_SIZE;
+#ifdef EKA2
 			data += iBitmap->DataStride();
+#else
+			data += bmp->width * BITMAPCOLOR_SIZE;
+#endif
 		}
 //		iBitmap->EndDataAccess();
 		iBitmap->UnlockHeap();
@@ -646,12 +650,7 @@ cc_result CWindow::OpenBrowserL(const cc_string* url) {
 void Window_PreInit(void) {
 	//NormDevice.defaultBinds = symbian_binds; TODO only use on devices with limited hardware
 	
-	CCoeEnv* env = new (ELeave) CCoeEnv();
-	TRAPD(err, env->ConstructL(ETrue, 0));
-	
-	if (err != KErrNone) {
-		User::Panic(_L("Failed to create CoeEnv"), 0);
-	}
+
 }
 
 void Window_Init(void) {
@@ -675,8 +674,6 @@ void Window_Free(void) {
 		window = NULL;
 	}
 	
-	CCoeEnv::Static()->DestroyEnvironment();
-	delete CCoeEnv::Static();
 }
 
 void Window_Create2D(int width, int height) {

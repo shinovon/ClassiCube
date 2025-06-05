@@ -272,7 +272,9 @@ cc_bool GLContext_SwapBuffers(void) {
 }
 
 void GLContext_SetVSync(cc_bool vsync) {
+#if !defined CC_BUILD_SYMBIAN_ESTLIB || defined EKA2
 	eglSwapInterval(ctx_display, vsync);
+#endif
 }
 void GLContext_GetApiInfo(cc_string* info) { }
 #endif

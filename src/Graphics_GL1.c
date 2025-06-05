@@ -19,7 +19,7 @@
 #include "../misc/opengl/GLCommon.h"
 
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
-#define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
+#define GL_FUNC(retType, name, args) retType APIENTRY name args;
 #include "../misc/opengl/GL1Funcs.h"
 #if defined CC_BUILD_SYMBIAN
 #include "../misc/opengl/GL2Funcs.h"
@@ -91,7 +91,7 @@ void Gfx_Create(void) {
 #ifdef CC_BUILD_GL11_FALLBACK
 	GLContext_GetAll(coreFuncs, Array_Elems(coreFuncs));
 #endif
-	customMipmapsLevels = true;
+	customMipmapsLevels = false;
 	Gfx.BackendType     = CC_GFX_BACKEND_GL1;
 
 	GL_InitCommon();

@@ -1,0 +1,13 @@
+&EN
+
+#{"ClassiCube"},(0x1212A5C2),1,0,0
+
+(0x10200BAB), 0, 0, 0, {"Series60ProductID"}
+
+%{"ClassiCube"}
+:"ClassiCube"
+
+"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v2.exe" - "!:\system\apps\ClassiCube\ClassiCube.exe"
+"$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\system\apps\ClassiCube\classicube.rsc"
+
+"$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\texpacks\classicube.zip" - "!:\private\e212a5c2\texpacks\classicube.zip"
