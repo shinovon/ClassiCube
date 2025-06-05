@@ -10,25 +10,29 @@
 %{"ClassiCube"}
 :"ClassiCube"
 
-;IF exists("series60skinssupport")
+;IF exists("z:\system\install\series60skinssupport.sis")
 	; Check OpenC versions
 	;IF( version(0x20009a80, <, 1, 5, 0) ) AND NOT (EXISTS("Z:\sys\bin\libc.dll") OR EXISTS("C:\sys\bin\libc.dll"))
 	;    "incompatible_openc.txt"-"", FT, FORCEABORT
 	;ENDIF
 
-	;IF  exists("z:\system\install\Series60v5.2.sis") ; Symbian^3
+	;IF exists("z:\system\install\Series60v5.2.sis") ; Symbian^3
 	;;	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_sym3.exe" - "!:\sys\bin\ClassiCube.exe"
 	;ELSE
 	;	IF exists("z:\system\install\Series60v5.0.sis") ; Symbian 9.4
 	;		"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v5.exe" - "!:\sys\bin\ClassiCube.exe"
-	;	ELSE ; Symbian 9.2-9.3
-	;		"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v3.exe" - "!:\sys\bin\ClassiCube.exe"
+	;	ELSE 
+	;		IF exists("z:\system\install\Series60v3.1.sis") ; S60v3.1-v3.2
+	;			"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_s60v3.exe" - "!:\sys\bin\ClassiCube.exe"
+	;		ELSE ; S60v3.0
+	;			"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_stl.exe" - "!:\sys\bin\ClassiCube.exe"
+	;		ENDIF
 	;	ENDIF
 	;ENDIF
 	;"$(EPOCROOT)\epoc32\data\z\private\10003a3f\import\apps\classicube_reg.rsc" - "!:\private\10003a3f\import\apps\classicube_reg.rsc"
 	;"$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"
 	;"$(EPOCROOT)\epoc32\data\z\resource\apps\classicube_icon.mif" - "!:\resource\apps\classicube_icon.mif"
-;ELSE
+;ELSE ; UIQ3
 	"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_stl.exe" - "!:\sys\bin\ClassiCube.exe"
 	"$(EPOCROOT)\epoc32\data\z\private\10003a3f\import\apps\classicube_reg.rsc" - "!:\private\10003a3f\import\apps\classicube_reg.rsc"
 	"$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"

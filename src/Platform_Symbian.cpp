@@ -351,6 +351,10 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	Thread* ptr = (Thread*)Mem_Alloc(1, sizeof(Thread), "thread");
 	*handle = ptr;
 	
+	if (stackSize >= 80 * 1024) {
+		stackSize = 80 * 1024;
+	}
+	
 	ptr->rt.Create(_L(""), ExecThread, stackSize, NULL, (TAny*)func);
 	ptr->rt.Resume();
 #endif

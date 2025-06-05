@@ -32,9 +32,9 @@ STATICLIBRARY ecrt0.lib
 
 #ifdef ARMCC
 OPTION ARMCC -Otime --diag_suppress 1296 --diag_suppress 1293 --diag_suppress 66
-OPTION_REPLACE ARMCC --cpu 6
-OPTION_REPLACE ARMCC --fpu softvfp+vfpv2 --fpmode fast
-OPTION_REPLACE ARMCC -O2 -O3
+//OPTION_REPLACE ARMCC --cpu 6
+//OPTION_REPLACE ARMCC --fpu softvfp+vfpv2 --fpmode fast
+//OPTION_REPLACE ARMCC -O2 -O3
 #endif
 
 SOURCEPATH ../../src
@@ -45,8 +45,8 @@ SOURCE Animations.c Audio.c Audio_Null.c AxisLinesRenderer.c Bitmap.c Block.c Bl
 
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
-EPOCSTACKSIZE 0x14000
-EPOCHEAPSIZE 0x80000 0x4000000
+EPOCSTACKSIZE 0x10000
+EPOCHEAPSIZE 0x80000 0x1000000
 
 #ifdef _DEBUG
 DEBUGGABLE_UDEBONLY
