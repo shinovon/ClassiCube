@@ -1,7 +1,5 @@
 #include <appinfo.rh>
-#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <classicube.rsg>
-#endif
 
 UID2 KUidAppRegistrationResourceFile
 UID3 0xE212A5C2
@@ -11,11 +9,9 @@ RESOURCE APP_REGISTRATION_INFO
 	app_file="ClassiCube";
 
 	localisable_resource_file="\\resource\\apps\\classicube";
-#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	localisable_resource_id=R_CLASSICUBE_LOCALISABLE_APP_INFO;
 
 	embeddability=KAppNotEmbeddable;
 	newfile=KAppDoesNotSupportNewFile;
-#endif
 }
 

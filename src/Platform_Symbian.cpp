@@ -109,7 +109,9 @@ void Platform_Log(const char* msg, int len) {
 	str = String_FromReadonly("\r\n");
 	Logger_Log(&str);
 	
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	RDebug::RawPrint(ptr);
+#endif
 }
 
 TimeMS DateTime_CurrentUTC(void) {
@@ -803,6 +805,22 @@ static cc_result GetMachineID(cc_uint32* key) {
 	if (HAL::Get(HAL::EMachineUid, res) == KErrNone) {
 		key[1] = res;
 	}
+	return 0;
+}
+#endif
+
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+extern "C" {
+#include "main.c"
+#include <stdlib.h>
+}
+#include <e32base.h>
+
+TInt E32Main() {
+	CTrapCleanup* c = CTrapCleanup::New();
+	int r = main_real(0, 0);
+	delete c;
+	exit(r);
 	return 0;
 }
 #endif

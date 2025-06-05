@@ -1,9 +1,9 @@
 PRJ_PLATFORMS
-DEFAULT
+ARMV5 GCCE WINSCW
 
 PRJ_MMPFILES
 //gnumakefile Icons_scalable_dc.mk
 //ClassiCube_sym3.mmp
 //ClassiCube_s60v5.mmp
 //ClassiCube_s60v3.mmp
-ClassiCube_stl.mmp
+ClassiCube_uiq3.mmp

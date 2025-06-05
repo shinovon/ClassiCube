@@ -1,0 +1,18 @@
+TARGET		  ClassiCube_uiq3.exe
+
+ARMFPU softvfp
+
+MACRO CC_BUILD_SYMBIAN_ESTLIB
+MACRO CC_BUILD_TOUCH
+MACRO CC_BUILD_GLES10
+
+SYSTEMINCLUDE \Progs\Symbian\UIQ3SDK\epoc32
+SYSTEMINCLUDE \Progs\Symbian\UIQ3SDK\epoc32\include
+SYSTEMINCLUDE \Progs\Symbian\UIQ3SDK\epoc32\include\libc
+
+LIBRARY libgles_cm.lib
+
+#define ESTLIB
+#define NOSSL
+#define ARMV5
+#include "ClassiCube_common.mmh"

@@ -1,0 +1,14 @@
+&EN
+
+#{"ClassiCube"},(0xE212A5C2),1,0,0
+
+[0x101F6300], 3, 0, 0, {"UIQ30ProductID"}
+
+%{"ClassiCube"}
+:"ClassiCube"
+
+"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\ClassiCube_uiq3.exe" - "!:\sys\bin\ClassiCube.exe"
+"$(EPOCROOT)\epoc32\data\z\private\10003a3f\import\apps\classicube_reg.rsc" - "!:\private\10003a3f\import\apps\classicube_reg.rsc"
+"$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"
+
+"$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\texpacks\classicube.zip" - "!:\private\e212a5c2\texpacks\classicube.zip"

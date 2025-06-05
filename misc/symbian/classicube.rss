@@ -2,11 +2,6 @@ NAME	CUBE
 
 #include <eikon.rh>
 #include <appinfo.rh>
-#ifndef CC_BUILD_SYMBIAN_ESTLIB
-#include <avkon.rsg>
-#include <avkon.rh>
-#include <avkon.mbg>
-#endif
 
 RESOURCE RSS_SIGNATURE { }
 RESOURCE TBUF { buf="ClassiCube"; }
@@ -26,4 +21,3 @@ RESOURCE LOCALISABLE_APP_INFO r_ClassiCube_localisable_app_info
 		icon_file = "\\resource\\apps\\classicube_icon.mif";
 	};
 }
-
