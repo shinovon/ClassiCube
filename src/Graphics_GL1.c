@@ -100,6 +100,43 @@ void Gfx_Create(void) {
 	GLContext_SetVSync(gfx_vsync);
 }
 
+#ifdef CC_BUILD_GLES10
+
+typedef struct legacy_buffer { cc_uint8* data; } legacy_buffer;
+static legacy_buffer* cur_ib;
+static legacy_buffer* cur_vb;
+#define legacy_GetBuffer(target) (target == GL_ELEMENT_ARRAY_BUFFER ? &cur_ib : &cur_vb);
+
+static void APIENTRY _glGenBuffers(GLsizei n, GLuint* buffer) {
+	GfxResourceID* dst = (GfxResourceID*)buffer;
+	*dst = Mem_TryAllocCleared(1, sizeof(legacy_buffer));
+}
+
+static void APIENTRY _glDeleteBuffers(GLsizei n, const GLuint* buffer) {
+	GfxResourceID* dst = (GfxResourceID*)buffer;
+	Mem_Free(*dst);
+}
+
+static void APIENTRY _glBindBuffer(GLenum target, GfxResourceID src) {
+	legacy_buffer** buffer = legacy_GetBuffer(target);
+	*buffer = (legacy_buffer*)src;
+}
+
+static void APIENTRY _glBufferData(GLenum target, cc_uintptr size, const GLvoid* data, GLenum usage) {
+	legacy_buffer* buffer = *legacy_GetBuffer(target);
+	Mem_Free(buffer->data);
+
+	buffer->data = Mem_TryAlloc(size, 1);
+	if (data) Mem_Copy(buffer->data, data, size);
+}
+
+static void APIENTRY _glBufferSubData(GLenum target, cc_uintptr offset, cc_uintptr size, const GLvoid* data) {
+	legacy_buffer* buffer = *legacy_GetBuffer(target);
+	Mem_Copy(buffer->data, data, size);
+}
+
+#endif
+
 
 /*########################################################################################################################*
 *-------------------------------------------------------Index buffers-----------------------------------------------------*
@@ -138,48 +175,7 @@ void Gfx_DeleteIb(GfxResourceID* ib) { }
 /*########################################################################################################################*
 *------------------------------------------------------Vertex buffers-----------------------------------------------------*
 *#########################################################################################################################*/
-#ifdef CC_BUILD_GLES10
-static VertexFormat tmpFormat;
-static int tmpCount;
-static void* gfx_vertices;
-
-static GfxResourceID Gfx_AllocStaticVb(VertexFormat fmt, int count) {
-	return Mem_TryAlloc(count, strideSizes[fmt]);
-}
-
-void Gfx_BindVb(GfxResourceID vb) { gfx_vertices = vb; }
-
-void Gfx_DeleteVb(GfxResourceID* vb) {
-	GfxResourceID data = *vb;
-	if (data) Mem_Free(data);
-	*vb = 0;
-}
-
-static void UpdateDisplayList(GLuint list, void* vertices, VertexFormat fmt, int count) {
-	/* We need to restore client state afer building the list */
-	int realFormat = gfx_format;
-	void* dyn_data = gfx_vertices;
-	Gfx_SetVertexFormat(fmt);
-	gfx_vertices = vertices;
-
-	gfx_setupVBFunc();
-	glDrawElements(GL_TRIANGLES, ICOUNT(count), GL_UNSIGNED_SHORT, gl_indices);
-
-	Gfx_SetVertexFormat(realFormat);
-	gfx_vertices = dyn_data;
-}
-
-void* Gfx_LockVb(GfxResourceID vb, VertexFormat fmt, int count) {
-	tmpFormat = fmt;
-	tmpCount  = count;
-	return FastAllocTempMem(count * strideSizes[fmt]);
-}
-
-void Gfx_UnlockVb(GfxResourceID vb) {
-//	UpdateDisplayList((GLuint)vb, tmpData, tmpFormat, tmpCount);
-	gfx_vertices = vb;
-}
-#elif !defined CC_BUILD_GL11
+#ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocStaticVb(VertexFormat fmt, int count) {
 	GfxResourceID id = NULL;
 	_glGenBuffers(1, (GLuint*)&id);
@@ -258,26 +254,7 @@ GfxResourceID Gfx_CreateVb2(void* vertices, VertexFormat fmt, int count) {
 /*########################################################################################################################*
 *--------------------------------------------------Dynamic vertex buffers-------------------------------------------------*
 *#########################################################################################################################*/
-#ifdef CC_BUILD_GLES10
-static GfxResourceID Gfx_AllocDynamicVb(VertexFormat fmt, int maxVertices) {
-	return (GfxResourceID)Mem_TryAlloc(maxVertices, strideSizes[fmt]);
-}
-
-void Gfx_BindDynamicVb(GfxResourceID vb) { Gfx_BindVb(vb); }
-
-void* Gfx_LockDynamicVb(GfxResourceID vb, VertexFormat fmt, int count) {
-	return Gfx_LockVb(vb, fmt, count);
-}
-
-void Gfx_UnlockDynamicVb(GfxResourceID vb) { Gfx_UnlockVb(vb); }
-
-void Gfx_DeleteDynamicVb(GfxResourceID* vb) { Gfx_DeleteVb(vb); }
-
-void Gfx_SetDynamicVbData(GfxResourceID vb, void* vertices, int vCount) {
-	Gfx_BindDynamicVb(vb);
-	Mem_Copy(vb, vertices, vCount * gfx_stride);
-}
-#elif !defined CC_BUILD_GL11
+#ifndef CC_BUILD_GL11
 static GfxResourceID Gfx_AllocDynamicVb(VertexFormat fmt, int maxVertices) {
 	GfxResourceID id = NULL;
 	cc_uint32 size   = maxVertices * strideSizes[fmt];
@@ -343,7 +320,7 @@ void Gfx_SetDynamicVbData(GfxResourceID vb, void* vertices, int vCount) {
 *#########################################################################################################################*/
 #ifdef CC_BUILD_GLES10
 	/* point to client side dynamic array */
-	#define VB_PTR ptr_to_uint(gfx_vertices)
+	#define VB_PTR ptr_to_uint(cur_vb->data)
 	#define IB_PTR gl_indices
 #elif defined CC_BUILD_GL11
 	/* point to client side dynamic array */
@@ -385,13 +362,13 @@ void Gfx_SetVertexFormat(VertexFormat fmt) {
 	gfx_stride = strideSizes[fmt];
 
 	if (fmt == VERTEX_FORMAT_TEXTURED) {
-		_glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+//		_glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		_glEnable(GL_TEXTURE_2D);
 
 		gfx_setupVBFunc      = GL_SetupVbTextured;
 		gfx_setupVBRangeFunc = GL_SetupVbTextured_Range;
 	} else {
-		_glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+//		_glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		_glDisable(GL_TEXTURE_2D);
 
 		gfx_setupVBFunc      = GL_SetupVbColoured;
@@ -542,8 +519,8 @@ void Gfx_DisableTextureOffset(void) { Gfx_LoadMatrix(2, &Matrix_Identity); }
 static void Gfx_FreeState(void) { FreeDefaultResources(); }
 static void Gfx_RestoreState(void) {
 	InitDefaultResources();
-	_glEnableClientState(GL_VERTEX_ARRAY);
-	_glEnableClientState(GL_COLOR_ARRAY);
+//	_glEnableClientState(GL_VERTEX_ARRAY);
+//	_glEnableClientState(GL_COLOR_ARRAY);
 
 	gfx_format = -1;
 	lastMatrix = -1;
@@ -802,6 +779,8 @@ static void GLBackend_Init(void) {
 	_glBindBuffer    = glBindBuffer;
 	_glBufferData    = glBufferData;
 	_glBufferSubData = glBufferSubData;
+#else
+	MakeIndices(gl_indices, GFX_MAX_INDICES, NULL);
 #endif
 	
 	convert_rgba = PIXEL_FORMAT != GL_RGBA && !has_ext_bgra && !has_sym_bgra;
