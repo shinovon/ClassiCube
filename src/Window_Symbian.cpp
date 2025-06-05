@@ -6,13 +6,20 @@
 #include <coemain.h>
 #include <e32keys.h>
 #include <w32std.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <aknutils.h>
 #include <aknnotewrappers.h>
+#endif
 #include <apgwgnam.h>
+#include <apgtask.h>
 #include <stdlib.h>
 #include <apgcli.h>
 extern "C" {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <stdapis/string.h>
+#else
+#include <libc/string.h>
+#endif
 #include <gles/egl.h>
 #include "_WindowBase.h"
 #include "Errors.h"
@@ -477,6 +484,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		Event_RaiseVoid(&WindowEvents.RedrawNeeded);
 		break;
 	}
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	// shutdown request from task manager
 	case KAknShutOrHideApp: {
 		WindowInfo.Exists = false;
@@ -492,6 +500,7 @@ void CWindow::HandleWsEvent(const TWsEvent& aWsEvent) {
 		}
 		break;
 	}
+#endif
 	case EEventWindowVisibilityChanged: {
 		if (aWsEvent.Handle() == reinterpret_cast<TUint32>(this)) {
 			WindowInfo.Inactive = (aWsEvent.VisibilityChanged()->iFlags & TWsVisibilityChangedEvent::EFullyVisible) == 0;

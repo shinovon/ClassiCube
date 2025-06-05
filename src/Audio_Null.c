@@ -41,5 +41,9 @@ cc_result Audio_AllocChunks(cc_uint32 size, struct AudioChunk* chunks, int numCh
 }
 
 void Audio_FreeChunks(struct AudioChunk* chunks, int numChunks) { }
+
+cc_result Audio_Pause(struct AudioContext* ctx) {
+	return ERR_NOT_SUPPORTED;
+}
 #endif
 

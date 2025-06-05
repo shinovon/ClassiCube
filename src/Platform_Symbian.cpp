@@ -23,11 +23,13 @@ extern "C" {
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
-#include <dlfcn.h>
 
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
+#include <pthread.h>
+#include <dlfcn.h>
+#include <stdapis/sys/select.h>
 #include <stdapis/string.h>
 #include <stdapis/arpa/inet.h>
 #include <stdapis/netinet/in.h>
@@ -36,8 +38,18 @@ extern "C" {
 #include <stdapis/sys/types.h>
 #include <stdapis/sys/stat.h>
 #include <stdapis/sys/time.h>
-#include <stdapis/sys/select.h>
 #include <stdapis/netdb.h>
+#else
+#include <libc/string.h>
+#include <libc/arpa/inet.h>
+#include <libc/netinet/in.h>
+#include <libc/sys/socket.h>
+#include <libc/sys/ioctl.h>
+#include <libc/sys/types.h>
+#include <libc/sys/stat.h>
+#include <libc/sys/time.h>
+#include <libc/netdb.h>
+#endif
 }
 #include <e32base.h>
 #include <e32debug.h>
@@ -46,10 +58,12 @@ extern "C" {
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
 const cc_result ReturnCode_FileNotFound     = ENOENT;
 const cc_result ReturnCode_DirectoryExists  = EEXIST;
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 const cc_result ReturnCode_SocketInProgess  = EINPROGRESS;
 const cc_result ReturnCode_SocketWouldBlock = EWOULDBLOCK;
 const cc_result ReturnCode_SocketDropped    = EPIPE;
 #define SUPPORTS_GETADDRINFO 1
+#endif
 
 const char* Platform_AppNameSuffix = "";
 cc_uint8 Platform_Flags = PLAT_FLAG_SINGLE_PROCESS | PLAT_FLAG_APP_EXIT;
@@ -251,12 +265,12 @@ cc_result File_OpenOrCreate(cc_file* file, const cc_filepath* path) {
 }
 
 cc_result File_Read(cc_file file, void* data, cc_uint32 count, cc_uint32* bytesRead) {
-	*bytesRead = read(file, data, count);
+	*bytesRead = read(file, (char*)data, count);
 	return *bytesRead == -1 ? errno : 0;
 }
 
 cc_result File_Write(cc_file file, const void* data, cc_uint32 count, cc_uint32* bytesWrote) {
-	*bytesWrote = write(file, data, count);
+	*bytesWrote = write(file, (const char*)data, count);
 	return *bytesWrote == -1 ? errno : 0;
 }
 
@@ -286,11 +300,21 @@ cc_result File_Length(cc_file file, cc_uint32* len) {
 *#########################################################################################################################*/
 #define NS_PER_SEC 1000000000ULL
 
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+struct Thread {
+	RThread rt;
+};
+#endif
+
 void Thread_Sleep(cc_uint32 milliseconds) { 
 	User::After(milliseconds * 1000); 
 }
 
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 static void* ExecThread(void* param) {
+#else
+static TInt ExecThread(TAny* param) {
+#endif
 	CTrapCleanup* cleanup = CTrapCleanup::New();
 	CActiveScheduler* scheduler = new (ELeave) CActiveScheduler();
 	CActiveScheduler::Install(scheduler);
@@ -305,6 +329,7 @@ static void* ExecThread(void* param) {
 }
 
 void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char* name) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	pthread_t* ptr = (pthread_t*)Mem_Alloc(1, sizeof(pthread_t), "thread");
 	pthread_attr_t attrs;
 	int res;
@@ -322,20 +347,37 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	res = pthread_create(ptr, &attrs, ExecThread, (void*)func);
 	if (res) Process_Abort2(res, "Creating thread");
 	pthread_attr_destroy(&attrs);
+#else
+	Thread* ptr = (Thread*)Mem_Alloc(1, sizeof(Thread), "thread");
+	*handle = ptr;
+	
+	ptr->rt.Create(_L(""), ExecThread, stackSize, NULL, (TAny*)func);
+	ptr->rt.Resume();
+#endif
 }
 
 void Thread_Detach(void* handle) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	pthread_t* ptr = (pthread_t*)handle;
 	int res = pthread_detach(*ptr);
 	if (res) Process_Abort2(res, "Detaching thread");
 	Mem_Free(ptr);
+#endif
 }
 
 void Thread_Join(void* handle) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	pthread_t* ptr = (pthread_t*)handle;
 	int res = pthread_join(*ptr, NULL);
 	if (res) Process_Abort2(res, "Joining thread");
 	Mem_Free(ptr);
+#else
+	Thread* ptr = (Thread*)handle;
+	
+	TRequestStatus status;
+	ptr->rt.Logon(status);
+	User::WaitForRequest(status);
+#endif
 }
 
 void* Mutex_Create(const char* name) {
@@ -426,6 +468,7 @@ void Platform_LoadSysFonts(void) {
 /*########################################################################################################################*
 *---------------------------------------------------------Socket----------------------------------------------------------*
 *#########################################################################################################################*/
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 static cc_bool ParseIPv4(const cc_string* ip, int port, cc_sockaddr* dst) {
 	struct sockaddr_in* addr4 = (struct sockaddr_in*)dst->data;
 	cc_uint32 ip_addr = 0;
@@ -442,6 +485,7 @@ static cc_bool ParseIPv4(const cc_string* ip, int port, cc_sockaddr* dst) {
 static cc_bool ParseIPv6(const char* ip, int port, cc_sockaddr* dst) {
 	return false;
 }
+
 
 #if SUPPORTS_GETADDRINFO
 static cc_result ParseHost(const char* host, int port, cc_sockaddr* addrs, int* numValidAddrs) {
@@ -578,6 +622,37 @@ cc_result Socket_CheckWritable(cc_socket s, cc_bool* writable) {
 	getsockopt(s, SOL_SOCKET, SO_ERROR, &res, &resultSize);
 	return res;
 }
+#else
+cc_result Socket_ParseAddress(const cc_string* address, int port, cc_sockaddr* addrs, int* numValidAddrs) {
+	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_Create(cc_socket* s, cc_sockaddr* addr, cc_bool nonblocking) {
+	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_Connect(cc_socket s, cc_sockaddr* addr) {
+	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_Read(cc_socket s, cc_uint8* data, cc_uint32 count, cc_uint32* modified) {
+	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_Write(cc_socket s, const cc_uint8* data, cc_uint32 count, cc_uint32* modified) {
+	return ERR_NOT_SUPPORTED;
+}
+
+void Socket_Close(cc_socket s) { }
+
+cc_result Socket_CheckReadable(cc_socket s, cc_bool* readable) {
+	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_CheckWritable(cc_socket s, cc_bool* writable) {
+	return ERR_NOT_SUPPORTED;
+}
+#endif
 
 
 /*########################################################################################################################*
@@ -626,6 +701,7 @@ cc_result Updater_SetNewBuildTime(cc_uint64 timestamp) {
 *#########################################################################################################################*/
 const cc_string DynamicLib_Ext = String_FromConst(".dll");
 
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 void* DynamicLib_Load2(const cc_string* path) {
 	cc_filepath str;
 	Platform_EncodePath(&str, path);
@@ -642,12 +718,26 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 	if (err) String_AppendConst(dst, err);
 	return err && err[0];
 }
+#else
+void* DynamicLib_Load2(const cc_string* path) {
+	return NULL;
+}
+
+void* DynamicLib_Get2(void* lib, const char* name) {
+	return NULL;
+}
+
+cc_bool DynamicLib_DescribeError(cc_string* dst) {
+	return false;
+}
+#endif
 
 
 /*########################################################################################################################*
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 void Platform_Init(void) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	cc_uintptr addr;
 	signal(SIGCHLD, SIG_IGN);
 	/* So writing to closed socket doesn't raise SIGPIPE */
@@ -657,6 +747,7 @@ void Platform_Init(void) {
 	/* (on platforms with ASLR, function addresses change every time when run) */
 	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
+#endif
 	
 	Stopwatch_Init();
 }
@@ -700,10 +791,11 @@ cc_result Platform_GetEntropy(void* data, int len) {
 static cc_result GetMachineID(cc_uint32* key) {
 	TInt res;
 	Mem_Copy(key, MACHINE_KEY, sizeof(MACHINE_KEY) - 1);
-
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	if (HAL::Get(HAL::ESerialNumber, res) == KErrNone) {
 		key[0] = res;
 	}
+#endif
 	if (HAL::Get(HAL::EMachineUid, res) == KErrNone) {
 		key[1] = res;
 	}

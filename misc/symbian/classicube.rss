@@ -1,9 +1,11 @@
 NAME	CUBE
 
 #include <eikon.rh>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <avkon.rsg>
 #include <avkon.rh>
 #include <avkon.mbg>
+#endif
 #include <appinfo.rh>
 
 RESOURCE RSS_SIGNATURE { }
