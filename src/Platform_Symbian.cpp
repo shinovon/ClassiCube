@@ -101,7 +101,7 @@ void* Mem_TryAllocCleared(cc_uint32 numElems, cc_uint32 elemsSize) {
 void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 #ifdef EKA2
-	return size ? User:ReAlloc(mem, size) : NULL;
+	return size ? User::ReAlloc(mem, size) : NULL;
 #else
 	return size ? realloc(mem, size) : NULL;
 #endif
