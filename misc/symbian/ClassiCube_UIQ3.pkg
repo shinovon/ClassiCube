@@ -12,3 +12,6 @@
 "$(EPOCROOT)\epoc32\data\z\resource\apps\classicube.rsc" - "!:\resource\apps\classicube.rsc"
 
 "$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\texpacks\classicube.zip" - "!:\private\e212a5c2\texpacks\classicube.zip"
+"$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\texpacks\default.zip" - "!:\private\e212a5c2\texpacks\default.zip"
+;"$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\audio\classicube.zip" - "!:\private\e212a5c2\audio\classicube.zip"
+;"$(EPOCROOT)\epoc32\winscw\c\private\e212a5c2\audio\default.zip" - "!:\private\e212a5c2\audio\default.zip"

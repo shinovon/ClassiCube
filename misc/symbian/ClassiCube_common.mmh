@@ -44,10 +44,10 @@ STATICLIBRARY libcrt0.lib
 
 #ifdef ARMCC
 OPTION ARMCC -Otime --diag_suppress 1296 --diag_suppress 1293 --diag_suppress 66
-OPTION_REPLACE ARMCC -O2 -O3
 #ifndef ARMV5
 OPTION_REPLACE ARMCC --cpu 6
 OPTION_REPLACE ARMCC --fpu softvfp+vfpv2 --fpmode fast
+OPTION_REPLACE ARMCC -O2 -O3
 #endif
 #endif
 
@@ -72,8 +72,13 @@ END
 
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
+#ifdef ESTLIB
+EPOCSTACKSIZE 0x10000
+EPOCHEAPSIZE 0x80000 0x1000000
+#else
 EPOCSTACKSIZE 0x14000
 EPOCHEAPSIZE 0x80000 0x4000000
+#endif
 
 #ifdef _DEBUG
 DEBUGGABLE_UDEBONLY
