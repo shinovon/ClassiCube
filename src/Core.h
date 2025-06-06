@@ -573,9 +573,9 @@ typedef cc_uint8  cc_bool;
 	#define CC_BUILD_EGL
 	#define CC_BUILD_MAXSTACK (16 * 1024)
 	#define CC_BUILD_LOWMEM
+	#define CC_NOMAIN
 	#ifdef CC_BUILD_SYMBIAN_ESTLIB
 		#undef  CC_BUILD_NETWORKING
-		#define CC_NOMAIN
 		#define CC_BUILD_NOFPU
 		#define CC_DISABLE_ANIMATIONS
 		#define CC_BUILD_NOMUSIC

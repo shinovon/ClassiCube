@@ -26,7 +26,6 @@ LIBRARY libc.lib
 LIBRARY libm.lib
 LIBRARY libpthread.lib
 LIBRARY libdl.lib
-STATICLIBRARY libcrt0.lib
 #endif
 
 #ifndef NOSSL

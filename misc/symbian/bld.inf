@@ -3,7 +3,7 @@ PRJ_PLATFORMS
 GCCE ARMV5 WINSCW
 
 PRJ_MMPFILES
-bearssl_uiq3.mmp
+//bearssl_uiq3.mmp
 ClassiCube_UIQ3.mmp
 #else
 PRJ_PLATFORMS

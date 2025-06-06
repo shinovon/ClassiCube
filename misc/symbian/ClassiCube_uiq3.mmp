@@ -14,4 +14,5 @@ LIBRARY libgles_cm.lib
 
 #define ESTLIB
 #define ARMV5
+#define NOSSL
 #include "ClassiCube.mmh"
