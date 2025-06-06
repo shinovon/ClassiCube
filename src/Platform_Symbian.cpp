@@ -835,11 +835,12 @@ static cc_result GetMachineID(cc_uint32* key) {
 }
 #endif
 
-#ifdef CC_BUILD_SYMBIAN_ESTLIB
+#if defined CC_BUILD_SYMBIAN_ESTLIB
 extern "C" {
 #include "main.c"
 #include <stdlib.h>
 }
+#if 0
 #include <e32base.h>
 IMPORT_C TInt SpawnPosixServerThread();
 
@@ -862,4 +863,6 @@ TInt E32Main() {
 	return 0;
 }
 #endif
+#endif
+
 

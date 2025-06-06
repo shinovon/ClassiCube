@@ -6,21 +6,31 @@
 #include <coemain.h>
 #include <e32keys.h>
 #include <w32std.h>
-#include <aknutils.h>
-#include <aknnotewrappers.h>
 #include <apgwgnam.h>
 #include <stdlib.h>
 #include <apgcli.h>
-#include <aknapp.h>
 #include <coecntrl.h>
+#include <eikstart.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
+#include <aknapp.h>
+#include <aknutils.h>
+#include <aknnotewrappers.h>
 #include <akndef.h>
 #include <akndoc.h>
 #include <aknappui.h>
 #include <avkon.hrh>
 #include <AknUtils.h>
-#include <eikstart.h>
+#else
+#include <eikapp.h>
+#include <eikdoc.h>
+#include <eiksrv.h>
+#endif
 extern "C" {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <stdapis/string.h>
+#else
+#include <libc/string.h>
+#endif
 #include <gles/egl.h>
 #include "_WindowBase.h"
 #include "Errors.h"
@@ -37,6 +47,7 @@ extern "C" {
 #include "Http.h"
 }
 
+class CCAppUi;
 class CCContainer;
 
 static cc_bool launcherMode;
@@ -140,7 +151,13 @@ static cc_bool Events_Pull(CCEvent* event) {
 	return found;
 }
 
-class CCApp: public CAknApplication {
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+#define FRAMEWORK_CLASS(name) CEik ## name
+#else
+#define FRAMEWORK_CLASS(name) CAkn ## name
+#endif
+
+class CCApp: public FRAMEWORK_CLASS(Application) {
 private:
 	CApaDocument* CreateDocumentL();
 	TUid AppDllUid() const;
@@ -151,7 +168,7 @@ GLDEF_C TInt E32Main();
 
 class CCContainer: public CCoeControl, MCoeControlObserver {
 public:
-	void ConstructL(const TRect& aRect, CAknAppUi* aAppUi);
+	void ConstructL(const TRect& aRect, CCAppUi* aAppUi);
 	virtual ~CCContainer();
 	
 	void DrawFramebuffer(Rect2D r, struct Bitmap* bmp);
@@ -167,12 +184,12 @@ private:
 	virtual void HandlePointerEventL(const TPointerEvent& aPointerEvent);
 
 public:
-	CAknAppUi*  iAppUi;
+	CCAppUi* iAppUi;
 	CFbsBitmap* iBitmap;
 	CPeriodic*  iPeriodic;
 };
 
-class CCDocument: public CAknDocument {
+class CCDocument: public FRAMEWORK_CLASS(Document) {
 public:
 	static CCDocument* NewL(CEikApplication& aApp);
 	virtual ~CCDocument();
@@ -187,10 +204,15 @@ private:
 	CEikAppUi* CreateAppUiL();
 };
 
-class CCAppUi: public CAknAppUi {
+class CCAppUi: public FRAMEWORK_CLASS(AppUi) {
 public:
 	void ConstructL();
 	virtual ~CCAppUi();
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+	void Exit() {
+		CEikAppUi::Exit();
+	}
+#endif
 
 private:
 	void DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane);
@@ -453,6 +475,8 @@ TKeyResponse CCAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEventCode aTy
 		Events_Push(&event);
 		return EKeyWasConsumed;
 	}
+	default:
+		break;
 	}
 	return EKeyWasNotConsumed;
 }
@@ -465,7 +489,9 @@ void CCAppUi::HandleForegroundEventL(TBool aForeground) {
 
 void CCAppUi::HandleCommandL(TInt aCommand) {	
 	switch (aCommand) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	case EAknSoftkeyBack:
+#endif
 	case EEikCmdExit: {
 		Window_RequestClose();
 		Exit();
@@ -509,7 +535,7 @@ TInt CCContainer::LoopCallBack(TAny*) {
 	return ETrue;
 }
 
-void CCContainer::ConstructL(const TRect& aRect, CAknAppUi* aAppUi) {
+void CCContainer::ConstructL(const TRect& aRect, CCAppUi* aAppUi) {
 	iAppUi = aAppUi;
 	
 	// create window
@@ -624,7 +650,7 @@ void CCContainer::SizeChanged() {
 
 void CCContainer::HandleResourceChange(TInt aType) {
 	switch (aType) {
-	case KEikDynamicLayoutVariantSwitch:
+	case 0x101F8121 /*KEikDynamicLayoutVariantSwitch*/:
 		SetExtentToWholeScreen();
 		break;
 	}
@@ -699,7 +725,7 @@ void CCContainer::HandlePointerEventL(const TPointerEvent& aPointerEvent) {
 // CCDocument implementation
 
 CCDocument::CCDocument(CEikApplication& aApp) :
-	CAknDocument(aApp) {
+	FRAMEWORK_CLASS(Document)(aApp) {
 }
 
 CCDocument::~CCDocument() {
@@ -725,7 +751,7 @@ static void ConvertToUnicode(TDes& dst, const char* src, size_t length) {
 	if (!src) return;
 
 	cc_unichar* uni = reinterpret_cast<cc_unichar*>(const_cast <TUint16*> (dst.Ptr()));
-	for (int i = 0; i < length; i++) {
+	for (size_t i = 0; i < length; i++) {
 		*uni++ = Convert_CP437ToUnicode(src[i]);
 	}
 	*uni = '\0';
@@ -760,10 +786,12 @@ static cc_result OpenBrowserL(const cc_string* url) {
 }
 
 static void ShowDialogL(const char* title, const char* msg) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	CAknInformationNote* note = new (ELeave) CAknInformationNote(true);
 	TBuf<512> msgBuf;
 	ConvertToUnicode(msgBuf, msg, String_Length(msg));
 	note->ExecuteLD(msgBuf);
+#endif
 }
 
 // Window implementation
@@ -893,7 +921,9 @@ void OnscreenKeyboard_Close(void) {
 }
 
 void Window_LockLandscapeOrientation(cc_bool lock) {
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 	container->iAppUi->SetOrientationL(lock ? CAknAppUiBase::EAppUiOrientationLandscape : CAknAppUiBase::EAppUiOrientationAutomatic);
+#endif
 }
 
 static void Cursor_GetRawPos(int* x, int* y) { *x = 0; *y = 0; }
