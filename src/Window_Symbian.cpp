@@ -31,7 +31,9 @@ extern "C" {
 #else
 #include <libc/string.h>
 #endif
+#if CC_GFX_BACKEND_IS_GL()
 #include <gles/egl.h>
+#endif
 #include "_WindowBase.h"
 #include "Errors.h"
 #include "Logger.h"
@@ -489,10 +491,8 @@ void CCAppUi::HandleForegroundEventL(TBool aForeground) {
 
 void CCAppUi::HandleCommandL(TInt aCommand) {	
 	switch (aCommand) {
-#ifndef CC_BUILD_SYMBIAN_ESTLIB
-	case EAknSoftkeyBack:
-#endif
-	case EEikCmdExit: {
+	case 3001 /*EAknSoftkeyBack*/:
+	case 0x100 /*EEikCmdExit*/: {
 		Window_RequestClose();
 		Exit();
 		break;
