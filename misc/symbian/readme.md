@@ -10,7 +10,7 @@
 ### Compatible compilers
 - GCCE 4.4.1
 - RVCT 2.2 build 616
-- RVCT 4.0 build 902 (only with SymbianSR1Qt474)
+- RVCT 4.0 build 902 (SymbianSR1Qt474)
 
 ### Project setup
 - File > Import... > Symbian OS > Symbian OS Bld.inf file
@@ -44,6 +44,3 @@
 - In PKG File drop down list, select `misc\symbian\ClassiCube_UIQ3.pkg`.
 - Check `Don't sign sis file`, click OK.
 - Apply and close properties.
-- Project > Build
-
-(Based off comments from https://github.com/ClassiCube/ClassiCube/pull/1360)
