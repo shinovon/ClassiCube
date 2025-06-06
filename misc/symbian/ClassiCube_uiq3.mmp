@@ -1,4 +1,4 @@
-TARGET		  ClassiCube_uiq3.exe
+TARGET		  ClassiCube.exe
 
 ARMFPU softvfp
 
