@@ -28,7 +28,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #ifdef __SYMBIAN32__
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+#include <libc/string.h>
+#else
 #include <stdapis/string.h>
+#endif
 #else
 #include <string.h>
 #endif

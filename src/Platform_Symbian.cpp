@@ -834,35 +834,3 @@ static cc_result GetMachineID(cc_uint32* key) {
 	return 0;
 }
 #endif
-
-#if defined CC_BUILD_SYMBIAN_ESTLIB
-extern "C" {
-#include "main.c"
-#include <stdlib.h>
-}
-#if 0
-#include <e32base.h>
-IMPORT_C TInt SpawnPosixServerThread();
-
-TInt E32Main() {
-	CTrapCleanup* c = CTrapCleanup::New();
-	
-	SpawnPosixServerThread();
-	
-	CActiveScheduler* scheduler = new (ELeave) CActiveScheduler();
-	if (!scheduler) {
-		User::Panic(_L("Failed to initialize scheduler"), 0);
-	}
-	int r = main_real(0, 0);
-	
-	delete scheduler;
-	delete c;
-	
-	exit(r);
-	
-	return 0;
-}
-#endif
-#endif
-
-

@@ -18,8 +18,12 @@
 */
 #include "../misc/opengl/GLCommon.h"
 
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
 /* e.g. GLAPI void APIENTRY glFunction(int value); */
 #define GL_FUNC(retType, name, args) retType APIENTRY name args;
+#else
+#define GL_FUNC(retType, name, args) GLAPI retType APIENTRY name args;
+#endif
 #include "../misc/opengl/GL1Funcs.h"
 #if defined CC_BUILD_SYMBIAN
 #include "../misc/opengl/GL2Funcs.h"

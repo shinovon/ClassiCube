@@ -25,8 +25,12 @@
 #ifndef INNER_H__
 #define INNER_H__
 
-#ifdef __SYMBIAN32__
+#ifdef __SYMBIAN32_
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+#include <libc/string.h>
+#else
 #include <stdapis/string.h>
+#endif
 #else
 #include <string.h>
 #endif

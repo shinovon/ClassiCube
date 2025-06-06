@@ -3,6 +3,7 @@ PRJ_PLATFORMS
 GCCE ARMV5 WINSCW
 
 PRJ_MMPFILES
+bearssl_uiq3.mmp
 ClassiCube_UIQ3.mmp
 #else
 PRJ_PLATFORMS
@@ -10,6 +11,7 @@ GCCE ARMV5 WINSCW
 
 PRJ_MMPFILES
 gnumakefile Icons_scalable_dc.mk
+bearssl.mmp
 ClassiCube_sym3.mmp
 ClassiCube_s60v5.mmp
 ClassiCube_s60v3.mmp
