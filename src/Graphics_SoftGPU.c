@@ -24,11 +24,11 @@ static void* gfx_vertices;
 static GfxResourceID white_square;
 
 void Gfx_RestoreState(void) {
-	struct Bitmap bmp;
-	BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
 	InitDefaultResources();
 
 	// 1x1 dummy white texture
+	struct Bitmap bmp;
+	BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
 	Bitmap_Init(bmp, 1, 1, pixels);
 	white_square = Gfx_CreateTexture(&bmp, 0, false);
 }
@@ -77,9 +77,8 @@ static int texWidthMask, texHeightMask;
 static int texSinglePixel;
 		
 void Gfx_BindTexture(GfxResourceID texId) {
-	CCTexture* tex;
 	if (!texId) texId = white_square;
-	tex = texId;
+	CCTexture* tex = texId;
 
 	curTexture   = tex;
 	curTexPixels = tex->pixels;
@@ -391,21 +390,19 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	int minY = (int)V0->y;
 	int maxX = (int)V1->x;
 	int maxY = (int)V2->y;
-	int x, y, begTX, begTY, delTX, delTY, width, height, fast;
 
 	// Reject triangles completely outside
 	if (maxX < 0 || minX > fb_maxX) return;
 	if (maxY < 0 || minY > fb_maxY) return;
 
-	begTX = (int)(V0->u * curTexWidth);
-	begTY = (int)(V0->v * curTexHeight);
-	delTX = (int)(V1->u * curTexWidth)  - begTX;
-	delTY = (int)(V2->v * curTexHeight) - begTY;
+	int begTX = (int)(V0->u * curTexWidth);
+	int begTY = (int)(V0->v * curTexHeight);
+	int delTX = (int)(V1->u * curTexWidth)  - begTX;
+	int delTY = (int)(V2->v * curTexHeight) - begTY;
 
-	width = maxX - minX;
-	height = maxY - minY;
+	int width = maxX - minX, height = maxY - minY;
 
-	fast =  delTX == width && delTY == height && 
+	int fast =  delTX == width && delTY == height && 
 				(begTX + delTX < curTexWidth ) && 
 				(begTY + delTY < curTexHeight);
 
@@ -413,21 +410,20 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
-	for (y = minY; y <= maxY; y++) 
+	for (int y = minY; y <= maxY; y++) 
 	{
 		int texY = fast ? (begTY + (y - minY)) : (((begTY + delTY * (y - minY) / height)) & texHeightMask);
-		for (x = minX; x <= maxX; x++) 
+		for (int x = minX; x <= maxX; x++) 
 		{
 			int texX = fast ? (begTX + (x - minX)) : (((begTX + delTX * (x - minX) / width)) & texWidthMask);
 			int texIndex = texY * curTexWidth + texX;
 
 			BitmapCol color = curTexPixels[texIndex];
 			int R, G, B, A;
-			int cb_index;
 
 			A = BitmapCol_A(color);
 			if (gfx_alphaBlend && A == 0) continue;
-			cb_index = y * cb_stride + x;
+			int cb_index = y * cb_stride + x;
 
 			if (gfx_alphaBlend && A != 255) {
 				BitmapCol dst = colorBuffer[cb_index];
@@ -447,13 +443,10 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 			if (vColor != PACKEDCOL_WHITE) {
 				int r1 = PackedCol_R(vColor), r2 = BitmapCol_R(color);
-				int g1, g2, b1, b2;
 				R = ( r1 * r2 ) >> 8;
-				g1 = PackedCol_G(vColor);
-				g2 = BitmapCol_G(color);
+				int g1 = PackedCol_G(vColor), g2 = BitmapCol_G(color);
 				G = ( g1 * g2 ) >> 8;
-				b1 = PackedCol_B(vColor);
-				b2 = BitmapCol_B(color);
+				int b1 = PackedCol_B(vColor), b2 = BitmapCol_B(color);
 				B = ( b1 * b2 ) >> 8;
 
 				color = BitmapCol_Make(R, G, B, 0xFF);
@@ -476,11 +469,6 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	int maxY = max(y0, max(y1, y2));
 
 	int area = edgeFunction(x0,y0, x1,y1, x2,y2);
-	
-	int x, y, dx01, dy01, dx12, dy12, dx20, dy20;
-	float factor, u0, u1, u2, v0, v1, v2, bc0_start, bc1_start, bc2_start;
-	PackedCol color;
-	
 	// Reject triangles completely outside
 	if (maxX < 0 || minX > fb_maxX) return;
 	if (maxY < 0 || minY > fb_maxY) return;
@@ -488,47 +476,38 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	// Perform scissoring
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
-	factor = 1.0f / area;
+	float factor = 1.0f / area;
 
-	u0 = V0->u * curTexWidth;
-	u1 = V1->u * curTexWidth;
-	u2 = V2->u * curTexWidth;
-	v0 = V0->v * curTexHeight;
-	v1 = V1->v * curTexHeight;
-	v2 = V2->v * curTexHeight;
-	color = V0->c;
+	float u0 = V0->u * curTexWidth,  u1 = V1->u * curTexWidth,  u2 = V2->u * curTexWidth;
+	float v0 = V0->v * curTexHeight, v1 = V1->v * curTexHeight, v2 = V2->v * curTexHeight;
+	PackedCol color = V0->c;
 	
 	// https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 	// Essentially these are the deltas of edge functions between X/Y and X/Y + 1 (i.e. one X/Y step)
-	dx01  = y0 - y1;
-	dy01 = x1 - x0;
-	dx12  = y1 - y2;
-	dy12 = x2 - x1;
-	dx20  = y2 - y0;
-	dy20 = x0 - x2;
+	int dx01  = y0 - y1, dy01 = x1 - x0;
+	int dx12  = y1 - y2, dy12 = x2 - x1;
+	int dx20  = y2 - y0, dy20 = x0 - x2;
 
-	bc0_start = edgeFunction(x1,y1, x2,y2, minX+0.5f,minY+0.5f);
-	bc1_start = edgeFunction(x2,y2, x0,y0, minX+0.5f,minY+0.5f);
-	bc2_start = edgeFunction(x0,y0, x1,y1, minX+0.5f,minY+0.5f);
+	float bc0_start = edgeFunction(x1,y1, x2,y2, minX+0.5f,minY+0.5f);
+	float bc1_start = edgeFunction(x2,y2, x0,y0, minX+0.5f,minY+0.5f);
+	float bc2_start = edgeFunction(x0,y0, x1,y1, minX+0.5f,minY+0.5f);
 
-	for (y = minY; y <= maxY; y++, bc0_start += dy12, bc1_start += dy20, bc2_start += dy01) 
+	for (int y = minY; y <= maxY; y++, bc0_start += dy12, bc1_start += dy20, bc2_start += dy01) 
 	{
 		float bc0 = bc0_start;
 		float bc1 = bc1_start;
 		float bc2 = bc2_start;
 
-		for (x = minX; x <= maxX; x++, bc0 += dx12, bc1 += dx20, bc2 += dx01) 
+		for (int x = minX; x <= maxX; x++, bc0 += dx12, bc1 += dx20, bc2 += dx01) 
 		{
 			float ic0 = bc0 * factor;
 			float ic1 = bc1 * factor;
 			float ic2 = bc2 * factor;
-			
-			int cb_index;
-			int R, G, B, A;
 
 			if (ic0 < 0 || ic1 < 0 || ic2 < 0) continue;
-			cb_index = y * cb_stride + x;
+			int cb_index = y * cb_stride + x;
 
+			int R, G, B, A;
 			if (gfx_format == VERTEX_FORMAT_TEXTURED) {
 				float u = ic0 * u0 + ic1 * u1 + ic2 * u2;
 				float v = ic0 * v0 + ic1 * v1 + ic2 * v2;
@@ -538,13 +517,12 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 				BitmapCol tColor = curTexPixels[texIndex];
 				int a1 = PackedCol_A(color), a2 = BitmapCol_A(tColor);
-				int r1, r2, g1, g2, b1, b2;
 				A = ( a1 * a2 ) >> 8;
-				r1 = PackedCol_R(color), r2 = BitmapCol_R(tColor);
+				int r1 = PackedCol_R(color), r2 = BitmapCol_R(tColor);
 				R = ( r1 * r2 ) >> 8;
-				g1 = PackedCol_G(color), g2 = BitmapCol_G(tColor);
+				int g1 = PackedCol_G(color), g2 = BitmapCol_G(tColor);
 				G = ( g1 * g2 ) >> 8;
-				b1 = PackedCol_B(color), b2 = BitmapCol_B(tColor);
+				int b1 = PackedCol_B(color), b2 = BitmapCol_B(tColor);
 				B = ( b1 * b2 ) >> 8;
 			} else {
 				R = PackedCol_R(color);
@@ -599,18 +577,6 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	int maxY = max(y0, max(y1, y2));
 
 	int area = edgeFunction(x0,y0, x1,y1, x2,y2);
-	
-	float factor, w0, w1, w2, z0, z1, z2, u0, u1, u2, v0, v1, v2, bc0_start, bc1_start, bc2_start;
-	PackedCol color;
-	int dx01, dy01, dx12, dy12, dx20, dy20;
-
-	int R, G, B, A;
-	int a1, r1, g1, b1;
-	int a2, r2, g2, b2;
-	int x, y;
-	
-	cc_bool texturing;
-	
 	if (faceCulling) {
 		// https://gamedev.stackexchange.com/questions/203694/how-to-make-backface-culling-work-correctly-in-both-orthographic-and-perspective
 		if (area < 0) return;
@@ -625,42 +591,34 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
 	// NOTE: W in frag variables below is actually 1/W 
-	factor = 1.0f / area;
-	w0 = V0->w;
-	w1 = V1->w;
-	w2 = V2->w;
+	float factor = 1.0f / area;
+	float w0 = V0->w, w1 = V1->w, w2 = V2->w;
 	
 	// TODO proper clipping
 	if (w0 <= 0 || w1 <= 0 || w2 <= 0) {
 		return;
 	}
 
-	z0 = V0->z;
-	z1 = V1->z;
-	z2 = V2->z;
-	color = V0->c;
+	float z0 = V0->z, z1 = V1->z, z2 = V2->z;
+	PackedCol color = V0->c;
 
-	u0 = V0->u * curTexWidth;
-	u1 = V1->u * curTexWidth;
-	u2 = V2->u * curTexWidth;
-	v0 = V0->v * curTexHeight;
-	v1 = V1->v * curTexHeight;
-	v2 = V2->v * curTexHeight;
+	float u0 = V0->u * curTexWidth,  u1 = V1->u * curTexWidth,  u2 = V2->u * curTexWidth;
+	float v0 = V0->v * curTexHeight, v1 = V1->v * curTexHeight, v2 = V2->v * curTexHeight;
 	
 	// https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 	// Essentially these are the deltas of edge functions between X/Y and X/Y + 1 (i.e. one X/Y step)
-	dx01  = y0 - y1;
-	dy01 = x1 - x0;
-	dx12  = y1 - y2;
-	dy12 = x2 - x1;
-	dx20  = y2 - y0;
-	dy20 = x0 - x2;
+	int dx01  = y0 - y1, dy01 = x1 - x0;
+	int dx12  = y1 - y2, dy12 = x2 - x1;
+	int dx20  = y2 - y0, dy20 = x0 - x2;
 
-	bc0_start = edgeFunction(x1,y1, x2,y2, minX+0.5f,minY+0.5f);
-	bc1_start = edgeFunction(x2,y2, x0,y0, minX+0.5f,minY+0.5f);
-	bc2_start = edgeFunction(x0,y0, x1,y1, minX+0.5f,minY+0.5f);
+	float bc0_start = edgeFunction(x1,y1, x2,y2, minX+0.5f,minY+0.5f);
+	float bc1_start = edgeFunction(x2,y2, x0,y0, minX+0.5f,minY+0.5f);
+	float bc2_start = edgeFunction(x0,y0, x1,y1, minX+0.5f,minY+0.5f);
 
-	texturing = gfx_format == VERTEX_FORMAT_TEXTURED;
+	int R, G, B, A;
+	int a1, r1, g1, b1;
+	int a2, r2, g2, b2;
+	cc_bool texturing = gfx_format == VERTEX_FORMAT_TEXTURED;
 
 	if (!texturing) {
 		R = PackedCol_R(color);
@@ -673,24 +631,22 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 		texturing = false;
 	}
 
-	for (y = minY; y <= maxY; y++, bc0_start += dy12, bc1_start += dy20, bc2_start += dy01) 
+	for (int y = minY; y <= maxY; y++, bc0_start += dy12, bc1_start += dy20, bc2_start += dy01) 
 	{
 		float bc0 = bc0_start;
 		float bc1 = bc1_start;
 		float bc2 = bc2_start;
 
-		for (x = minX; x <= maxX; x++, bc0 += dx12, bc1 += dx20, bc2 += dx01) 
+		for (int x = minX; x <= maxX; x++, bc0 += dx12, bc1 += dx20, bc2 += dx01) 
 		{
 			float ic0 = bc0 * factor;
 			float ic1 = bc1 * factor;
 			float ic2 = bc2 * factor;
-			int db_index, cb_index;
-			float w, z;
 			if (ic0 < 0 || ic1 < 0 || ic2 < 0) continue;
-			db_index = y * db_stride + x;
+			int db_index = y * db_stride + x;
 
-			w = 1 / (ic0 * w0 + ic1 * w1 + ic2 * w2);
-			z = (ic0 * z0 + ic1 * z1 + ic2 * z2) * w;
+			float w = 1 / (ic0 * w0 + ic1 * w1 + ic2 * w2);
+			float z = (ic0 * z0 + ic1 * z1 + ic2 * z2) * w;
 
 #ifndef SOFTGPU_DISABLE_ZBUFFER
 			if (depthTest && (z < 0 || z > depthBuffer[db_index])) continue;
@@ -718,22 +674,22 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 #ifndef SOFTGPU_DISABLE_ZBUFFER
 			if (depthWrite) depthBuffer[db_index] = z;
 #endif
-			cb_index = y * cb_stride + x;
+			int cb_index = y * cb_stride + x;
 			
 			if (!gfx_alphaBlend) {
 				colorBuffer[cb_index] = BitmapCol_Make(R, G, B, 0xFF);
 				continue;
-			} else {
-				BitmapCol dst = colorBuffer[cb_index];
-				int dstR = BitmapCol_R(dst);
-				int dstG = BitmapCol_G(dst);
-				int dstB = BitmapCol_B(dst);
-	
-				int finR = (R * A + dstR * (255 - A)) >> 8;
-				int finG = (G * A + dstG * (255 - A)) >> 8;
-				int finB = (B * A + dstB * (255 - A)) >> 8;
-				colorBuffer[cb_index] = BitmapCol_Make(finR, finG, finB, 0xFF);
 			}
+
+			BitmapCol dst = colorBuffer[cb_index];
+			int dstR = BitmapCol_R(dst);
+			int dstG = BitmapCol_G(dst);
+			int dstB = BitmapCol_B(dst);
+
+			int finR = (R * A + dstR * (255 - A)) >> 8;
+			int finG = (G * A + dstG * (255 - A)) >> 8;
+			int finB = (B * A + dstB * (255 - A)) >> 8;
+			colorBuffer[cb_index] = BitmapCol_Make(finR, finG, finB, 0xFF);
 		}
 	}
 }
@@ -1007,8 +963,7 @@ void DrawQuads(int startVertex, int verticesCount, DrawHints hints) {
 
 	if (gfx_rendering2D && (hints & (DRAW_HINT_SPRITE|DRAW_HINT_RECT))) {
 		// 4 vertices = 1 quad = 2 triangles
-		int i;
-		for (i = 0; i < verticesCount / 4; i++, j += 4)
+		for (int i = 0; i < verticesCount / 4; i++, j += 4)
 		{
 			TransformVertex2D(j + 0, &vertices[0]);
 			TransformVertex2D(j + 1, &vertices[1]);
@@ -1018,8 +973,7 @@ void DrawQuads(int startVertex, int verticesCount, DrawHints hints) {
 		}
 	} else if (gfx_rendering2D) {
 		// 4 vertices = 1 quad = 2 triangles
-		int i;
-		for (i = 0; i < verticesCount / 4; i++, j += 4)
+		for (int i = 0; i < verticesCount / 4; i++, j += 4)
 		{
 			TransformVertex2D(j + 0, &vertices[0]);
 			TransformVertex2D(j + 1, &vertices[1]);
@@ -1031,8 +985,7 @@ void DrawQuads(int startVertex, int verticesCount, DrawHints hints) {
 		}
 	} else {
 		// 4 vertices = 1 quad = 2 triangles
-		int i;
-		for (i = 0; i < verticesCount / 4; i++, j += 4)
+		for (int i = 0; i < verticesCount / 4; i++, j += 4)
 		{
 			int clip = TransformVertex3D(j + 0, &vertices[0]) << 0
 					|  TransformVertex3D(j + 1, &vertices[1]) << 1
@@ -1097,11 +1050,7 @@ cc_bool Gfx_GetUIOptions(struct MenuOptionsScreen* s) { return false; }
 void Gfx_BeginFrame(void) { }
 
 void Gfx_EndFrame(void) {
-	Rect2D r;
-	r.x = 0;
-	r.y = 0;
-	r.width = fb_width;
-	r.height = fb_height;
+	Rect2D r = { 0, 0, fb_width, fb_height };
 	Window_DrawFramebuffer(r, &fb_bmp);
 }
 
