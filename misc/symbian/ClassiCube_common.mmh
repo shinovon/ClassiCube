@@ -30,6 +30,10 @@ LIBRARY cone.lib
 LIBRARY fbscli.lib
 LIBRARY ws32.lib
 LIBRARY hal.lib
+LIBRARY efsrv.lib
+LIBRARY apparc.lib
+LIBRARY eikcore.lib
+LIBRARY eikdlg.lib
 LIBRARY mediaclientaudiostream.lib
 
 #ifdef ESTLIB
@@ -70,6 +74,17 @@ TARGETPATH \resource\apps
 LANG SC
 END
 
+SOURCEPATH .
+START RESOURCE classicube.rss
+HEADER
+TARGETPATH \resource\apps
+LANG SC
+END
+
+START RESOURCE classicube_reg.rss
+TARGETPATH \private\10003a3f\import\apps
+END
+
 CAPABILITY NetworkServices ReadUserData UserEnvironment WriteUserData
 
 #ifdef ESTLIB
@@ -80,7 +95,14 @@ EPOCSTACKSIZE 0x14000
 EPOCHEAPSIZE 0x80000 0x4000000
 #endif
 
-#ifdef _DEBUG
+#ifdef ARMCC
+OPTION ARMCC -Otime --diag_suppress 1296,1293,66
+OPTION_REPLACE ARMCC -O2 -O3
+OPTION_REPLACE ARMCC --cpu 6 --fpmode fast --fpu softvfp+vfpv2
+#endif
+
 DEBUGGABLE_UDEBONLY
+#ifdef _DEBUG
 SRCDBG
 #endif
+SMPSAFE
