@@ -100,7 +100,7 @@ $(BUILD_DIR_APP)/$(TARGET): $(BUILD_DIR_32)/$(TARGET) $(BUILD_DIR_64)/$(TARGET)
 	$(LIPO) -create $^ -output $@
 
 $(BUILD_DIR_APP)/Assets.car:
-	$(ACTOOL) --output-format human-readable-text --notices --warnings --output-partial-info-plist $(BUILD_DIR_APP)/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --target-device iphone --target-device ipad --minimum-deployment-target $(IOS_MIN_VERSION) --platform iphoneos --product-type com.apple.product-type.application --compile $(BUILD_DIR_APP) misc/ios/ClassiCube/Assets.xcassets
+	$(ACTOOL) --output-format human-readable-text --notices --warnings --output-partial-info-plist $(BUILD_DIR_APP)/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --target-device iphone --target-device ipad --minimum-deployment-target $(IOS_MIN_VERSION) --platform iphoneos --product-type com.apple.product-type.application --compile $(BUILD_DIR_APP) misc/ios/Assets.xcassets
 
 $(BUILD_DIR_APP)/Info.plist: misc/ios/Info.plist
 	cp $^ $@
