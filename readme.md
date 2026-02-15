@@ -181,11 +181,11 @@ NOTE: If you are distributing a modified version, **please change the package ID
 
 ##### Using Android Studio GUI
 
-Open `android` folder in Android Studio (TODO explain more detailed)
+Open `misc/android` folder in Android Studio (TODO explain more detailed)
 
 ##### Using command line (gradle)
 
-Run `gradlew` in android folder (TODO explain more detailed)
+Run `gradlew` in `misc/android` folder (TODO explain more detailed)
 
 ## Compiling - for iOS
 
