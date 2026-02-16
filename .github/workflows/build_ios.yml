@@ -28,20 +28,20 @@ jobs:
         run: |
           make ios
 
-      - name: Compile iOS simulator build
-        run: |
-          make IOS_SIM=1 ios
+#      - name: Compile iOS simulator build
+#        run: |
+#          make IOS_SIM=1 ios
 
           
       - uses: ./.github/actions/upload_build
         with:
           SOURCE_FILE: 'ClassiCube-iPhoneOS.ipa'
-          DEST_NAME: 'cc-TESTING.ipa'
+          DEST_NAME: 'cc.ipa'
           
-      - uses: ./.github/actions/upload_build
-        with:
-          SOURCE_FILE: 'ClassiCube-iPhoneSimulator.ipa'
-          DEST_NAME: 'cc-simulator.ipa'
+#      - uses: ./.github/actions/upload_build
+#        with:
+#          SOURCE_FILE: 'ClassiCube-iPhoneSimulator.ipa'
+#          DEST_NAME: 'cc-simulator.ipa'
           
           
       - uses: ./.github/actions/notify_success

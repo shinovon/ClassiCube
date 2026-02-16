@@ -21,11 +21,6 @@ else
 endif
 FULL_TARGET	:= $(TARGET)-$(SDK_TYPE)
 
-# Directory where object files are placed
-BUILD_DIR_APP	:= build/ios/$(FULL_TARGET).app
-BUILD_DIR_32	:= build/ios/$(ARCH_32)
-BUILD_DIR_64	:= build/ios/$(ARCH_64)
-
 # override if need a specific xcode version
 XCODE_APP		?= Xcode.app
 # override to change iOS SDK version used to compile
@@ -33,12 +28,22 @@ IOS_SDK_VERSION	?= 12.1
 # override to change minimum iOS runtime/deployment version
 IOS_MIN_VERSION ?= 6.0
 
+
+#---------------------------------------------------------------------------------
+# Paths
+#---------------------------------------------------------------------------------
 XCODE_ROOT		:= /Applications/$(XCODE_APP)/Contents/Developer
 IOS_SDK_PATH	:= $(XCODE_ROOT)/Platforms/$(SDK_TYPE).platform/Developer/SDKs/$(SDK_TYPE)$(IOS_SDK_VERSION).sdk
 
+# Directories where object files are placed
+BUILD_DIR_ROOT	:= build/ios
+BUILD_DIR_APP	:= $(BUILD_DIR_ROOT)/$(FULL_TARGET).app
+BUILD_DIR_32	:= $(BUILD_DIR_ROOT)/$(ARCH_32)
+BUILD_DIR_64	:= $(BUILD_DIR_ROOT)/$(ARCH_64)
+
 
 #---------------------------------------------------------------------------------
-# Compiler tools
+# Compiler tools/paths
 #---------------------------------------------------------------------------------
 CC 		:= $(XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 LD 		:= $(XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
@@ -56,7 +61,7 @@ C_FILES := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.c))
 OBJS_32	:= $(addprefix $(BUILD_DIR_32)/, $(notdir $(C_FILES:%.c=%.o) $(M_FILES:%.m=%.o)))
 OBJS_64	:= $(addprefix $(BUILD_DIR_64)/, $(notdir $(C_FILES:%.c=%.o) $(M_FILES:%.m=%.o)))
 
-CFLAGS  := -g -Os -fno-math-errno -fpascal-strings -fvisibility=hidden -fno-common -Wno-missing-field-initializers -Wno-missing-prototypes -Werror=return-type -Wunreachable-code -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wuninitialized -Wconditional-uninitialized -Wno-shadow -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -isysroot $(IOS_SDK_PATH) -fstrict-aliasing -miphoneos-version-min=$(IOS_MIN_VERSION) -Wno-sign-conversion -Wcomma -Wstrict-prototypes
+CFLAGS  := -g -Os -fno-math-errno -fvisibility=hidden -fno-common -Wno-missing-field-initializers -Wno-missing-prototypes -Werror=return-type -Wunreachable-code -Wno-missing-braces -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wuninitialized -Wconditional-uninitialized -Wno-shadow -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -isysroot $(IOS_SDK_PATH) -fstrict-aliasing -miphoneos-version-min=$(IOS_MIN_VERSION) -Wno-sign-conversion -Wcomma -Wstrict-prototypes
 MFLAGS  := $(CFLAGS)
 
 LDFLAGS  := -isysroot $(IOS_SDK_PATH) -Xlinker -rpath -Xlinker @executable_path/Frameworks
