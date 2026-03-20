@@ -14,6 +14,7 @@
 *#########################################################################################################################*/
 void AABB_Make(struct AABB* result, const Vec3* pos, const Vec3* size) {
 	result->Min.x = pos->x - size->x * 0.5f;
+	result->Min.x = pos->x - size->x * 0.5f;
 	result->Min.y = pos->y;
 	result->Min.z = pos->z - size->z * 0.5f;
 

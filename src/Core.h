@@ -667,6 +667,7 @@ typedef cc_uint8  cc_bool;
 		#define CC_BUILD_FPU_MODE CC_FPU_MODE_LIMITED
 		#if defined CC_BUILD_SYMBIAN_GLES10
 			#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
+#define CC_BUILD_GLES10
 		#else
 			#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_SOFTGPU
 		#endif

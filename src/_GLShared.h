@@ -68,6 +68,7 @@ static void* FastAllocTempMem(int size) {
 *--------------------------------------------Texture generation/binding/deletion------------------------------------------*
 *#########################################################################################################################*/
 /* Necessary to implement this way, so works on both little endian and big endian systems */
+
 typedef GfxResourceID (*GenGLTexture)(void);
 typedef void (*DelGLTexture)(GfxResourceID id);
 typedef void (*SetGLTexture)(GfxResourceID id);
@@ -202,6 +203,7 @@ static CC_NOINLINE void UpdateTextureSlow(int x, int y, struct Bitmap* part, int
 GfxResourceID Gfx_AllocTexture(struct Bitmap* bmp, int rowWidth, cc_uint8 flags, cc_bool mipmaps) {
 	GfxResourceID texId = genTexture();
 	setTexture(texId);
+	/*
 	_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
 
 	if (mipmaps) {
@@ -213,6 +215,7 @@ GfxResourceID Gfx_AllocTexture(struct Bitmap* bmp, int rowWidth, cc_uint8 flags,
 	} else {
 		_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (flags & TEXTURE_FLAG_BILINEAR) ? GL_LINEAR : GL_NEAREST);
 	}
+	*/
 
 	if (bmp->width == rowWidth) {
 		CallTexImage2D(0, bmp->width, bmp->height, bmp->scan0);

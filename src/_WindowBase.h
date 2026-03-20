@@ -264,7 +264,7 @@ cc_bool GLContext_SwapBuffers(void) {
 }
 
 void GLContext_SetVSync(cc_bool vsync) {
-	eglSwapInterval(ctx_display, vsync);
+	//eglSwapInterval(ctx_display, vsync);
 }
 void GLContext_GetApiInfo(cc_string* info) { }
 #endif

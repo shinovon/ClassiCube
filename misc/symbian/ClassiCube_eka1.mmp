@@ -28,6 +28,8 @@ LIBRARY mediaclientaudiostream.lib
 LIBRARY estor.lib
 LIBRARY bafl.lib
 //LIBRARY avkon.lib
+LIBRARY libgles_cm.lib
+MACRO CC_BUILD_SYMBIAN_GLES10
 
 EPOCALLOWDLLDATA
 
@@ -42,3 +44,5 @@ SOURCE Animations.c Audio.c Audio_Null.c AxisLinesRenderer.c Bitmap.c Block.c Bl
 
 SOURCEPATH ../../src/symbian
 SOURCE Platform_Symbian.cpp Window_Symbian.cpp Audio_Symbian.cpp
+
+OPTION CW -relax_pointers
