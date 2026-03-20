@@ -28,10 +28,12 @@ static void Gfx_RestoreState(void) {
 	InitDefaultResources();
 
 	// 1x1 dummy white texture
+	{
 	struct Bitmap bmp;
 	BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
 	Bitmap_Init(bmp, 1, 1, pixels);
 	white_square = Gfx_CreateTexture(&bmp, 0, false);
+	}
 }
 
 static void Gfx_FreeState(void) {
@@ -74,6 +76,7 @@ static int texSinglePixel;
 		
 void Gfx_BindTexture(GfxResourceID texId) {
 	if (!texId) texId = white_square;
+	{
 	CCTexture* tex = texId;
 
 	curTexture   = tex;
@@ -88,6 +91,7 @@ void Gfx_BindTexture(GfxResourceID texId) {
 	/* But it's worth sacrificing this, so that rendering the world when */
 	/*   no texture pack can use the more optimised rendering path */
 	texSinglePixel = curTexWidth == 1;
+	}
 }
 		
 void Gfx_DeleteTexture(GfxResourceID* texId) {
@@ -374,7 +378,7 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	// Reject triangles completely outside
 	if (maxX < 0 || minX > fb_maxX) return;
 	if (maxY < 0 || minY > fb_maxY) return;
-
+	{
 	int begTX = (int)(V0->u * curTexWidth);
 	int begTY = (int)(V0->v * curTexHeight);
 	int delTX = (int)(V1->u * curTexWidth)  - begTX;
@@ -384,15 +388,16 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	if (width == 0) width = 1;
 	if (height == 0) height = 1;
 
+	{
 	int fast =  delTX == width && delTY == height && 
 				(begTX + delTX < curTexWidth ) && 
 				(begTY + delTY < curTexHeight);
+	int x, y;
 
 	// Perform scissoring
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
-	int x, y;
 	for (y = minY; y <= maxY; y++) 
 	{
 		int texY = fast ? (begTY + (y - minY)) : (((begTY + delTY * (y - minY) / height)) & texHeightMask);
@@ -406,6 +411,7 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 			A = BitmapCol_A(color);
 			if (gfx_alphaBlend && A == 0) continue;
+			{
 			int cb_index = y * cb_stride + x;
 
 			if (gfx_alphaBlend && A != 255) {
@@ -426,18 +432,19 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 			if (vColor != PACKEDCOL_WHITE) {
 				int r1 = PackedCol_R(vColor), r2 = BitmapCol_R(color);
-				R = ( r1 * r2 ) >> 8;
 				int g1 = PackedCol_G(vColor), g2 = BitmapCol_G(color);
-				G = ( g1 * g2 ) >> 8;
 				int b1 = PackedCol_B(vColor), b2 = BitmapCol_B(color);
+				R = ( r1 * r2 ) >> 8;
+				G = ( g1 * g2 ) >> 8;
 				B = ( b1 * b2 ) >> 8;
 
 				color = BitmapCol_Make(R, G, B, 0xFF);
 			}
 
 			colorBuffer[cb_index] = color;
+			}
 		}
-	}
+	}}}
 }
 
 #define edgeFunction(ax,ay, bx,by, cx,cy) (((bx) - (ax)) * ((cy) - (ay)) - ((by) - (ay)) * ((cx) - (ax)))
@@ -458,7 +465,7 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	// Perform scissoring
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
-
+	{
 	float u0 = V0->u * curTexWidth,  u1 = V1->u * curTexWidth,  u2 = V2->u * curTexWidth;
 	float v0 = V0->v * curTexHeight, v1 = V1->v * curTexHeight, v2 = V2->v * curTexHeight;
 	PackedCol color = V0->c;
@@ -490,6 +497,7 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			float ic2 = bc2 * factor;
 
 			if (ic0 < 0 || ic1 < 0 || ic2 < 0) continue;
+			{
 			int cb_index = y * cb_stride + x;
 
 			int R, G, B, A;
@@ -502,12 +510,12 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 				BitmapCol tColor = curTexPixels[texIndex];
 				int a1 = PackedCol_A(color), a2 = BitmapCol_A(tColor);
-				A = ( a1 * a2 ) >> 8;
 				int r1 = PackedCol_R(color), r2 = BitmapCol_R(tColor);
-				R = ( r1 * r2 ) >> 8;
 				int g1 = PackedCol_G(color), g2 = BitmapCol_G(tColor);
-				G = ( g1 * g2 ) >> 8;
 				int b1 = PackedCol_B(color), b2 = BitmapCol_B(tColor);
+				A = ( a1 * a2 ) >> 8;
+				R = ( r1 * r2 ) >> 8;
+				G = ( g1 * g2 ) >> 8;
 				B = ( b1 * b2 ) >> 8;
 			} else {
 				R = PackedCol_R(color);
@@ -531,8 +539,9 @@ static void DrawTriangle2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			}
 
 			colorBuffer[cb_index] = BitmapCol_Make(R, G, B, 0xFF);
+			}
 		}
-	}
+	}}
 }
 
 #define MultiplyColors(vColor, tColor) \
@@ -574,7 +583,7 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	// Perform scissoring
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
-
+	{
 	// NOTE: W in frag variables below is actually 1/W 
 	float factor = 1.0f / area;
 	float w0 = V0->w, w1 = V1->w, w2 = V2->w;
@@ -583,7 +592,7 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	if (w0 <= 0 || w1 <= 0 || w2 <= 0) {
 		return;
 	}
-
+	{
 	float z0 = V0->z, z1 = V1->z, z2 = V2->z;
 	PackedCol color = V0->c;
 
@@ -633,6 +642,7 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			float ic1 = bc1 * factor;
 			float ic2 = bc2 * factor;
 			if (ic0 < 0 || ic1 < 0 || ic2 < 0) continue;
+			{
 			int db_index = y * db_stride + x;
 
 			float w = 1 / (ic0 * w0 + ic1 * w1 + ic2 * w2);
@@ -658,13 +668,14 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 
 			if (gfx_alphaTest && A < 0x80) continue;
 			if (depthWrite) depthBuffer[db_index] = z;
+			{
 			int cb_index = y * cb_stride + x;
 			
 			if (!gfx_alphaBlend) {
 				colorBuffer[cb_index] = BitmapCol_Make(R, G, B, 0xFF);
 				continue;
 			}
-
+			{
 			BitmapCol dst = colorBuffer[cb_index];
 			int dstR = BitmapCol_R(dst);
 			int dstG = BitmapCol_G(dst);
@@ -674,8 +685,9 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			int finG = (G * A + dstG * (255 - A)) >> 8;
 			int finB = (B * A + dstB * (255 - A)) >> 8;
 			colorBuffer[cb_index] = BitmapCol_Make(finR, finG, finB, 0xFF);
+			}}}
 		}
-	}
+	}}}
 }
 
 #define V0_VIS (1 << 0)
@@ -1034,7 +1046,11 @@ cc_bool Gfx_GetUIOptions(struct MenuOptionsScreen* s) { return false; }
 void Gfx_BeginFrame(void) { }
 
 void Gfx_EndFrame(void) {
-	Rect2D r = { 0, 0, fb_width, fb_height };
+	Rect2D r;
+	r.x = 0;
+	r.y = 0;
+	r.width = fb_width;
+	r.height = fb_height;
 	Window_DrawFramebuffer(r, &fb_bmp);
 }
 

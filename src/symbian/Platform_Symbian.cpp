@@ -1,5 +1,7 @@
 #define CC_XTEA_ENCRYPTION
+#ifdef EKA2
 #define OVERRIDE_MEM_FUNCTIONS
+#endif
 
 extern "C" {
 #include "Errors.h"
@@ -22,62 +24,91 @@ extern "C" {
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
+#include <pthread.h>
 #include <dlfcn.h>
+#endif
 
-#include <stdapis/string.h>
-#include <stdapis/arpa/inet.h>
-#include <stdapis/netinet/in.h>
-#include <stdapis/sys/socket.h>
-#include <stdapis/sys/ioctl.h>
-#include <stdapis/sys/types.h>
-#include <stdapis/sys/stat.h>
-#include <stdapis/sys/time.h>
-#include <stdapis/sys/select.h>
-#include <stdapis/netdb.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
+#include <sys/select.h>
+#endif
+#include <netdb.h>
 }
 #include <e32base.h>
+#ifdef EKA2
 #include <e32debug.h>
+#endif
 #include <hal.h>
 
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
 const cc_result ReturnCode_FileNotFound     = ENOENT;
 const cc_result ReturnCode_PathNotFound     = 99999;
 const cc_result ReturnCode_DirectoryExists  = EEXIST;
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 const cc_result ReturnCode_SocketInProgess  = EINPROGRESS;
 const cc_result ReturnCode_SocketWouldBlock = EWOULDBLOCK;
 const cc_result ReturnCode_SocketDropped    = EPIPE;
 #define SUPPORTS_GETADDRINFO 1
+#else
+const cc_result ReturnCode_SocketInProgess  = EAGAIN;
+const cc_result ReturnCode_SocketWouldBlock = EAGAIN;
+const cc_result ReturnCode_SocketDropped    = EPIPE;
+#endif
 
 const char* Platform_AppNameSuffix = " Symbian";
 cc_uint8 Platform_Flags = PLAT_FLAG_SINGLE_PROCESS | PLAT_FLAG_APP_EXIT;
 cc_bool  Platform_ReadonlyFilesystem;
+#ifndef CC_BUILD_NETWORKING
+#define CC_NO_SOCKETS
+#endif
 #include "_PlatformBase.h"
 
 
+#if defined EKA2
 /*########################################################################################################################*
 *---------------------------------------------------------Memory----------------------------------------------------------*
 *#########################################################################################################################*/
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
+#ifdef EKA2
 	return size ? User::Alloc(size) : NULL;
+#else
+	return size ? malloc(size) : NULL;
+#endif
 }
 
 void* Mem_TryAllocCleared(cc_uint32 numElems, cc_uint32 elemsSize) {
+#ifdef EKA2
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? User::AllocZ(size) : NULL;
+#else
+	return calloc(size) : NULL;
+#endif
 }
 
 void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
+#ifdef EKA2
 	return size ? User::ReAlloc(mem, size) : NULL;
+#else
+	return size ? realloc(mem, size) : NULL;
+#endif
 }
 
 void Mem_Free(void* mem) {
 	if (mem) User::Free(mem);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -92,7 +123,9 @@ void Platform_Log(const char* msg, int len) {
 	str = String_FromReadonly("\r\n");
 	Logger_Log(&str);
 	
+#ifdef EKA2
 	RDebug::RawPrint(ptr);
+#endif
 }
 
 TimeMS DateTime_CurrentUTC(void) {
@@ -123,13 +156,21 @@ void DateTime_CurrentLocal(struct cc_datetime* t) {
 static TInt tickPeriod;
 
 static void Stopwatch_Init(void) {
+#ifdef EKA2
 	if (HAL::Get(HAL::ENanoTickPeriod, tickPeriod) != KErrNone) {
+#else
+	if (HAL::Get(HAL::ESystemTickPeriod, tickPeriod) != KErrNone) {
+#endif
 		User::Panic(_L("Could not init timer"), 0);
 	}
 }
 
 cc_uint64 Stopwatch_Measure(void) {
+#ifdef EKA2
 	return (cc_uint64)User::NTickCount();
+#else
+	return (cc_uint64)User::TickCount();
+#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
@@ -254,12 +295,12 @@ cc_result File_OpenOrCreate(cc_file* file, const cc_filepath* path) {
 }
 
 cc_result File_Read(cc_file file, void* data, cc_uint32 count, cc_uint32* bytesRead) {
-	*bytesRead = read(file, data, count);
+	*bytesRead = read(file, (char*)data, count);
 	return *bytesRead == -1 ? errno : 0;
 }
 
 cc_result File_Write(cc_file file, const void* data, cc_uint32 count, cc_uint32* bytesWrote) {
-	*bytesWrote = write(file, data, count);
+	*bytesWrote = write(file, (const char*)data, count);
 	return *bytesWrote == -1 ? errno : 0;
 }
 
@@ -289,11 +330,21 @@ cc_result File_Length(cc_file file, cc_uint32* len) {
 *#########################################################################################################################*/
 #define NS_PER_SEC 1000000000ULL
 
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+struct Thread {
+	RThread rt;
+};
+#endif
+
 void Thread_Sleep(cc_uint32 milliseconds) { 
 	User::After(milliseconds * 1000); 
 }
 
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 static void* ExecThread(void* param) {
+#else
+static TInt ExecThread(TAny* param) {
+#endif
 	CTrapCleanup* cleanup = CTrapCleanup::New();
 	CActiveScheduler* scheduler = new (ELeave) CActiveScheduler();
 	CActiveScheduler::Install(scheduler);
@@ -308,6 +359,18 @@ static void* ExecThread(void* param) {
 }
 
 void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char* name) {
+#if defined CC_BUILD_SYMBIAN_ESTLIB
+	// TODO convert name
+	Thread* ptr = (Thread*)Mem_Alloc(1, sizeof(Thread), "thread");
+	*handle = ptr;
+	
+	if (stackSize >= 80 * 1024) {
+		stackSize = 80 * 1024;
+	}
+	
+	ptr->rt.Create(_L(""), ExecThread, stackSize, NULL, (TAny*)func);
+	ptr->rt.Resume();
+#else
 	pthread_t* ptr = (pthread_t*)Mem_Alloc(1, sizeof(pthread_t), "thread");
 	pthread_attr_t attrs;
 	int res;
@@ -325,20 +388,34 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	res = pthread_create(ptr, &attrs, ExecThread, (void*)func);
 	if (res) Process_Abort2(res, "Creating thread");
 	pthread_attr_destroy(&attrs);
+#endif
 }
 
 void Thread_Detach(void* handle) {
+#if defined CC_BUILD_SYMBIAN_ESTLIB
+	// TODO
+
+#else
 	pthread_t* ptr = (pthread_t*)handle;
 	int res = pthread_detach(*ptr);
 	if (res) Process_Abort2(res, "Detaching thread");
 	Mem_Free(ptr);
+#endif
 }
 
 void Thread_Join(void* handle) {
+#if defined CC_BUILD_SYMBIAN_ESTLIB
+	Thread* ptr = (Thread*)handle;
+	
+	TRequestStatus status;
+	ptr->rt.Logon(status);
+	User::WaitForRequest(status);
+#else
 	pthread_t* ptr = (pthread_t*)handle;
 	int res = pthread_join(*ptr, NULL);
 	if (res) Process_Abort2(res, "Joining thread");
 	Mem_Free(ptr);
+#endif
 }
 
 
@@ -397,10 +474,12 @@ void Waitable_Wait(void* handle) {
 	sem->Wait();
 }
 
+#if defined EKA2
 void Waitable_WaitFor(void* handle, cc_uint32 milliseconds) {
 	RSemaphore* sem = (RSemaphore*)handle;
 	sem->Wait(milliseconds * 1000);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -430,6 +509,7 @@ void Platform_LoadSysFonts(void) {
 }
 
 
+#if defined CC_BUILD_NETWORKING && !defined CC_NO_SOCKETS
 /*########################################################################################################################*
 *---------------------------------------------------------Socket----------------------------------------------------------*
 *#########################################################################################################################*/
@@ -502,6 +582,7 @@ static cc_result ParseHost(const char* host, int port, cc_sockaddr* addrs, int* 
 	int i;
 	
 	// Must have at least one IPv4 address
+	if (!res)                       return ERR_INVALID_ARGUMENT;
 	if (res->h_addrtype != AF_INET) return ERR_INVALID_ARGUMENT;
 	if (!res->h_addr_list)          return ERR_INVALID_ARGUMENT;
 
@@ -546,23 +627,38 @@ cc_result Socket_Connect(cc_socket s, cc_sockaddr* addr) {
 }
 
 cc_result Socket_Read(cc_socket s, cc_uint8* data, cc_uint32 count, cc_uint32* modified) {
-	int recvCount = recv(s, data, count, 0);
+	int recvCount = recv(s, (char*)data, count, 0);
 	if (recvCount != -1) { *modified = recvCount; return 0; }
 	*modified = 0; return errno;
 }
 
 cc_result Socket_Write(cc_socket s, const cc_uint8* data, cc_uint32 count, cc_uint32* modified) {
-	int sentCount = send(s, data, count, 0);
+	int sentCount = send(s, (const char*)data, count, 0);
 	if (sentCount != -1) { *modified = sentCount; return 0; }
 	*modified = 0; return errno;
 }
 
 void Socket_Close(cc_socket s) {
-	shutdown(s, SHUT_RDWR);
+	shutdown(s, 2 /*SHUT_RDWR*/);
 	close(s);
 }
 
 cc_result Socket_Poll(cc_socket s, int timeoutMS, int mode, cc_bool* success) {
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+	// select is not available
+	if (mode == SOCKET_POLL_READ) {
+		int count = 0;
+		if (ioctl(s, E32IONREAD, &count) == -1) {
+			*success = false;
+			return errno;
+		}
+		*success = count > 0;
+		return 0;
+	}
+	
+	*success = true;
+	return 0;
+#else
 	fd_set set;
 	int selectCount;
 	struct timeval time = {
@@ -581,16 +677,23 @@ cc_result Socket_Poll(cc_socket s, int timeoutMS, int mode, cc_bool* success) {
 
 	if (selectCount == -1) { *success = false; return errno; }
 	*success = FD_ISSET(s, &set) != 0; return 0;
+#endif
 }
 
 cc_result Socket_GetLastError(cc_socket s) {
 	int error = ERR_INVALID_ARGUMENT;
-	socklen_t errSize = sizeof(error);
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+	size_t
+#else
+	socklen_t
+#endif
+		errSize = sizeof(error);
 
 	/* https://stackoverflow.com/questions/29479953/so-error-value-after-successful-socket-operation */
 	getsockopt(s, SOL_SOCKET, SO_ERROR, &error, &errSize);
 	return error;
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -601,7 +704,12 @@ cc_bool Process_OpenSupported = true;
 cc_result Process_StartGame2(const cc_string* args, int numArgs) {
 	return SetGameArgs(args, numArgs);
 }
-void Process_Exit(cc_result code) { exit(code); }
+void Process_Exit(cc_result code) {
+	if (code != 0) {
+		User::Panic(_L("Exit"), code);
+	}
+	exit(code);
+}
 
 /* implemented in Window_Symbian.cpp */
 /* cc_result Process_StartOpen(const cc_string* args) */
@@ -639,6 +747,7 @@ cc_result Updater_SetNewBuildTime(cc_uint64 timestamp) {
 *#########################################################################################################################*/
 const cc_string DynamicLib_Ext = String_FromConst(".dll");
 
+#if !defined CC_BUILD_SYMBIAN_ESTLIB
 void* DynamicLib_Load2(const cc_string* path) {
 	cc_filepath str;
 	Platform_EncodePath(&str, path);
@@ -655,12 +764,26 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 	if (err) String_AppendConst(dst, err);
 	return err && err[0];
 }
+#else
+void* DynamicLib_Load2(const cc_string* path) {
+	return NULL;
+}
+
+void* DynamicLib_Get2(void* lib, const char* name) {
+	return NULL;
+}
+
+cc_bool DynamicLib_DescribeError(cc_string* dst) {
+	return false;
+}
+#endif
 
 
 /*########################################################################################################################*
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 void Platform_Init(void) {
+#if !defined CC_BUILD_SYMBIAN_ESTLIB
 	cc_uintptr addr;
 	signal(SIGCHLD, SIG_IGN);
 	/* So writing to closed socket doesn't raise SIGPIPE */
@@ -670,6 +793,7 @@ void Platform_Init(void) {
 	/* (on platforms with ASLR, function addresses change every time when run) */
 	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
+#endif
 	
 	Stopwatch_Init();
 }
@@ -714,26 +838,33 @@ static cc_result GetMachineID(cc_uint32* key) {
 	TInt res;
 	Mem_Copy(key, MACHINE_KEY, sizeof(MACHINE_KEY) - 1);
 
+#if !defined CC_BUILD_SYMBIAN_ESTLIB
 	if (HAL::Get(HAL::ESerialNumber, res) == KErrNone) {
 		key[0] = res;
 	}
+#endif
 	if (HAL::Get(HAL::EMachineUid, res) == KErrNone) {
 		key[1] = res;
 	}
 	return 0;
 }
 
+#if !defined EKA2
+GLDEF_C TInt E32Dll(TDllReason) {
+	return KErrNone;
+}
+#endif
+
 #ifndef __ARMCC_4_0__
 extern "C" {
 extern int __aeabi_uidivmod(unsigned int a, unsigned int b);
 extern int __aeabi_idivmod(int a, int b);
-int __aeabi_idiv(int a, int b)
-{
+
+int __aeabi_idiv(int a, int b) {
 	return __aeabi_idivmod(a, b);
 }
 
-int __aeabi_uidiv(unsigned int a, unsigned int b)
-{
+int __aeabi_uidiv(unsigned int a, unsigned int b) {
 	return __aeabi_uidivmod(a, b);
 }
 }

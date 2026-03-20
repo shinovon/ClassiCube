@@ -2,8 +2,13 @@ PRJ_PLATFORMS
 DEFAULT
 
 PRJ_MMPFILES
-gnumakefile Icons_scalable_dc.mk
-bearssl.mmp
-ClassiCube_sym3.mmp
-ClassiCube_s60v5.mmp
-ClassiCube_s60v3.mmp
+//#ifdef EKA2
+//gnumakefile Icons_scalable_dc.mk
+//bearssl.mmp
+//ClassiCube_sym3.mmp
+//ClassiCube_s60v5.mmp
+//ClassiCube_s60v3.mmp
+//#else
+//ClassiCube_s60v2_gl.mmp
+ClassiCube_eka1.mmp
+//#endif

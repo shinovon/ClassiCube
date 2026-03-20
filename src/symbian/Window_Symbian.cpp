@@ -1,30 +1,45 @@
 #include <include/bitmap.h>
 #include <e32base.h>
-#include <coemain.h>
 #include <e32keys.h>
 #include <w32std.h>
+#include <apgwgnam.h>
+#include <apgcli.h>
+#include <apparc.h>
+#include <apgtask.h>
+#include <coemain.h>
+#include <coecntrl.h>
+#include <eikenv.h>
+#include <eikdef.h>
+#ifdef CC_BUILD_SYMBIAN_AVKON
 #include <aknutils.h>
 #include <aknnotewrappers.h>
-#include <apgwgnam.h>
-#include <stdlib.h>
-#include <apgcli.h>
 #include <aknapp.h>
-#include <coecntrl.h>
 #include <akndef.h>
 #include <akndoc.h>
 #include <aknappui.h>
 #include <avkon.hrh>
-#include <AknUtils.h>
-#include <eikstart.h>
 #include <aknmessagequerydialog.h>
+#define FRAMEWORK_CLASS(name) CAkn ## name
+#else
+#include <eikappui.h>
+#include <eikapp.h>
+#include <eikdoc.h>
+#define FRAMEWORK_CLASS(name) CEik ## name
+#endif
+#ifdef EKA2
+#include <eikstart.h>
+#endif
 #include <baclipb.h>
 #include <s32ucmp.h>
 #include <classicube.rsg>
 #include <e32property.h>
 #include <hal.h>
 extern "C" {
-#include <stdapis/string.h>
+#include <stdlib.h>
+#include <string.h>
+#if CC_GFX_BACKEND == CC_GFX_BACKEND_GL1
 #include <gles/egl.h>
+#endif
 #include "_WindowBase.h"
 #include "Errors.h"
 #include "Logger.h"
@@ -45,7 +60,11 @@ class CCContainer;
 
 static cc_bool gameRunning = false;
 
+#ifdef EKA2
 const TUid KUidClassiCube = {0xE212A5C2};
+#else
+const TUid KUidClassiCube = {0x1212A5C2};
+#endif
 
 static CCContainer* container;
 
@@ -152,18 +171,21 @@ static cc_bool Events_Pull(CCEvent* event) {
 	return found;
 }
 
-class CCApp: public CAknApplication {
+class CCApp: public FRAMEWORK_CLASS(Application) {
 private:
 	CApaDocument* CreateDocumentL();
 	TUid AppDllUid() const;
 };
+
+#ifdef EKA2
 LOCAL_C CApaApplication* NewApplication();
 
 GLDEF_C TInt E32Main();
+#endif
 
 class CCContainer: public CCoeControl, MCoeControlObserver {
 public:
-	void ConstructL(const TRect& aRect, CAknAppUi* aAppUi);
+	void ConstructL(const TRect& aRect, FRAMEWORK_CLASS(AppUi)* aAppUi);
 	virtual ~CCContainer();
 	
 	void DrawFramebuffer(Rect2D r, struct Bitmap* bmp);
@@ -180,12 +202,12 @@ private:
 	virtual void HandlePointerEventL(const TPointerEvent& aPointerEvent);
 
 public:
-	CAknAppUi*  iAppUi;
+	FRAMEWORK_CLASS(AppUi)*  iAppUi;
 	CFbsBitmap* iBitmap;
 	CPeriodic*  iPeriodic;
 };
 
-class CCDocument: public CAknDocument {
+class CCDocument: public FRAMEWORK_CLASS(Document) {
 public:
 	static CCDocument* NewL(CEikApplication& aApp);
 	virtual ~CCDocument();
@@ -200,10 +222,13 @@ private:
 	CEikAppUi* CreateAppUiL();
 };
 
-class CCAppUi: public CAknAppUi {
+class CCAppUi: public FRAMEWORK_CLASS(AppUi) {
 public:
 	void ConstructL();
 	virtual ~CCAppUi();
+	void Exit() {
+		CEikAppUi::Exit();
+	}
 
 private:
 	void DynInitMenuPaneL(TInt aResourceId, CEikMenuPane* aMenuPane);
@@ -225,20 +250,31 @@ CApaDocument* CCApp::CreateDocumentL() {
 	return CCDocument::NewL(*this);
 }
 
+#ifndef EKA2
+EXPORT_C
+#endif
 CApaApplication* NewApplication() {
 	return new CCApp;
 }
 
+#ifdef EKA2
 TInt E32Main() {
 	return EikStart::RunApplication(NewApplication);
 }
+#endif
 
 // CCAppUi implementation
 
 void CCAppUi::ConstructL() {
+#ifdef CC_BUILD_SYMBIAN_AVKON
 	BaseConstructL(CAknAppUi::EAknEnableSkin);
+#else
+	BaseConstructL();
+#endif
 	iAppContainer = new (ELeave) CCContainer;
+#ifdef EKA2
 	iAppContainer->SetMopParent(this);
+#endif
 	iAppContainer->ConstructL(ClientRect(), this);
 	AddToStackL(iAppContainer);
 }
@@ -253,6 +289,9 @@ CCAppUi::~CCAppUi() {
 void CCAppUi::DynInitMenuPaneL(TInt, CEikMenuPane*) { }
 
 static CC_INLINE int MapScanCode(TInt aScanCode, TInt aModifiers) {
+	const TInt EModifierRotateBy90=0x00400000;
+	const TInt EModifierRotateBy180=0x00800000;
+	const TInt EModifierRotateBy270=0x01000000;
 	// TODO array?
 	switch (aScanCode) {
 	case EStdKeyBackspace:
@@ -482,7 +521,9 @@ void CCAppUi::HandleForegroundEventL(TBool aForeground) {
 
 void CCAppUi::HandleCommandL(TInt aCommand) {	
 	switch (aCommand) {
+#ifdef CC_BUILD_SYMBIAN_AVKON
 	case EAknSoftkeyBack:
+#endif
 	case EEikCmdExit: {
 		WindowInfo.Exists = false;
 		Window_RequestClose();
@@ -505,7 +546,7 @@ TInt CCContainer::LoopCallBack(TAny*) {
 	for (;;) {
 		if (!WindowInfo.Exists) {
 			Window_RequestClose();
-			container->iAppUi->Exit();
+			((CCAppUi*) container->iAppUi)->Exit();
 			return EFalse;
 		}
 		
@@ -548,7 +589,7 @@ void CCContainer::RestartTimerL(TInt aInterval) {
 	iPeriodic->Start(aInterval, aInterval, TCallBack(CCContainer::LoopCallBack, this));
 }
 
-void CCContainer::ConstructL(const TRect& aRect, CAknAppUi* aAppUi) {
+void CCContainer::ConstructL(const TRect& aRect, FRAMEWORK_CLASS(AppUi)* aAppUi) {
 	iAppUi = aAppUi;
 	
 	// create window
@@ -604,7 +645,11 @@ void CCContainer::ConstructL(const TRect& aRect, CAknAppUi* aAppUi) {
 		bufferSize = 24;
 		break;
 	case EColor16MU:
+#ifdef EKA2
 	case EColor16MA:
+#else
+	case EColor16MU + 1:
+#endif
 		bufferSize = 32;
 		break;
 	default:
@@ -628,7 +673,11 @@ void CCContainer::SizeChanged() {
 		iBitmap = NULL;
 	}
 	iBitmap = new CFbsBitmap();
+#ifdef EKA2
 	TInt err = iBitmap->Create(size, EColor16MA);
+#else
+	TInt err = iBitmap->Create(size, EColor16MU);
+#endif
 	if (err) {
 		Process_Abort("Failed to create bitmap");
 		return;
@@ -654,6 +703,7 @@ void CCContainer::SizeChanged() {
 }
 
 void CCContainer::HandleResourceChange(TInt aType) {
+	const TInt KEikDynamicLayoutVariantSwitch = 0x101F8121;
 	switch (aType) {
 	case KEikDynamicLayoutVariantSwitch:
 		SetExtentToWholeScreen();
@@ -690,7 +740,11 @@ void CCContainer::DrawFramebuffer(Rect2D r, struct Bitmap* bmp) {
 		for (TInt row = bmp->height - 1; row >= 0; --row) {
 			memcpy(data, src, bmp->width * BITMAPCOLOR_SIZE);
 			src += bmp->width * BITMAPCOLOR_SIZE;
+#ifdef EKA2
 			data += iBitmap->DataStride();
+#else
+			data += bmp->width * BITMAPCOLOR_SIZE;
+#endif
 		}
 		iBitmap->UnlockHeap();
 	}
@@ -733,7 +787,7 @@ void CCContainer::HandlePointerEventL(const TPointerEvent& aPointerEvent) {
 // CCDocument implementation
 
 CCDocument::CCDocument(CEikApplication& aApp) :
-	CAknDocument(aApp) {
+	FRAMEWORK_CLASS(Document)(aApp) {
 }
 
 CCDocument::~CCDocument() {
@@ -800,6 +854,7 @@ static cc_result OpenBrowserL(const cc_string* url) {
 }
 
 static void ShowDialogL(const char* title, const char* msg) {
+#ifdef CC_BUILD_SYMBIAN_AVKON
 	TBuf<512> msgBuf;
 	ConvertToUnicode(msgBuf, msg, String_Length(msg));
 	
@@ -811,6 +866,9 @@ static void ShowDialogL(const char* title, const char* msg) {
 	dialog->SetHeaderTextL(titleBuf);
 	
 	dialog->RunLD();
+#else
+	// TODO
+#endif
 }
 
 static void GetClipboardL(cc_string* value) {
@@ -892,9 +950,12 @@ void Window_PreInit(void) {
 		break;
 	default: // unknown or platform is older than s60v3.2
 		if (HAL::Get(HAL::EKeyboard, keyboardType) == KErrNone) {
-			if (!(keyboardType & EKeyboard_Full)) {
+#if defined EKA2 || !defined CC_BUILD_TOCUH
+			if (!(keyboardType & 0x2/*EKeyboard_Full*/)) {
 				NormDevice.defaultBinds = symbian_binds_12;
-			} else {
+			} else
+#endif
+			{
 				NormDevice.defaultBinds = symbian_binds_qwerty;
 			}
 		}
@@ -905,8 +966,12 @@ void Window_PreInit(void) {
 void Window_Init(void) {
 	Events_Init();
 #ifdef CC_BUILD_TOUCH
+#if defined EKA2 && defined CC_BUILD_SYMBIAN_AVKON
 	bool touch = AknLayoutUtils::PenEnabled();
-
+#else
+	bool touch = true;
+#endif
+	
 	Input_SetTouchMode(touch);
 	Gui_SetTouchUI(touch);
 #endif
@@ -930,11 +995,11 @@ void Window_Destroy(void) { }
 void Window_SetTitle(const cc_string* title) { }
 
 void Clipboard_GetText(cc_string* value) {
-	TRAP_IGNORE(GetClipboardL(value));
+	TRAPD(ignore, GetClipboardL(value));
 }
 
 void Clipboard_SetText(const cc_string* value) {
-	TRAP_IGNORE(SetClipboardL(value));
+	TRAPD(ignore, SetClipboardL(value));
 }
 
 int Window_GetWindowState(void) {
@@ -1005,7 +1070,7 @@ void Gamepads_Init(void) { }
 void Gamepads_Process(float delta) { }
 
 void ShowDialogCore(const char* title, const char* msg) {
-	TRAP_IGNORE(ShowDialogL(title, msg));
+	TRAPD(ignore, ShowDialogL(title, msg));
 }
 
 void OnscreenKeyboard_Open(struct OpenKeyboardArgs* args) {
@@ -1027,7 +1092,9 @@ void OnscreenKeyboard_Close(void) {
 }
 
 void Window_LockLandscapeOrientation(cc_bool lock) {
+#if defined EKA2 && defined CC_BUILD_SYMBIAN_AVKON
 	container->iAppUi->SetOrientationL(lock ? CAknAppUiBase::EAppUiOrientationLandscape : CAknAppUiBase::EAppUiOrientationAutomatic);
+#endif
 	container->SetExtentToWholeScreen();
 }
 
