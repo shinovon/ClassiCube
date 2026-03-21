@@ -75,7 +75,7 @@ float Math_Mod1(float x) { return x - (int)x; /* fmodf(x, 1); */ }
 *-------------------------------------------------------Math intrinsics---------------------------------------------------*
 *#########################################################################################################################*/
 /* 32x/Saturn/GBA is missing these intrinsics */
-#if defined CC_BUILD_32X || defined CC_BUILD_SATURN || defined CC_BUILD_GBA
+#if defined CC_BUILD_32X || defined CC_BUILD_SATURN || defined CC_BUILD_GBA || defined CC_BUILD_SYMBIAN_ESTLIB
 #include "../third_party/fix16_sqrt.c"
 
 float sqrtf(float x) {
@@ -98,7 +98,7 @@ float sqrtf(float x) {
 	}
 #elif defined __GNUC__ || defined NXDK
 	/* Defined in .h using builtins */
-#elif defined __TINYC__ || defined CC_BUILD_ATARIOS || defined CC_BUILD_AMIGA
+#elif defined __TINYC__ || defined CC_BUILD_ATARIOS || defined CC_BUILD_AMIGA || defined CC_BUILD_SYMBIAN_ESTLIB
 	/* Older versions of TinyC don't support fabsf or sqrtf */
 	/* Those can be used though if compiling with newer TinyC */
 	/*  versions for a very small performance improvement */

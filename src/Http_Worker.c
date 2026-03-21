@@ -45,7 +45,9 @@ void Http_ClearPending(void) { }
 static void Http_NullInit(void) { }
 
 struct IGameComponent Http_Component = {
-	Http_NullInit
+	Http_NullInit,
+	Http_ClearPending,
+	Http_ClearPending
 };
 #else
 #include "_HttpBase.h"

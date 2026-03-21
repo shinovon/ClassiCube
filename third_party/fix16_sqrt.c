@@ -1,4 +1,11 @@
+#ifdef CC_BUILD_SYMBIAN_ESTLIB
+#include <sys/types.h>
+#include <sys/config.h>
+typedef __int32_t int32_t;
+typedef __uint32_t uint32_t;
+#else
 #include <stdint.h>
+#endif
 /*-
  * Copyright (c) 2019 Christophe Meessen
  *

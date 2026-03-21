@@ -65,7 +65,7 @@ void Gfx_Free(void) {
 
 typedef struct CCTexture {
 	int width, height;
-	BitmapCol pixels[];
+	BitmapCol pixels[1];
 } CCTexture;
 
 static CCTexture* curTexture;

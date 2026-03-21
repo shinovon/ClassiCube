@@ -196,7 +196,7 @@ static void ExceptionHandler(TExcType type) {
 }
 
 void CrashHandler_Install(void) {
-#if !defined _DEBUG
+#if !defined _DEBUG && defined EKA2
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
 }
@@ -609,6 +609,7 @@ cc_result Socket_Create(cc_socket* s, cc_sockaddr* addr, cc_bool nonblocking) {
 	*s = socket(raw->sa_family, SOCK_STREAM, IPPROTO_TCP);
 	if (*s == -1) return errno;
 
+#ifdef EKA2
 	if (nonblocking) {
 		int res = fcntl(*s, F_GETFL, 0);
 		if (res < 0) return errno;
@@ -616,6 +617,7 @@ cc_result Socket_Create(cc_socket* s, cc_sockaddr* addr, cc_bool nonblocking) {
 		res = fcntl(*s, F_SETFL, res | O_NONBLOCK);
 		if (res < 0) return errno;
 	}
+#endif
 	return 0;
 }
 
@@ -816,8 +818,15 @@ int Platform_GetCommandLineArgs(int argc, STRING_REF char** argv, cc_string* arg
 }
 
 cc_result Platform_SetDefaultCurrentDirectory(int argc, char **argv) {
+#if !defined EKA2
+	mkdir("/System", 0777);
+	mkdir("/System/Data/", 0777);
+	mkdir("/System/Data/ClassiCube", 0777);
+	chdir("/System/Data/ClassiCube");
+#else
 	// Directory is already set by platform: !:/private/e212a5c2
 	return 0;
+#endif
 }
 
 void Platform_ShareScreenshot(const cc_string* filename) {
@@ -855,7 +864,7 @@ GLDEF_C TInt E32Dll(TDllReason) {
 }
 #endif
 
-#ifndef __ARMCC_4_0__
+#if !defined __ARMCC_4_0__ && defined EKA2
 extern "C" {
 extern int __aeabi_uidivmod(unsigned int a, unsigned int b);
 extern int __aeabi_idivmod(int a, int b);

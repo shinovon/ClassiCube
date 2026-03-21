@@ -24,12 +24,12 @@ LIBRARY eikcore.lib
 LIBRARY eikdlg.lib
 LIBRARY apparc.lib
 LIBRARY estlib.lib
-LIBRARY mediaclientaudiostream.lib
+//LIBRARY mediaclientaudiostream.lib
 LIBRARY estor.lib
 LIBRARY bafl.lib
 //LIBRARY avkon.lib
-LIBRARY libgles_cm.lib
-MACRO CC_BUILD_SYMBIAN_GLES10
+//LIBRARY libgles_cm.lib
+//MACRO CC_BUILD_SYMBIAN_GLES10
 
 EPOCALLOWDLLDATA
 

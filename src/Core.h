@@ -61,14 +61,21 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 	#endif
 	#define CC_HAS_TYPES
 	#endif
-	
+
 	#ifndef CC_INLINE
 		#define CC_INLINE inline
-		#define CC_NOINLINE __attribute__((noinline))
+		#if __GNUC >= 3
+			#define CC_NOINLINE __attribute__((noinline))
+		#else
+			#define CC_NOINLINE
+		#endif
 	#endif
 
 	#ifndef CC_API
-	#ifdef _WIN32
+	#ifdef __SYMBIAN32__
+		#define CC_API
+		#define CC_VAR
+	#elif defined _WIN32
 		#define CC_API __attribute__((dllexport, noinline))
 		#define CC_VAR __attribute__((dllexport))
 	#else
@@ -78,9 +85,9 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 	#endif
 	
 	#define CC_HAS_MISC
-	#ifdef __BIG_ENDIAN__
-	#define CC_BIG_ENDIAN
-	#endif
+#ifdef __BIG_ENDIAN__
+#define CC_BIG_ENDIAN
+#endif
 #elif __MWERKS__
 	/* TODO: Is there actual attribute support for CC_API etc somewhere? */
 	#define CC_BIG_ENDIAN
@@ -664,16 +671,17 @@ typedef cc_uint8  cc_bool;
 	#define CC_NOMAIN
 	#define DEFAULT_NET_BACKEND CC_NET_BACKEND_BUILTIN
 	#if defined CC_BUILD_SYMBIAN_ESTLIB
+		#define DEFAULT_AUD_BACKEND CC_AUD_BACKEND_NULL
 		#define CC_BUILD_FPU_MODE CC_FPU_MODE_LIMITED
 		#if defined CC_BUILD_SYMBIAN_GLES10
 			#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
-#define CC_BUILD_GLES10
+			#define CC_BUILD_GLES10
 		#else
 			#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_SOFTGPU
 		#endif
 		#define CC_BUILD_NOMUSIC
 		#define CC_BUILD_NOSOUNDS
-		//#undef CC_BUILD_NETWORKING
+		#undef CC_BUILD_NETWORKING
 	#else
 		#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
 		#define DEFAULT_SSL_BACKEND CC_SSL_BACKEND_BEARSSL
