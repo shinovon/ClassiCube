@@ -42,6 +42,7 @@
 #define _glTexImage2D     glTexImage2D
 #define _glTexSubImage2D  glTexSubImage2D
 #define _glTexParameteri  glTexParameteri
+#define _glTexParameterf  glTexParameterf
 
 /* State get functions */
 #define _glGetError    glGetError

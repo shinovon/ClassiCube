@@ -42,6 +42,7 @@ GL_FUNC(void, glGenTextures,    (GLsizei n, GLuint* textures))
 GL_FUNC(void, glTexImage2D,     (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* pixels))
 GL_FUNC(void, glTexSubImage2D,  (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels))
 GL_FUNC(void, glTexParameteri,  (GLenum target, GLenum pname, GLint param))
+GL_FUNC(void, glTexParameterf,  (GLenum target, GLenum pname, GLfloat param))
 
 /* State get functions */
 GL_FUNC(GLenum,         glGetError,    (void))

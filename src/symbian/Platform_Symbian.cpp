@@ -80,29 +80,17 @@ cc_bool  Platform_ReadonlyFilesystem;
 *#########################################################################################################################*/
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
-#ifdef EKA2
 	return size ? User::Alloc(size) : NULL;
-#else
-	return size ? malloc(size) : NULL;
-#endif
 }
 
 void* Mem_TryAllocCleared(cc_uint32 numElems, cc_uint32 elemsSize) {
-#ifdef EKA2
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? User::AllocZ(size) : NULL;
-#else
-	return calloc(size) : NULL;
-#endif
 }
 
 void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
-#ifdef EKA2
 	return size ? User::ReAlloc(mem, size) : NULL;
-#else
-	return size ? realloc(mem, size) : NULL;
-#endif
 }
 
 void Mem_Free(void* mem) {
