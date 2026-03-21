@@ -1,14 +1,10 @@
 NAME	CUBE
 
 #include <eikon.rh>
-#ifdef CC_BUILD_SYMBIAN_AVKON
 #include <avkon.rsg>
 #include <avkon.rh>
 #include <avkon.mbg>
 #include <appinfo.rh>
-#else
-#include <apcaptionfile.rh>
-#endif
 
 RESOURCE RSS_SIGNATURE { }
 RESOURCE TBUF { buf="ClassiCube"; }
@@ -18,7 +14,6 @@ RESOURCE EIK_APP_INFO { }
 rls_string STRING_app_caption_string "ClassiCube"
 rls_string STRING_app_short_caption_string "ClassiCube"
 
-#ifdef CC_BUILD_SYMBIAN_AVKON
 RESOURCE LOCALISABLE_APP_INFO r_ClassiCube_localisable_app_info
 {
 	short_caption = STRING_app_short_caption_string;
@@ -53,17 +48,5 @@ RESOURCE DIALOG r_query_dialog
 			{
 			};
 		}
-	};
+	}
 }
-#else
-RESOURCE TBUF r_default_document_name
-{ 
-	buf = ""; 
-}
-
-RESOURCE CAPTION_DATA
-{
-	caption = "ClassiCube";
-	shortcaption = "ClassiCube";
-}
-#endif

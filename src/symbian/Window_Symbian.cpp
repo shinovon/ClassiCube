@@ -831,6 +831,7 @@ static CC_INLINE void ConvertToUnicode(TDes& dst, const cc_string* src) {
 }
 
 static cc_result OpenBrowserL(const cc_string* url) {
+#ifdef EKA2
 	TUid browserUid = {0x10008D39};
 	TApaTaskList tasklist(CEikonEnv::Static()->WsSession());
 	TApaTask task = tasklist.FindApp(browserUid);
@@ -850,11 +851,12 @@ static cc_result OpenBrowserL(const cc_string* url) {
 		ls.StartDocument(buf, browserUid, tid);
 		ls.Close();
 	}
+#endif
 	return 0;
 }
 
 static void ShowDialogL(const char* title, const char* msg) {
-#ifdef CC_BUILD_SYMBIAN_AVKON
+#if defined CC_BUILD_SYMBIAN_AVKON && defined EKA2
 	TBuf<512> msgBuf;
 	ConvertToUnicode(msgBuf, msg, String_Length(msg));
 	
@@ -871,6 +873,7 @@ static void ShowDialogL(const char* title, const char* msg) {
 #endif
 }
 
+#ifdef EKA2
 static void GetClipboardL(cc_string* value) {
 	TUid uid = {268450333}; // KClipboardUidTypePlainText
 	
@@ -927,6 +930,7 @@ static void SetClipboardL(const cc_string* value) {
 	
 	CleanupStack::PopAndDestroy(buf);
 }
+#endif
 
 // Window implementation
 
@@ -951,7 +955,7 @@ void Window_PreInit(void) {
 	default: // unknown or platform is older than s60v3.2
 		if (HAL::Get(HAL::EKeyboard, keyboardType) == KErrNone) {
 #if defined EKA2 || !defined CC_BUILD_TOCUH
-			if (!(keyboardType & 0x2/*EKeyboard_Full*/)) {
+			if (!(keyboardType & 0x2 /*EKeyboard_Full*/)) {
 				NormDevice.defaultBinds = symbian_binds_12;
 			} else
 #endif
@@ -995,11 +999,15 @@ void Window_Destroy(void) { }
 void Window_SetTitle(const cc_string* title) { }
 
 void Clipboard_GetText(cc_string* value) {
+#ifdef EKA2
 	TRAPD(ignore, GetClipboardL(value));
+#endif
 }
 
 void Clipboard_SetText(const cc_string* value) {
+#ifdef EKA2
 	TRAPD(ignore, SetClipboardL(value));
+#endif
 }
 
 int Window_GetWindowState(void) {

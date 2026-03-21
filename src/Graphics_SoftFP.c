@@ -6,7 +6,11 @@
 #include "Errors.h"
 #include "Window.h"
 #include <limits.h>
+#ifndef CC_BUILD_SYMBIAN_ESTLIB
 #include <stdint.h>
+#else
+#include <limits.h>
+#endif
 
 
 // 16.16 fixed point
@@ -22,16 +26,18 @@
 #define FixedToInt(x) ((x) >> FP_SHIFT)
 #define IntToFixed(x) ((x) << FP_SHIFT)
 
-#define FixedMul(a, b) (((int64_t)(a) * (b)) >> FP_SHIFT)
+#define FixedMul(a, b) (((cc_int64)(a) * (b)) >> FP_SHIFT)
 
-#define FixedDiv(a, b) (((int64_t)(a) << FP_SHIFT) / (b))
+#define FixedDiv(a, b) (((cc_int64)(a) << FP_SHIFT) / (b))
 
 static int FixedReciprocal(int x) {
     if (x == 0) return 0;
-    int64_t res = ((int64_t)FP_ONE << FP_SHIFT) / (int64_t)x; // (1<<32)/x -> fixed reciprocal
+    {
+    cc_int64 res = ((cc_int64)FP_ONE << FP_SHIFT) / (cc_int64)x; // (1<<32)/x -> fixed reciprocal
     if (res > INT_MAX) return INT_MAX;
     if (res < INT_MIN) return INT_MIN;
     return (int)res;
+    }
 }
 
 static cc_bool faceCulling;
@@ -69,11 +75,12 @@ static FixedMatrix _view_fp, _proj_fp, _mvp_fp;
 
 static void Gfx_RestoreState(void) {
     InitDefaultResources();
-
+    {
     struct Bitmap bmp;
     BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
     Bitmap_Init(bmp, 1, 1, pixels);
     white_square = Gfx_CreateTexture(&bmp, 0, false);
+    }
 }
 
 static void Gfx_FreeState(void) {
@@ -104,7 +111,7 @@ void Gfx_Free(void) {
 
 typedef struct CCTexture {
     int width, height;
-    BitmapCol pixels[];
+    BitmapCol pixels[1];
 } CCTexture;
 
 static CCTexture* curTexture;
@@ -115,6 +122,7 @@ static int texSinglePixel;
         
 void Gfx_BindTexture(GfxResourceID texId) {
     if (!texId) texId = white_square;
+    {
     CCTexture* tex = texId;
 
     curTexture   = tex;
@@ -126,6 +134,7 @@ void Gfx_BindTexture(GfxResourceID texId) {
     texHeightMask  = (1 << Math_ilog2(tex->height)) - 1;
 
     texSinglePixel = curTexWidth == 1;
+    }
 }
         
 void Gfx_DeleteTexture(GfxResourceID* texId) {
@@ -283,7 +292,8 @@ static void PreprocessTexturedVertices(void* vertices) {
 	struct FPVertexTextured* dst = vertices;
 	struct VertexTextured* src   = vertices;
 
-	for (int i = 0; i < buf_count; i++, src++, dst++)
+	int i;
+	for (i = 0; i < buf_count; i++, src++, dst++)
 	{
 		dst->x = FloatToFixed(src->x);
 		dst->y = FloatToFixed(src->y);
@@ -298,7 +308,8 @@ static void PreprocessColouredVertices(void* vertices) {
 	struct FPVertexColoured* dst = vertices;
 	struct VertexColoured* src   = vertices;
 
-	for (int i = 0; i < buf_count; i++, src++, dst++)
+	int i;
+	for (i = 0; i < buf_count; i++, src++, dst++)
 	{
 		dst->x = FloatToFixed(src->x);
 		dst->y = FloatToFixed(src->y);
@@ -357,9 +368,9 @@ static void MatrixMulFixed(FixedMatrix* dst, const FixedMatrix* a, const FixedMa
     int i, j, k;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            int64_t sum = 0;
+            cc_int64 sum = 0;
             for (k = 0; k < 4; k++) {
-                sum += (int64_t)a->m[i][k] * b->m[k][j];
+                sum += (cc_int64)a->m[i][k] * b->m[k][j];
             }
             dst->m[i][j] = (int)(sum >> FP_SHIFT);
         }
@@ -397,7 +408,8 @@ void Gfx_DisableTextureOffset(void) {
 }
 
 static CC_NOINLINE void ShiftTextureCoords(int count) {
-	for (int i = 0; i < count; i++) 
+	int i;
+	for (i = 0; i < count; i++) 
 	{
 		struct FPVertexTextured* v = (struct FPVertexTextured*)gfx_vertices + i;
 		v->u += texOffsetX_fp; // TODO avoid overflow
@@ -406,7 +418,8 @@ static CC_NOINLINE void ShiftTextureCoords(int count) {
 }
 
 static CC_NOINLINE void UnshiftTextureCoords(int count) {
-	for (int i = 0; i < count; i++) 
+	int i;
+	for (i = 0; i < count; i++) 
 	{
 		struct FPVertexTextured* v = (struct FPVertexTextured*)gfx_vertices + i;
 		v->u -= texOffsetX_fp; // TODO avoid overflow
@@ -496,49 +509,49 @@ static int TransformVertex3D(int index, VertexFixed* vertex) {
 
     if (ABS(pos_x) > (1 << 28) || ABS(pos_y) > (1 << 28) || ABS(pos_z) > (1 << 28)) {
         return 0;
+    } else {
+		cc_int64 x_temp = (cc_int64)pos_x * _mvp_fp.m[0][0] + (cc_int64)pos_y * _mvp_fp.m[1][0] + 
+						 (cc_int64)pos_z * _mvp_fp.m[2][0] + ((cc_int64)_mvp_fp.m[3][0] << FP_SHIFT);
+		cc_int64 y_temp = (cc_int64)pos_x * _mvp_fp.m[0][1] + (cc_int64)pos_y * _mvp_fp.m[1][1] + 
+						 (cc_int64)pos_z * _mvp_fp.m[2][1] + ((cc_int64)_mvp_fp.m[3][1] << FP_SHIFT);
+		cc_int64 z_temp = (cc_int64)pos_x * _mvp_fp.m[0][2] + (cc_int64)pos_y * _mvp_fp.m[1][2] + 
+						 (cc_int64)pos_z * _mvp_fp.m[2][2] + ((cc_int64)_mvp_fp.m[3][2] << FP_SHIFT);
+		cc_int64 w_temp = (cc_int64)pos_x * _mvp_fp.m[0][3] + (cc_int64)pos_y * _mvp_fp.m[1][3] + 
+						 (cc_int64)pos_z * _mvp_fp.m[2][3] + ((cc_int64)_mvp_fp.m[3][3] << FP_SHIFT);
+	
+		x_temp >>= FP_SHIFT;
+		y_temp >>= FP_SHIFT;
+		z_temp >>= FP_SHIFT;
+		w_temp >>= FP_SHIFT;
+	
+		vertex->x = (x_temp > INT_MAX) ? INT_MAX : (x_temp < INT_MIN) ? INT_MIN : (int)x_temp;
+		vertex->y = (y_temp > INT_MAX) ? INT_MAX : (y_temp < INT_MIN) ? INT_MIN : (int)y_temp;
+		vertex->z = (z_temp > INT_MAX) ? INT_MAX : (z_temp < INT_MIN) ? INT_MIN : (int)z_temp;
+		vertex->w = (w_temp > INT_MAX) ? INT_MAX : (w_temp < INT_MIN) ? INT_MIN : (int)w_temp;
+	
+		return 1;
     }
-
-    int64_t x_temp = (int64_t)pos_x * _mvp_fp.m[0][0] + (int64_t)pos_y * _mvp_fp.m[1][0] + 
-                     (int64_t)pos_z * _mvp_fp.m[2][0] + ((int64_t)_mvp_fp.m[3][0] << FP_SHIFT);
-    int64_t y_temp = (int64_t)pos_x * _mvp_fp.m[0][1] + (int64_t)pos_y * _mvp_fp.m[1][1] + 
-                     (int64_t)pos_z * _mvp_fp.m[2][1] + ((int64_t)_mvp_fp.m[3][1] << FP_SHIFT);
-    int64_t z_temp = (int64_t)pos_x * _mvp_fp.m[0][2] + (int64_t)pos_y * _mvp_fp.m[1][2] + 
-                     (int64_t)pos_z * _mvp_fp.m[2][2] + ((int64_t)_mvp_fp.m[3][2] << FP_SHIFT);
-    int64_t w_temp = (int64_t)pos_x * _mvp_fp.m[0][3] + (int64_t)pos_y * _mvp_fp.m[1][3] + 
-                     (int64_t)pos_z * _mvp_fp.m[2][3] + ((int64_t)_mvp_fp.m[3][3] << FP_SHIFT);
-
-    x_temp >>= FP_SHIFT;
-    y_temp >>= FP_SHIFT;
-    z_temp >>= FP_SHIFT;
-    w_temp >>= FP_SHIFT;
-
-    vertex->x = (x_temp > INT_MAX) ? INT_MAX : (x_temp < INT_MIN) ? INT_MIN : (int)x_temp;
-    vertex->y = (y_temp > INT_MAX) ? INT_MAX : (y_temp < INT_MIN) ? INT_MIN : (int)y_temp;
-    vertex->z = (z_temp > INT_MAX) ? INT_MAX : (z_temp < INT_MIN) ? INT_MIN : (int)z_temp;
-    vertex->w = (w_temp > INT_MAX) ? INT_MAX : (w_temp < INT_MIN) ? INT_MIN : (int)w_temp;
-
-    return 1;
 }
 
 static cc_bool ViewportVertex3D(VertexFixed* vertex) {
     if (vertex->w == 0) return false;
     if (ABS(vertex->w) < 64) return false; // Too small w
-    
+    {
     int invW = FixedReciprocal(vertex->w);
     
     if (ABS(invW) > (FP_ONE << 10)) return false; // 1024x magnification limit
-
-    int64_t x_ndc = ((int64_t)vertex->x * invW) >> FP_SHIFT;
-    int64_t y_ndc = ((int64_t)vertex->y * invW) >> FP_SHIFT;
-    int64_t z_ndc = ((int64_t)vertex->z * invW) >> FP_SHIFT;
+    {
+    cc_int64 x_ndc = ((cc_int64)vertex->x * invW) >> FP_SHIFT;
+    cc_int64 y_ndc = ((cc_int64)vertex->y * invW) >> FP_SHIFT;
+    cc_int64 z_ndc = ((cc_int64)vertex->z * invW) >> FP_SHIFT;
     
-    int64_t screen_x = vp_hwidth_fp  + ((x_ndc * vp_hwidth_fp)  >> FP_SHIFT);
-    int64_t screen_y = vp_hheight_fp - ((y_ndc * vp_hheight_fp) >> FP_SHIFT);
+    cc_int64 screen_x = vp_hwidth_fp  + ((x_ndc * vp_hwidth_fp)  >> FP_SHIFT);
+    cc_int64 screen_y = vp_hheight_fp - ((y_ndc * vp_hheight_fp) >> FP_SHIFT);
     
     // Clamp
     if (screen_x < -(fb_width  << FP_SHIFT) || screen_x > (fb_width  << (FP_SHIFT + 1))) return false;
     if (screen_y < -(fb_height << FP_SHIFT) || screen_y > (fb_height << (FP_SHIFT + 1))) return false;
-    
+    {
     vertex->x = (int)screen_x;
     vertex->y = (int)screen_y;
     vertex->z = (z_ndc > INT_MAX) ? INT_MAX : (z_ndc < INT_MIN) ? INT_MIN : (int)z_ndc;
@@ -546,7 +559,7 @@ static cc_bool ViewportVertex3D(VertexFixed* vertex) {
     
     vertex->u = FixedMul(vertex->u, invW);
     vertex->v = FixedMul(vertex->v, invW);
-    
+    }}}
     return true;
 }
 
@@ -559,7 +572,7 @@ static void DrawSprite2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
     if (maxX < 0 || minX > fb_maxX) return;
     if (maxY < 0 || minY > fb_maxY) return;
-
+    {
     int begTX = FixedMul(V0->u, IntToFixed(curTexWidth)) >> FP_SHIFT;
     int begTY = FixedMul(V0->v, IntToFixed(curTexHeight)) >> FP_SHIFT;
     int delTX = (FixedMul(V1->u, IntToFixed(curTexWidth)) >> FP_SHIFT) - begTX;
@@ -568,15 +581,16 @@ static void DrawSprite2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
     int width = maxX - minX, height = maxY - minY;
     if (width == 0) width = 1;
     if (height == 0) height = 1;
-
+    {
     int fast = delTX == width && delTY == height && 
                (begTX + delTX < curTexWidth) && 
                (begTY + delTY < curTexHeight);
 
+    int x, y;
+    
     minX = max(minX, 0); maxX = min(maxX, fb_maxX);
     minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
-    int x, y;
     for (y = minY; y <= maxY; y++) 
     {
         int texY = fast ? (begTY + (y - minY)) : (((begTY + delTY * (y - minY) / height)) & texHeightMask);
@@ -590,6 +604,7 @@ static void DrawSprite2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
             A = BitmapCol_A(color);
             if (gfx_alphaBlend && A == 0) continue;
+            {
             int cb_index = y * cb_stride + x;
 
             if (gfx_alphaBlend && A != 255) {
@@ -610,18 +625,19 @@ static void DrawSprite2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
             if (vColor != PACKEDCOL_WHITE) {
                 int r1 = PackedCol_R(vColor), r2 = BitmapCol_R(color);
-                R = ( r1 * r2 ) >> 8;
                 int g1 = PackedCol_G(vColor), g2 = BitmapCol_G(color);
-                G = ( g1 * g2 ) >> 8;
                 int b1 = PackedCol_B(vColor), b2 = BitmapCol_B(color);
+                R = ( r1 * r2 ) >> 8;
+                G = ( g1 * g2 ) >> 8;
                 B = ( b1 * b2 ) >> 8;
 
                 color = BitmapCol_Make(R, G, B, 0xFF);
             }
 
             colorBuffer[cb_index] = color;
+            }
         }
-    }
+    }}}
 }
 
 #define edgeFunctionFixed(ax,ay, bx,by, cx,cy) \
@@ -808,15 +824,15 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
     minX = max(minX, 0); maxX = min(maxX, fb_maxX);
     minY = max(minY, 0); maxY = min(maxY, fb_maxY);
-
+    {
     int area = edgeFunctionFixed(x0_fp, y0_fp, x1_fp, y1_fp, x2_fp, y2_fp);
     if (area == 0) return;
-
+    {
     int factor = FixedReciprocal(area);
 
     int w0 = V0->w, w1 = V1->w, w2 = V2->w;
     if (w0 <= 0 && w1 <= 0 && w2 <= 0) return;
-
+    {
     int z0 = V0->z, z1 = V1->z, z2 = V2->z;
     PackedCol color = V0->c;
 
@@ -861,7 +877,7 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
         g1 = PackedCol_G(color);
         b1 = PackedCol_B(color);
     }
-
+    {
     int step_ic0_per_x = FixedMul(dx12, factor);  // bc0 += dx12 per x -> ic0 += step_ic0_per_x
     int step_ic1_per_x = FixedMul(dx20, factor);  // bc1 += dx20
     int step_ic2_per_x = FixedMul(dx01, factor);  // bc2 += dx01
@@ -895,7 +911,7 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
                 w_interp += step_w; z_interp += step_z; u_interp += step_u; v_interp += step_v;
                 continue;
             }
-
+            {
             int db_index = y * db_stride + x;
 
             if (w_interp == 0) {
@@ -904,7 +920,7 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
                 w_interp += step_w; z_interp += step_z; u_interp += step_u; v_interp += step_v;
                 continue;
             }
-
+            {
             int w = FixedReciprocal(w_interp);
             int z = FixedMul(z_interp, w);
 
@@ -921,7 +937,7 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
                 w_interp += step_w; z_interp += step_z; u_interp += step_u; v_interp += step_v;
                 continue;
             }
-
+            {
             int Rloc = R, Gloc = G, Bloc = B, Aloc = A; // local copy (non-texturing path keeps them)
 
             if (texturing) {
@@ -950,6 +966,7 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
                 if (depthWrite) ; // nothing
             } else {
                 if (depthWrite) depthBuffer[db_index] = z;
+                {
                 int cb_index = y * cb_stride + x;
                 
                 if (!gfx_alphaBlend) {
@@ -965,13 +982,16 @@ static void DrawTriangle3D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
                     int finB = (Bloc * Aloc + dstB * (255 - Aloc)) >> 8;
                     colorBuffer[cb_index] = BitmapCol_Make(finR, finG, finB, 0xFF);
                 }
+                }
             }
+            }}}
 
             // update ic and interpolants
             ic0 += step_ic0_per_x; ic1 += step_ic1_per_x; ic2 += step_ic2_per_x;
             w_interp += step_w; z_interp += step_z; u_interp += step_u; v_interp += step_v;
         } // x
     } // y
+    }}}}
 }
 
 
@@ -991,6 +1011,7 @@ static void DrawTriangle2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
     minX = max(minX, 0); maxX = min(maxX, fb_maxX);
     minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
+    {
     int u0 = FixedMul(V0->u, IntToFixed(curTexWidth));
     int v0 = FixedMul(V0->v, IntToFixed(curTexHeight));
     int u1 = FixedMul(V1->u, IntToFixed(curTexWidth));
@@ -1001,6 +1022,7 @@ static void DrawTriangle2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
     int area = edgeFunctionFixed(x0_fp,y0_fp, x1_fp,y1_fp, x2_fp,y2_fp);
     if (area == 0) return;
+    {
     int factor = FixedReciprocal(area);
 
     int dx01  = y0_fp - y1_fp, dy01 = x1_fp - x0_fp;
@@ -1028,6 +1050,7 @@ static void DrawTriangle2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
             int ic2 = FixedMul(bc2, factor);
 
             if (ic0 < 0 || ic1 < 0 || ic2 < 0) continue;
+            {
             int cb_index = y * cb_stride + x;
 
             int R, G, B, A;
@@ -1040,12 +1063,12 @@ static void DrawTriangle2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
 
                 BitmapCol tColor = curTexPixels[texIndex];
                 int a1 = PackedCol_A(color), a2 = BitmapCol_A(tColor);
-                A = ( a1 * a2 ) >> 8;
                 int r1 = PackedCol_R(color), r2 = BitmapCol_R(tColor);
-                R = ( r1 * r2 ) >> 8;
                 int g1 = PackedCol_G(color), g2 = BitmapCol_G(tColor);
-                G = ( g1 * g2 ) >> 8;
                 int b1 = PackedCol_B(color), b2 = BitmapCol_B(tColor);
+                A = ( a1 * a2 ) >> 8;
+                R = ( r1 * r2 ) >> 8;
+                G = ( g1 * g2 ) >> 8;
                 B = ( b1 * b2 ) >> 8;
             } else {
                 R = PackedCol_R(color);
@@ -1069,15 +1092,18 @@ static void DrawTriangle2D(VertexFixed* V0, VertexFixed* V1, VertexFixed* V2) {
             }
 
             colorBuffer[cb_index] = BitmapCol_Make(R, G, B, 0xFF);
+            }
         }
     }
+    }}
 }
 
 
 static void ProcessClippedTriangleAndDraw(const VertexFixed* inVerts, int polyCount) {
     if (polyCount < 3) return;
-    
-    for (int i = 1; i + 1 < polyCount; i++) {
+    {
+    int i;
+    for (i = 1; i + 1 < polyCount; i++) {
         VertexFixed A = inVerts[0];
         VertexFixed B = inVerts[i];
         VertexFixed C = inVerts[i + 1];
@@ -1103,7 +1129,7 @@ static void ProcessClippedTriangleAndDraw(const VertexFixed* inVerts, int polyCo
         if (!ViewportVertex3D(&A) || !ViewportVertex3D(&B) || !ViewportVertex3D(&C)) {
             continue;
         }
-        
+        {
         int minX = FixedToInt(min(A.x, min(B.x, C.x)));
         int minY = FixedToInt(min(A.y, min(B.y, C.y)));
         int maxX = FixedToInt(max(A.x, max(B.x, C.x)));
@@ -1113,11 +1139,15 @@ static void ProcessClippedTriangleAndDraw(const VertexFixed* inVerts, int polyCo
             continue;
         }
         
+        {
         // too small
         int area = edgeFunctionFixed(A.x, A.y, B.x, B.y, C.x, C.y);
         if (ABS(area) <= FP_ONE) continue;
         
         DrawTriangle3D(&A, &B, &C);
+        }
+        }
+    }
     }
 }
 
@@ -1126,25 +1156,25 @@ enum { PLANE_LEFT=0, PLANE_RIGHT, PLANE_BOTTOM, PLANE_TOP, PLANE_NEAR, PLANE_FAR
 #define NUM_PLANES 6
 
 static int PlaneDistFixed(const VertexFixed* v, int plane) {
-    int64_t result;
+    cc_int64 result;
     switch (plane) {
     case PLANE_LEFT:
-        result = (int64_t)v->x + v->w;
+        result = (cc_int64)v->x + v->w;
         break;
     case PLANE_RIGHT:
-        result = (int64_t)v->w - v->x;
+        result = (cc_int64)v->w - v->x;
         break;
     case PLANE_BOTTOM:
-        result = (int64_t)v->y + v->w;
+        result = (cc_int64)v->y + v->w;
         break;
     case PLANE_TOP:
-        result = (int64_t)v->w - v->y;
+        result = (cc_int64)v->w - v->y;
         break;
     case PLANE_NEAR:
         result = v->z;
         break;
     case PLANE_FAR:
-        result = (int64_t)v->w - (v->z >> 2); //hacked
+        result = (cc_int64)v->w - (v->z >> 2); //hacked
         break;
     default:
         return 0;
@@ -1159,15 +1189,15 @@ static int PlaneDistFixed(const VertexFixed* v, int plane) {
 static void LerpClipFixed(VertexFixed* out, const VertexFixed* a, const VertexFixed* b, int t) {
     if (t < 0) t = 0;
     if (t > FP_ONE) t = FP_ONE;
-    
+    {
     int invt = FP_ONE - t;
     
-    int64_t x_interp = ((int64_t)invt * a->x + (int64_t)t * b->x) >> FP_SHIFT;
-    int64_t y_interp = ((int64_t)invt * a->y + (int64_t)t * b->y) >> FP_SHIFT;
-    int64_t z_interp = ((int64_t)invt * a->z + (int64_t)t * b->z) >> FP_SHIFT;
-    int64_t w_interp = ((int64_t)invt * a->w + (int64_t)t * b->w) >> FP_SHIFT;
-    int64_t u_interp = ((int64_t)invt * a->u + (int64_t)t * b->u) >> FP_SHIFT;
-    int64_t v_interp = ((int64_t)invt * a->v + (int64_t)t * b->v) >> FP_SHIFT;
+    cc_int64 x_interp = ((cc_int64)invt * a->x + (cc_int64)t * b->x) >> FP_SHIFT;
+    cc_int64 y_interp = ((cc_int64)invt * a->y + (cc_int64)t * b->y) >> FP_SHIFT;
+    cc_int64 z_interp = ((cc_int64)invt * a->z + (cc_int64)t * b->z) >> FP_SHIFT;
+    cc_int64 w_interp = ((cc_int64)invt * a->w + (cc_int64)t * b->w) >> FP_SHIFT;
+    cc_int64 u_interp = ((cc_int64)invt * a->u + (cc_int64)t * b->u) >> FP_SHIFT;
+    cc_int64 v_interp = ((cc_int64)invt * a->v + (cc_int64)t * b->v) >> FP_SHIFT;
     
     // Clamp results
     out->x = (x_interp > INT_MAX) ? INT_MAX : (x_interp < INT_MIN) ? INT_MIN : (int)x_interp;
@@ -1178,24 +1208,27 @@ static void LerpClipFixed(VertexFixed* out, const VertexFixed* a, const VertexFi
     out->v = (v_interp > INT_MAX) ? INT_MAX : (v_interp < INT_MIN) ? INT_MIN : (int)v_interp;
     
     out->c = (t < FP_HALF) ? a->c : b->c;
+    }
 }
 
 static int SafeFixedDiv(int numerator, int denominator) {
     if (denominator == 0) return FP_HALF;
     if (ABS(denominator) < 16) return FP_HALF; // Avoid extreme divisions
-    
-    int64_t result = ((int64_t)numerator << FP_SHIFT) / denominator;
+    {
+    cc_int64 result = ((cc_int64)numerator << FP_SHIFT) / denominator;
     
     if (result > FP_ONE) return FP_ONE;
     if (result < 0) return 0;
     return (int)result;
+    }
 }
 
 static int ClipPolygonPlaneFixed(const VertexFixed* in, int inCount, VertexFixed* out, int plane) {
     int outCount = 0;
     
 	// https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm
-    for (int i = 0; i < inCount; i++) 
+    int i;
+    for (i = 0; i < inCount; i++) 
 	{
         const VertexFixed* cur  = &in[i];
         const VertexFixed* next = &in[(i + 1) % inCount];
@@ -1238,21 +1271,23 @@ static int ClipQuadToFrustumFixed(const VertexFixed quad[4], VertexFixed buf1[16
     VertexFixed* src = buf1;
     VertexFixed* dst = buf2;
 
-    for (int i = 0; i < 4; i++) src[i] = quad[i];
+    int i, plane;
     int count = 4;
+    for (i = 0; i < 4; i++) src[i] = quad[i];
 
     // check w zero
-    for (int i = 0; i < 4; i++) if (src[i].w == 0) return 0;
+    for (i = 0; i < 4; i++) if (src[i].w == 0) return 0;
 
-    for (int plane = 0; plane < NUM_PLANES; plane++) 
+    for (plane = 0; plane < NUM_PLANES; plane++) 
 	{
         int newCount = ClipPolygonPlaneFixed(src, count, dst, plane);
         if (newCount == 0) return 0;
-
+        {
         // swap lists
         VertexFixed* tmp = src; src = dst; dst = tmp;
         count = newCount;
         if (count > 15) count = 15; // TODO prob not needed?
+        }
     }
 
     *outPoly = src;
@@ -1260,9 +1295,11 @@ static int ClipQuadToFrustumFixed(const VertexFixed quad[4], VertexFixed buf1[16
 }
 
 static cc_bool QuadFullyInsideFrustum(const VertexFixed quad[4]) {
-    for (int plane = 0; plane < NUM_PLANES; plane++) 
+	int plane;
+    for (plane = 0; plane < NUM_PLANES; plane++) 
 	{
-        for (int i = 0; i < 4; i++) 
+    	int i;
+        for (i = 0; i < 4; i++) 
 		{
             if (PlaneDistFixed(&quad[i], plane) < 0) return false;
         }
@@ -1278,10 +1315,11 @@ static void DrawClippedFixed(VertexFixed quad[4]) {
         ProcessClippedTriangleAndDraw(quad, 4);
         return;
     }
-
+    {
     int polyCount = ClipQuadToFrustumFixed(quad, buf1, buf2, &outPoly);
     if (polyCount > 0) {
         ProcessClippedTriangleAndDraw(outPoly, polyCount);
+    }
     }
 }
 
@@ -1358,7 +1396,11 @@ cc_bool Gfx_GetUIOptions(struct MenuOptionsScreen* s) { return false; }
 void Gfx_BeginFrame(void) { }
 
 void Gfx_EndFrame(void) {
-    Rect2D r = { 0, 0, fb_width, fb_height };
+    Rect2D r;
+    r.x = 0;
+    r.y = 0;
+    r.width = fb_width;
+    r.height = fb_height;
     Window_DrawFramebuffer(r, &fb_bmp);
 }
 

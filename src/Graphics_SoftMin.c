@@ -22,12 +22,13 @@ static GfxResourceID white_square;
 
 static void Gfx_RestoreState(void) {
 	InitDefaultResources();
-
-	// 1x1 dummy white texture
-	struct Bitmap bmp;
-	BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
-	Bitmap_Init(bmp, 1, 1, pixels);
-	white_square = Gfx_CreateTexture(&bmp, 0, false);
+	{
+		// 1x1 dummy white texture
+		struct Bitmap bmp;
+		BitmapCol pixels[1] = { BITMAPCOLOR_WHITE };
+		Bitmap_Init(bmp, 1, 1, pixels);
+		white_square = Gfx_CreateTexture(&bmp, 0, false);
+	}
 }
 
 static void Gfx_FreeState(void) {
@@ -53,7 +54,7 @@ void Gfx_Free(void) {
 
 typedef struct CCTexture {
 	int width, height;
-	BitmapCol pixels[];
+	BitmapCol pixels[1];
 } CCTexture;
 
 static CCTexture* curTexture;
@@ -63,15 +64,17 @@ static int texWidthMask, texHeightMask;
 		
 void Gfx_BindTexture(GfxResourceID texId) {
 	if (!texId) texId = white_square;
-	CCTexture* tex = texId;
-
-	curTexture   = tex;
-	curTexPixels = tex->pixels;
-	curTexWidth  = tex->width;
-	curTexHeight = tex->height;
-
-	texWidthMask   = (1 << Math_ilog2(tex->width))  - 1;
-	texHeightMask  = (1 << Math_ilog2(tex->height)) - 1;
+	{
+		CCTexture* tex = texId;
+	
+		curTexture   = tex;
+		curTexPixels = tex->pixels;
+		curTexWidth  = tex->width;
+		curTexHeight = tex->height;
+	
+		texWidthMask   = (1 << Math_ilog2(tex->width))  - 1;
+		texHeightMask  = (1 << Math_ilog2(tex->height)) - 1;
+	}
 }
 		
 void Gfx_DeleteTexture(GfxResourceID* texId) {
@@ -361,7 +364,7 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	// Reject triangles completely outside
 	if (maxX < 0 || minX > fb_maxX) return;
 	if (maxY < 0 || minY > fb_maxY) return;
-
+	{
 	int begTX = (int)(V0->u * curTexWidth);
 	int begTY = (int)(V0->v * curTexHeight);
 	int delTX = (int)(V1->u * curTexWidth)  - begTX;
@@ -371,15 +374,17 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	if (width == 0) width = 1;
 	if (height == 0) height = 1;
 
+	{
 	int fast =  delTX == width && delTY == height && 
 				(begTX + delTX < curTexWidth ) && 
 				(begTY + delTY < curTexHeight);
 
+	int x, y;
+	
 	// Perform scissoring
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 
-	int x, y;
 	for (y = minY; y <= maxY; y++) 
 	{
 		int texY = fast ? (begTY + (y - minY)) : (((begTY + delTY * (y - minY) / height)) & texHeightMask);
@@ -392,21 +397,25 @@ static void DrawSprite2D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			int R, G, B;
 
 			if ((color & BITMAPCOLOR_A_MASK) == 0) continue;
+			{
 			int cb_index = y * cb_stride + x;
 
 			if (vColor != PACKEDCOL_WHITE) {
 				int r1 = PackedCol_R(vColor), r2 = BitmapCol_R(color);
-				R = ( r1 * r2 ) >> 8;
 				int g1 = PackedCol_G(vColor), g2 = BitmapCol_G(color);
-				G = ( g1 * g2 ) >> 8;
 				int b1 = PackedCol_B(vColor), b2 = BitmapCol_B(color);
+				R = ( r1 * r2 ) >> 8;
+				G = ( g1 * g2 ) >> 8;
 				B = ( b1 * b2 ) >> 8;
 
 				color = BitmapCol_Make(R, G, B, 0xFF);
 			}
 
 			colorBuffer[cb_index] = color;
+			}
 		}
+	}
+	}
 	}
 }
 
@@ -452,6 +461,7 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 	minX = max(minX, 0); maxX = min(maxX, fb_maxX);
 	minY = max(minY, 0); maxY = min(maxY, fb_maxY);
 	
+	{
 	// https://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 	// Essentially these are the deltas of edge functions between X/Y and X/Y + 1 (i.e. one X/Y step)
 	int dx01 = y0 - y1, dy01 = x1 - x0;
@@ -501,6 +511,7 @@ static void DrawTriangle3D(Vertex* V0, Vertex* V1, Vertex* V2) {
 			colorBuffer[index] = BitmapCol_Make(finR, finG, finB, 0xFF);
 
 		#include "Graphics_SoftMin.tri.i"
+	}
 	}
 }
 
@@ -850,7 +861,11 @@ cc_bool Gfx_GetUIOptions(struct MenuOptionsScreen* s) { return false; }
 void Gfx_BeginFrame(void) { }
 
 void Gfx_EndFrame(void) {
-	Rect2D r = { 0, 0, fb_width, fb_height };
+	Rect2D r;
+	r.x = 0;
+	r.y = 0;
+	r.width = fb_width;
+	r.height = fb_height;
 	Window_DrawFramebuffer(r, &fb_bmp);
 }
 

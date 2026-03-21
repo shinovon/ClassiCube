@@ -494,6 +494,7 @@ static void FontDirCallback(const cc_string* path, void* obj, int isDirectory) {
 }
 
 void Platform_LoadSysFonts(void) {
+#ifdef EKA2
 	int i;
 	static const cc_string dirs[] = {
 		String_FromConst("Z:\\resource\\fonts"),
@@ -506,6 +507,7 @@ void Platform_LoadSysFonts(void) {
 		Directory_Enum(&dirs[i], NULL, FontDirCallback);
 	}
 	Platform_LogConst("Finished searching for fonts");
+#endif
 }
 
 
@@ -862,9 +864,7 @@ static cc_result GetMachineID(cc_uint32* key) {
 GLDEF_C TInt E32Dll(TDllReason) {
 	return KErrNone;
 }
-#endif
-
-#if !defined __ARMCC_4_0__ && defined EKA2
+#elif !defined __ARMCC_4_0__
 extern "C" {
 extern int __aeabi_uidivmod(unsigned int a, unsigned int b);
 extern int __aeabi_idivmod(int a, int b);
