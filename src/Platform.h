@@ -74,7 +74,7 @@ cc_result Platform_GetEntropy(void* data, int len);
 #define PLAT_FLAG_APP_EXIT       0x02
 
 /* Platform specific runtime behaviour flags (See PLAT_FLAG members) */
-extern cc_uint8 Platform_Flags;
+extern const cc_uint8 Platform_Flags;
 #define Platform_IsSingleProcess() (Platform_Flags & PLAT_FLAG_SINGLE_PROCESS)
 
 /* Starts the game with the given arguments. */
@@ -260,7 +260,7 @@ typedef int cc_file;
 /*  NOTE: These have same values as SEEK_SET/SEEK_CUR/SEEK_END, do not change them */
 enum File_SeekFrom { FILE_SEEKFROM_BEGIN, FILE_SEEKFROM_CURRENT, FILE_SEEKFROM_END };
 /* Whether the filesystem is readonly (i.e. cannot make chat logs, cache, etc) */
-extern cc_bool Platform_ReadonlyFilesystem;
+extern const cc_bool Platform_ReadonlyFilesystem;
 
 /* Result code for when trying to open a file locked by another process */
 extern const cc_result ReturnCode_FileShareViolation;

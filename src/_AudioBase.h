@@ -113,11 +113,11 @@ void AudioBackend_LoadSounds(void) { Sounds_LoadDefault(); }
 /*########################################################################################################################*
 *---------------------------------------------------Audio context code----------------------------------------------------*
 *#########################################################################################################################*/
+#if CC_AUD_BACKEND != CC_AUD_BACKEND_NULL
 struct AudioContext music_ctx;
 #ifndef POOL_MAX_CONTEXTS
 #define POOL_MAX_CONTEXTS 8
 #endif
-#if CC_AUD_BACKEND != CC_AUD_BACKEND_NULL
 static struct AudioContext context_pool[POOL_MAX_CONTEXTS];
 #endif
 

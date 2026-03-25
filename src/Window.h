@@ -49,7 +49,7 @@ struct _DisplayData {
 	int ContentOffsetX, ContentOffsetY;
 };
 
-#define DisplayInfo (*Globals->DisplayInfo)
+#define DisplayInfo (*Globals()->DisplayInfo_)
 
 /* Scales the given X coordinate from 96 dpi to current display dpi. */
 static CC_INLINE int Display_ScaleX(int x) { return (int)(x * DisplayInfo.ScaleX); }
@@ -88,7 +88,7 @@ struct cc_window {
 #define DEFAULT_UI_SCALE_Y (1.0f / 480)
 
 /* Data for the game/launcher window */
-#define WindowInfo (*Globals->WindowInfo)
+#define WindowInfo (*Globals()->WindowInfo_)
 #define Window_Main WindowInfo
 /* Data for alternate game window (e.g. 3DS) */
 extern struct cc_window Window_Alt;

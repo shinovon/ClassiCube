@@ -10,7 +10,7 @@ Represents a fixed size 3D array of blocks and associated metadata
 Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct AABB;
-const struct IGameComponent World_Component;
+extern const struct IGameComponent World_Component;
 
 /* Unpacka an index into x,y,z (slow!) */
 #define World_Unpack(idx, x, y, z) x = idx % World.Width; z = (idx / World.Width) % World.Length; y = (idx / World.Width) / World.Length;
@@ -63,7 +63,7 @@ struct _WorldData {
 	int Seed;
 };
 
-#define World (*Globals->World)
+#define World (*Globals()->World_)
 
 /* Frees the blocks array, sets dimensions to 0, resets environment to default. */
 void World_Reset(void);

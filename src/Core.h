@@ -682,6 +682,7 @@ typedef cc_uint8  cc_bool;
 		#define CC_BUILD_NOMUSIC
 		#define CC_BUILD_NOSOUNDS
 		#undef CC_BUILD_NETWORKING
+		#undef CC_BUILD_FREETYPE
 		#undef CC_BUILD_PLUGINS
 	#else
 		#define CC_BUILD_TOUCH
@@ -796,20 +797,22 @@ struct RayTracer;
 typedef struct Vec2_ { float x, y; } Vec2;
 struct CameraState;
 
-extern struct _Globals {
-	struct _DisplayData* DisplayInfo; // FIXME
-	struct cc_window* WindowInfo; // FIXME
+struct _Globals {
+	struct _DisplayData* DisplayInfo_;
+	struct cc_window* WindowInfo_;
 	
-	struct _BlockLists* Blocks; // FIXME
-	struct _WorldData* World; // FIXME
+	struct _BlockLists* Blocks;
+	struct _WorldData* World_;
 	char World_nameBuffer[64];
 	
-	struct _CameraData* Camera; // FIXME
-	struct RayTracer* cameraClipPos; // FIXME
-	Vec2* cam_rotOffset; // FIXME
+	struct _CameraData* Camera;
+	struct RayTracer* cameraClipPos;
+	Vec2* cam_rotOffset;
 	cc_bool cam_isForwardThird;
-	struct CameraState* Camera_states[1]; // FIXME
-}* Globals;
+	struct CameraState* Camera_states[1];
+};
+
+struct _Globals* Globals(void);
 
 #ifdef __cplusplus
 	#define CC_BEGIN_HEADER extern "C" {

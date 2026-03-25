@@ -66,8 +66,8 @@ const cc_result ReturnCode_SocketDropped    = EPIPE;
 #endif
 
 const char* Platform_AppNameSuffix = " Symbian";
-cc_uint8 Platform_Flags = PLAT_FLAG_SINGLE_PROCESS | PLAT_FLAG_APP_EXIT;
-cc_bool  Platform_ReadonlyFilesystem;
+const cc_uint8 Platform_Flags = PLAT_FLAG_SINGLE_PROCESS | PLAT_FLAG_APP_EXIT;
+const cc_bool  Platform_ReadonlyFilesystem = false;
 #ifndef CC_BUILD_NETWORKING
 #define CC_NO_SOCKETS
 #endif

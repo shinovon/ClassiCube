@@ -54,6 +54,10 @@ extern "C" {
 #include "LScreens.h"
 #include "Http.h"
 #include "main_impl.h"
+#include "Block.h"
+#include "World.h"
+#include "Camera.h"
+#include "Picking.h"
 }
 
 class CCContainer;
@@ -509,6 +513,8 @@ TKeyResponse CCAppUi::HandleKeyEventL(const TKeyEvent& aKeyEvent, TEventCode aTy
 		}
 		return EKeyWasConsumed;
 	}
+	default:
+		break;
 	}
 	return EKeyWasNotConsumed;
 }
@@ -589,6 +595,29 @@ void CCContainer::RestartTimerL(TInt aInterval) {
 	iPeriodic->Start(aInterval, aInterval, TCallBack(CCContainer::LoopCallBack, this));
 }
 
+
+
+static void InitGlobalVars() {
+	_Globals* globals = (_Globals*) Mem_Alloc(1, sizeof(_Globals), "Globals");
+	
+	Dll::SetTls(globals);
+	
+	globals->DisplayInfo_ = (_DisplayData*) Mem_Alloc(1, sizeof(_DisplayData), "DisplayInfo");
+	globals->WindowInfo_ = (cc_window*) Mem_Alloc(1, sizeof(cc_window), "WindowInfo");
+	
+	globals->Blocks = (_BlockLists*) Mem_Alloc(1, sizeof(_BlockLists), "Blocks");
+	globals->World_ = (_WorldData*) Mem_Alloc(1, sizeof(_WorldData), "World");
+	
+	globals->Camera = (_CameraData*) Mem_Alloc(1, sizeof(_CameraData), "Camera");
+	globals->cameraClipPos = (RayTracer*) Mem_Alloc(1, sizeof(RayTracer), "Camera");
+	globals->cam_rotOffset = (Vec2*) Mem_Alloc(1, sizeof(Vec2), "Camera");
+	globals->Camera_states[0] = (CameraState*) Mem_Alloc(1, sizeof(CameraState), "Camera");
+}
+
+extern "C" struct _Globals* Globals(void) {
+	return (_Globals*) Dll::Tls();
+}
+
 void CCContainer::ConstructL(const TRect& aRect, FRAMEWORK_CLASS(AppUi)* aAppUi) {
 	iAppUi = aAppUi;
 	
@@ -605,6 +634,7 @@ void CCContainer::ConstructL(const TRect& aRect, FRAMEWORK_CLASS(AppUi)* aAppUi)
 	ActivateL();
 	container = this;
 	
+	InitGlobalVars();
 	SetupProgram(0, 0);
 
 	TSize size = Size();

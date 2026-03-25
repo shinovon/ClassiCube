@@ -1,6 +1,6 @@
 #ifndef CC_LWEB_H
 #define CC_LWEB_H
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Constants.h"
 CC_BEGIN_HEADER
 

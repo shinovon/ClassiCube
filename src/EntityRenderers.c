@@ -1,6 +1,6 @@
 #include "EntityRenderers.h"
 #include "Entity.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Block.h"
 #include "Event.h"
 #include "ExtMath.h"

@@ -793,7 +793,6 @@ static void OnReset(void) {
 
 static void OnAtlasChanged(void* obj) { Block_RecalculateAllSpriteBB(); }
 static void OnInit(void) {
-	// FIXME: initialize global blocks
 	AutoRotate_Enabled = true;
 	Event_Register_(&TextureEvents.AtlasChanged, NULL, OnAtlasChanged);
 	OnReset();

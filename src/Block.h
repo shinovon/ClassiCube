@@ -12,7 +12,7 @@
 CC_BEGIN_HEADER
 
 struct IGameComponent;
-const struct IGameComponent Blocks_Component;
+extern const struct IGameComponent Blocks_Component;
 
 /* Describes how a block is rendered in the world. */
 enum DrawType {
@@ -100,7 +100,7 @@ struct _BlockLists {
 	float ParticleGravity[BLOCK_COUNT];
 };
 
-#define Global_Blocks (*Globals->Blocks)
+#define Global_Blocks (*Globals()->Blocks)
 
 #define Block_Tint(col, block)\
 if (Global_Blocks.Tinted[block]) col = PackedCol_Tint(col, Global_Blocks.FogCol[block]);

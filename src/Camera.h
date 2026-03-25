@@ -11,7 +11,7 @@ struct RayTracer;
 struct Camera;
 struct IGameComponent;
 struct LocalPlayer;
-const struct IGameComponent Camera_Component;
+extern const struct IGameComponent Camera_Component;
 
 /* Shared data for cameras. */
 struct _CameraData {
@@ -41,7 +41,7 @@ struct _CameraData {
 	float TiltPitch;
 };
 
-#define Global_Camera (*Globals->Camera)
+#define Global_Camera (*Globals()->Camera)
 
 struct Camera {
 	/* Whether this camera is third person. (i.e. not allowed when -thirdperson in MOTD) */
@@ -74,6 +74,10 @@ struct Camera {
 
 	/* Next camera in linked list of cameras. */
 	struct Camera* next;
+};
+
+struct CameraState {
+	float deltaX, deltaY;
 };
 
 /* Switches to next camera in the list of cameras. */

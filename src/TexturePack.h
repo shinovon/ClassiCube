@@ -1,6 +1,6 @@
 #ifndef CC_TEXPACKS_H
 #define CC_TEXPACKS_H
-#include "Bitmap.h"
+#include "Bitmap_.h"
 CC_BEGIN_HEADER
 
 /* 

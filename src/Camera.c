@@ -14,15 +14,10 @@
 #include "Platform.h"
 #include "Protocol.h"
 
-#define cameraClipPos (*Globals->cameraClipPos)
-#define cam_rotOffset (*Globals->cam_rotOffset)
-#define cam_isForwardThird (Globals->cam_isForwardThird)
-
-struct CameraState {
-	float deltaX, deltaY;
-};
-
-#define Camera_states (*Globals->Camera_states)
+#define cameraClipPos (*Globals()->cameraClipPos)
+#define cam_rotOffset (*Globals()->cam_rotOffset)
+#define cam_isForwardThird (Globals()->cam_isForwardThird)
+#define Camera_states (*Globals()->Camera_states)
 
 static void Camera_OnRawMovement(float deltaX, float deltaY, int deviceIndex) {
 	int i = Game_MapState(deviceIndex);

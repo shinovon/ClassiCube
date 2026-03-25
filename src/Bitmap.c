@@ -1,4 +1,4 @@
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Platform.h"
 #include "ExtMath.h"
 #include "Deflate.h"

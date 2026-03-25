@@ -1,6 +1,6 @@
 #include "Utils.h"
 #include "String_.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Platform.h"
 #include "Stream.h"
 #include "Errors.h"

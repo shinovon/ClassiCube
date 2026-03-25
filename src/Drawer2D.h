@@ -1,6 +1,6 @@
 #ifndef CC_DRAWER2D_H
 #define CC_DRAWER2D_H
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Constants.h"
 #include "Game.h"
 CC_BEGIN_HEADER

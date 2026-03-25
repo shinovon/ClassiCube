@@ -1,4 +1,6 @@
-#include "Core.h"
+extern "C" {
+	#include "Core.h"
+}
 #if defined CC_BUILD_SYMBIAN && CC_AUD_BACKEND != CC_AUD_BACKEND_NULL
 
 #include <e32base.h>

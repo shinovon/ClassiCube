@@ -1,6 +1,6 @@
 #ifndef CC_LAUNCHER_H
 #define CC_LAUNCHER_H
-#include "Bitmap.h"
+#include "Bitmap_.h"
 CC_BEGIN_HEADER
 
 /* Implements the launcher part of the game.

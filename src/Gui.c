@@ -11,7 +11,7 @@
 #include "Input.h"
 #include "Logger.h"
 #include "Platform.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Options.h"
 #include "Menus.h"
 #include "Funcs.h"

@@ -13,7 +13,7 @@
 #include "Chat.h"
 #include "Game.h"
 #include "Logger.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Block.h"
 #include "Input.h"
 #include "InputHandler.h"

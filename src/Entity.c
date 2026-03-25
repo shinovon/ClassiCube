@@ -16,7 +16,7 @@
 #include "InputHandler.h"
 #include "Gui.h"
 #include "Stream.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Logger.h"
 #include "Options.h"
 #include "Errors.h"

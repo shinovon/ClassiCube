@@ -7,7 +7,7 @@
 #include "Event.h"
 #include "Block.h"
 #include "Options.h"
-#include "Bitmap.h"
+#include "Bitmap_.h"
 #include "Chat.h"
 #include "Logger.h"
 
