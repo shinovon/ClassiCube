@@ -76,7 +76,7 @@ static float Model_MinDist(float dist, float extent) {
 float Model_RenderDistance(struct Entity* e) {
 	Vec3 pos     = e->Position;
 	struct AABB* bb = &e->ModelAABB;
-	Vec3 camPos  = Camera.CurrentPos;
+	Vec3 camPos  = Global_Camera.CurrentPos;
 	float dx, dy, dz;
 
 	/* X and Z are already at centre of model */

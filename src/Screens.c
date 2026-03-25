@@ -159,7 +159,7 @@ static void HUDScreen_BuildPosition(struct HUDScreen* s, struct VertexTextured* 
 static cc_bool HUDScreen_HasHacksChanged(struct HUDScreen* s) {
 	struct HacksComp* hacks = &Entities.CurPlayer->Hacks;
 	float speed = HacksComp_CalcSpeedFactor(hacks, hacks->CanSpeed);
-	return speed != s->lastSpeed || Camera.Fov != s->lastFov || s->hacksChanged;
+	return speed != s->lastSpeed || Global_Camera.Fov != s->lastFov || s->hacksChanged;
 }
 
 static void HUDScreen_RemakeLine2(struct HUDScreen* s) {
@@ -174,12 +174,12 @@ static void HUDScreen_RemakeLine2(struct HUDScreen* s) {
 	}
 
 	speed = HacksComp_CalcSpeedFactor(hacks, hacks->CanSpeed);
-	s->lastSpeed = speed; s->lastFov = Camera.Fov;
+	s->lastSpeed = speed; s->lastFov = Global_Camera.Fov;
 	s->hacksChanged = false;
 
 	String_InitArray(status, statusBuffer);
-	if (Camera.Fov != Camera.DefaultFov) {
-		String_Format1(&status, "Zoom fov %i  ", &Camera.Fov);
+	if (Global_Camera.Fov != Global_Camera.DefaultFov) {
+		String_Format1(&status, "Zoom fov %i  ", &Global_Camera.Fov);
 	}
 
 	if (hacks->Flying) String_AppendConst(&status, "Fly ON   ");

@@ -93,7 +93,7 @@ static void CheckWeather(float delta) {
 	IVec3 pos;
 	BlockID block;
 	cc_bool outside;
-	IVec3_Floor(&pos, &Camera.CurrentPos);
+	IVec3_Floor(&pos, &Global_Camera.CurrentPos);
 
 	block   = World_SafeGetBlock(pos.x, pos.y, pos.z);
 	outside = pos.y < 0 || !World_ContainsXZ(pos.x, pos.z);
@@ -622,14 +622,14 @@ static void UpdateChunks(float delta) {
 	Math_Clamp(chunksTarget, 4, maxChunkUpdates);
 
 	p = Entities.CurPlayer;
-	samePos = Vec3_Equals(&Camera.CurrentPos, &lastCamPos)
+	samePos = Vec3_Equals(&Global_Camera.CurrentPos, &lastCamPos)
 		&& p->Base.Pitch == lastPitch && p->Base.Yaw == lastYaw;
 
 	renderChunksCount = samePos ?
 		UpdateChunksStill(&chunkUpdates) :
 		UpdateChunksAndVisibility(&chunkUpdates);
 
-	lastCamPos = Camera.CurrentPos;
+	lastCamPos = Global_Camera.CurrentPos;
 	lastPitch  = p->Base.Pitch;
 	lastYaw    = p->Base.Yaw;
 
@@ -661,7 +661,7 @@ static void UpdateSortOrder(void) {
 	int i, dx, dy, dz;
 
 	/* pos is centre coordinate of chunk camera is in */
-	IVec3_Floor(&pos, &Camera.CurrentPos);
+	IVec3_Floor(&pos, &Global_Camera.CurrentPos);
 	pos.x = (pos.x & ~CHUNK_MASK) + HALF_CHUNK_SIZE;
 	pos.y = (pos.y & ~CHUNK_MASK) + HALF_CHUNK_SIZE;
 	pos.z = (pos.z & ~CHUNK_MASK) + HALF_CHUNK_SIZE;

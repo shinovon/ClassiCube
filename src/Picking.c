@@ -247,7 +247,7 @@ void Picking_CalcPickedBlock(const Vec3* origin, const Vec3* dir, float reach, s
 }
 
 void Picking_ClipCameraPos(const Vec3* origin, const Vec3* dir, float reach, struct RayTracer* t) {
-	cc_bool noClip = (!Camera.Clipping || Entities.CurPlayer->Hacks.Noclip)
+	cc_bool noClip = (!Global_Camera.Clipping || Entities.CurPlayer->Hacks.Noclip)
 						&& Entities.CurPlayer->Hacks.CanNoclip;
 	if (noClip || !World.Loaded || !RayTrace(t, origin, dir, reach, ClipCamera)) {
 		RayTracer_SetInvalid(t);

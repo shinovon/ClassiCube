@@ -759,12 +759,12 @@ static void LocalPlayer_RenderModel(struct Entity* e, float delta, float t) {
 	struct LocalPlayer* p = (struct LocalPlayer*)e;
 	AnimatedComp_GetCurrent(e, t);
 
-	if (!Camera.Active->isThirdPerson && p == Entities.CurPlayer) return;
+	if (!Global_Camera.Active->isThirdPerson && p == Entities.CurPlayer) return;
 	Model_Render(e->Model, e);
 }
 
 static cc_bool LocalPlayer_ShouldRenderName(struct Entity* e) {
-	return Camera.Active->isThirdPerson;
+	return Global_Camera.Active->isThirdPerson;
 }
 
 static void LocalPlayer_CheckJumpVelocity(void* obj) {
@@ -1107,7 +1107,7 @@ void LocalPlayers_MoveToSpawn(struct LocationUpdate* update) {
 	}
 	
 	/* TODO: This needs to be before new map... */
-	Camera.CurrentPos = Camera.Active->GetPosition(0.0f);
+	Global_Camera.CurrentPos = Global_Camera.Active->GetPosition(0.0f);
 }
 
 void LocalPlayer_CalcDefaultSpawn(struct LocalPlayer* p, struct LocationUpdate* update) {

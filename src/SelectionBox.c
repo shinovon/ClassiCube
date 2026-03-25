@@ -174,7 +174,7 @@ void Selections_Render(void) {
 
 	/* TODO: Proper selection box sorting. But this is very difficult because
 	   we can have boxes within boxes, intersecting boxes, etc. Probably not worth it. */
-	cameraPos = Camera.CurrentPos;
+	cameraPos = Global_Camera.CurrentPos;
 	for (i = 0; i < selections_count; i++) {
 		CalcDists(&selections_list[i], cameraPos);
 	}

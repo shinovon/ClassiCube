@@ -246,7 +246,7 @@ void Window_RequestClose(void) {
 static void ProcessTouchInput(int mods) {
 	touchPosition touch;
 	touchRead(&touch);
-	Camera.Sensitivity = 100; // TODO not hardcode this
+	Global_Camera.Sensitivity = 100; // TODO not hardcode this
 	
 	if (mods & KEY_TOUCH) {
 		Input_AddTouch(0,    touch.px,      touch.py);

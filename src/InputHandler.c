@@ -566,7 +566,7 @@ cc_bool InputHandler_SetFOV(int fov) {
 	struct HacksComp* h = &Entities.CurPlayer->Hacks;
 	if (!h->Enabled || !h->CanUseThirdPerson) return false;
 
-	Camera.ZoomFov = fov;
+	Global_Camera.ZoomFov = fov;
 	Camera_SetFov(fov);
 	return true;
 }
@@ -576,22 +576,22 @@ cc_bool Input_HandleMouseWheel(float delta) {
 	cc_bool hotbar;
 
 	hotbar = Input_IsAltPressed() || Input_IsCtrlPressed() || Input_IsShiftPressed();
-	if (!hotbar && Camera.Active->Zoom(delta))   return true;
+	if (!hotbar && Global_Camera.Active->Zoom(delta))   return true;
 	if (!Bind_IsTriggered[BIND_ZOOM_SCROLL]) return false;
 
 	h = &Entities.CurPlayer->Hacks;
 	if (!h->Enabled || !h->CanUseThirdPerson) return false;
 
-	if (input_fovIndex == -1.0f) input_fovIndex = (float)Camera.ZoomFov;
+	if (input_fovIndex == -1.0f) input_fovIndex = (float)Global_Camera.ZoomFov;
 	input_fovIndex -= delta * 5.0f;
 
-	Math_Clamp(input_fovIndex, 1.0f, Camera.DefaultFov);
+	Math_Clamp(input_fovIndex, 1.0f, Global_Camera.DefaultFov);
 	return InputHandler_SetFOV((int)input_fovIndex);
 }
 
 static void InputHandler_CheckZoomFov(void* obj) {
 	struct HacksComp* h = &Entities.CurPlayer->Hacks;
-	if (!h->Enabled || !h->CanUseThirdPerson) Camera_SetFov(Camera.DefaultFov);
+	if (!h->Enabled || !h->CanUseThirdPerson) Camera_SetFov(Global_Camera.DefaultFov);
 }
 
 
@@ -664,7 +664,7 @@ static cc_bool BindTriggered_HideGUI(int key, struct InputDevice* device) {
 static cc_bool BindTriggered_SmoothCamera(int key, struct InputDevice* device) {
 	if (Gui.InputGrab) return false;
 	
-	InputHandler_Toggle(key, &Camera.Smooth,
+	InputHandler_Toggle(key, &Global_Camera.Smooth,
 		"  &eSmooth camera is &aenabled",
 		"  &eSmooth camera is &cdisabled");
 	return true;

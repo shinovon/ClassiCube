@@ -789,11 +789,26 @@ struct Texture {
 
 struct _BlockLists;
 struct _WorldData;
+struct _DisplayData;
+struct cc_window;
+struct _CameraData;
+struct RayTracer;
+typedef struct Vec2_ { float x, y; } Vec2;
+struct CameraState;
 
 extern struct _Globals {
-	struct _BlockLists* Blocks;
-	struct _WorldData* World;
+	struct _DisplayData* DisplayInfo; // FIXME
+	struct cc_window* WindowInfo; // FIXME
+	
+	struct _BlockLists* Blocks; // FIXME
+	struct _WorldData* World; // FIXME
 	char World_nameBuffer[64];
+	
+	struct _CameraData* Camera; // FIXME
+	struct RayTracer* cameraClipPos; // FIXME
+	Vec2* cam_rotOffset; // FIXME
+	cc_bool cam_isForwardThird;
+	struct CameraState* Camera_states[1]; // FIXME
 }* Globals;
 
 #ifdef __cplusplus

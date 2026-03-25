@@ -69,7 +69,7 @@ static void SetMatrix(void) {
 	Vec3 eye = { 0,0,0 }; eye.y = Entity_GetEyeHeight(p);
 
 	Matrix_Translate(&lookAt, -eye.x, -eye.y, -eye.z);
-	Matrix_Mul(&Gfx.View, &lookAt, &Camera.TiltM);
+	Matrix_Mul(&Gfx.View, &lookAt, &Global_Camera.TiltM);
 }
 
 static void ResetHeldState(void) {
@@ -78,9 +78,9 @@ static void ResetHeldState(void) {
 	Vec3 eye = { 0,0,0 }; eye.y = Entity_GetEyeHeight(p);
 	held_entity.Position = eye;
 
-	held_entity.Position.x -= Camera.BobbingHor;
-	held_entity.Position.y -= Camera.BobbingVer;
-	held_entity.Position.z -= Camera.BobbingHor;
+	held_entity.Position.x -= Global_Camera.BobbingHor;
+	held_entity.Position.y -= Global_Camera.BobbingVer;
+	held_entity.Position.z -= Global_Camera.BobbingHor;
 
 	held_entity.Yaw   = -45.0f; held_entity.RotY = -45.0f;
 	held_entity.Pitch = 0.0f;   held_entity.RotX = 0.0f;
@@ -235,7 +235,7 @@ void HeldBlockRenderer_Render(float delta) {
 	ResetHeldState();
 	DoAnimation(delta, lastSwingY);
 	SetBaseOffset();
-	if (!Camera.Active->isThirdPerson) HeldBlockRenderer_RenderModel();
+	if (!Global_Camera.Active->isThirdPerson) HeldBlockRenderer_RenderModel();
 
 	Gfx.View = view;
 	Gfx_LoadMatrix(MATRIX_PROJ, &Gfx.Projection);

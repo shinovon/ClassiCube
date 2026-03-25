@@ -544,9 +544,9 @@ static void    ClO_SetMusic(cc_bool v) {
 	Options_SetInt(OPT_MUSIC_VOLUME, Audio_MusicVolume);
 }
 
-static cc_bool ClO_GetInvert(void) { return Camera.Invert; }
+static cc_bool ClO_GetInvert(void) { return Global_Camera.Invert; }
 static void    ClO_SetInvert(cc_bool v) { 
-	Camera.Invert = v;
+	Global_Camera.Invert = v;
 	Options_SetBool(OPT_INVERT_MOUSE, v); 
 }
 
@@ -981,9 +981,9 @@ static void HS_SetSpeed(const cc_string* v) {
 	Options_Set(OPT_SPEED_FACTOR, v);
 }
 
-static cc_bool HS_GetClipping(void) { return Camera.Clipping; }
+static cc_bool HS_GetClipping(void) { return Global_Camera.Clipping; }
 static void    HS_SetClipping(cc_bool v) {
-	Camera.Clipping = v;
+	Global_Camera.Clipping = v;
 	Options_SetBool(OPT_CAMERA_CLIPPING, v);
 }
 
@@ -1034,10 +1034,10 @@ static void    HS_SetSlide(cc_bool v) {
 	Options_SetBool(OPT_NOCLIP_SLIDE, v);
 }
 
-static int  HS_GetFOV(void)    { return Camera.Fov; }
+static int  HS_GetFOV(void)    { return Global_Camera.Fov; }
 static void HS_SetFOV(int fov) {
-	if (Camera.ZoomFov > fov) Camera.ZoomFov = fov;
-	Camera.DefaultFov = fov;
+	if (Global_Camera.ZoomFov > fov) Global_Camera.ZoomFov = fov;
+	Global_Camera.DefaultFov = fov;
 
 	Options_SetInt(OPT_FIELD_OF_VIEW, fov);
 	Camera_SetFov(fov);
@@ -1109,9 +1109,9 @@ void HacksSettingsScreen_Show(void) {
 /*########################################################################################################################*
 *----------------------------------------------------MiscOptionsScreen----------------------------------------------------*
 *#########################################################################################################################*/
-static void MiO_GetCameraMass(cc_string* v) { String_AppendFloat(v, Camera.Mass, 2); }
+static void MiO_GetCameraMass(cc_string* v) { String_AppendFloat(v, Global_Camera.Mass, 2); }
 static void MiO_SetCameraMass(const cc_string* c) {
-	Camera.Mass = Menu_Float(c);
+	Global_Camera.Mass = Menu_Float(c);
 	Options_Set(OPT_CAMERA_MASS, c);
 }
 
@@ -1136,9 +1136,9 @@ static void    MiO_SetViewBob(cc_bool v) {
 	Options_SetBool(OPT_VIEW_BOBBING, v); 
 }
 
-static cc_bool MiO_GetCamera(void) { return Camera.Smooth; }
+static cc_bool MiO_GetCamera(void) { return Global_Camera.Smooth; }
 static void    MiO_SetCamera(cc_bool v) { 
-	Camera.Smooth = v;
+	Global_Camera.Smooth = v;
 	Options_SetBool(OPT_CAMERA_SMOOTH, v); 
 }
 
@@ -1148,15 +1148,15 @@ static void    MiO_SetPhysics(cc_bool v) {
 	Options_SetBool(OPT_BLOCK_PHYSICS, v);
 }
 
-static cc_bool MiO_GetInvert(void) { return Camera.Invert; }
+static cc_bool MiO_GetInvert(void) { return Global_Camera.Invert; }
 static void    MiO_SetInvert(cc_bool v) { 
-	Camera.Invert = v;
+	Global_Camera.Invert = v;
 	Options_SetBool(OPT_INVERT_MOUSE, v); 
 }
 
-static int  MiO_GetSensitivity(void)  { return Camera.Sensitivity; }
+static int  MiO_GetSensitivity(void)  { return Global_Camera.Sensitivity; }
 static void MiO_SetSensitivity(int v) {
-	Camera.Sensitivity = v;
+	Global_Camera.Sensitivity = v;
 	Options_SetInt(OPT_SENSITIVITY, v);
 }
 

@@ -4,9 +4,6 @@
 #include "Logger.h"
 #include "Platform.h"
 
-struct _DisplayData DisplayInfo;
-struct cc_window WindowInfo;
-
 #define Display_CentreX(width)  (DisplayInfo.x + (DisplayInfo.Width  - width)  / 2)
 #define Display_CentreY(height) (DisplayInfo.y + (DisplayInfo.Height - height) / 2)
 

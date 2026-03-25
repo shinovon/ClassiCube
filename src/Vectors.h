@@ -11,7 +11,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 
 /* 2 component vector (2D vector) */
-typedef struct Vec2_ { float x, y; } Vec2;
+//typedef struct Vec2_ { float x, y; } Vec2;
 /* 3 component vector (3D vector) */
 typedef struct Vec3_ { float x, y, z; } Vec3;
 /* 3 component vector (3D integer vector) */

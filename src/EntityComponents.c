@@ -1123,7 +1123,7 @@ static cc_bool SoundComp_ShouldPlay(struct LocalPlayer* p, Vec3 soundPos) {
 	if (p->Base.Anim.Swing < 0.999f) return distSq > 1.75f * 1.75f;
 
 	/* have our legs just crossed over the '0' point? */
-	if (Camera.Active->isThirdPerson) {
+	if (Global_Camera.Active->isThirdPerson) {
 		oldLegRot = Math_CosF(p->Base.Anim.WalkTimeO);
 		newLegRot = Math_CosF(p->Base.Anim.WalkTimeN);
 	} else {

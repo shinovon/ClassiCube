@@ -14,7 +14,7 @@ struct LocalPlayer;
 const struct IGameComponent Camera_Component;
 
 /* Shared data for cameras. */
-CC_VAR extern struct _CameraData {
+struct _CameraData {
 	/* How sensitive camera is to movements of mouse. */
 	int Sensitivity;
 	/* Whether smooth/cinematic camera mode is used. */
@@ -39,7 +39,9 @@ CC_VAR extern struct _CameraData {
 	int Fov, DefaultFov, ZoomFov;
 
 	float TiltPitch;
-} Camera;
+};
+
+#define Global_Camera (*Globals->Camera)
 
 struct Camera {
 	/* Whether this camera is third person. (i.e. not allowed when -thirdperson in MOTD) */

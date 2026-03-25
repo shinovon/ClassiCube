@@ -20,7 +20,7 @@ enum KeyboardType { KEYBOARD_TYPE_TEXT, KEYBOARD_TYPE_NUMBER, KEYBOARD_TYPE_PASS
 /* (can't name these structs Window/Display, as that conflicts with X11's Window/Display typedef) */
 
 /* Data for the display monitor. */
-CC_VAR extern struct _DisplayData {
+struct _DisplayData {
 	/* Number of bits per pixel. (red bits + green bits + blue bits + alpha bits) */
 	/* NOTE: Only 24 or 32 bits per pixel are officially supported. */
 	/* Support for other values of bits per pixel is platform dependent. */
@@ -47,7 +47,9 @@ CC_VAR extern struct _DisplayData {
 	/*  Mainly intended for when the game is rendered on TV displays, where */
 	/*  pixels on the edges of the screen may be hidden due to overscan */
 	int ContentOffsetX, ContentOffsetY;
-} DisplayInfo;
+};
+
+#define DisplayInfo (*Globals->DisplayInfo)
 
 /* Scales the given X coordinate from 96 dpi to current display dpi. */
 static CC_INLINE int Display_ScaleX(int x) { return (int)(x * DisplayInfo.ScaleX); }
@@ -86,7 +88,7 @@ struct cc_window {
 #define DEFAULT_UI_SCALE_Y (1.0f / 480)
 
 /* Data for the game/launcher window */
-CC_VAR extern struct cc_window WindowInfo; /* Named WindowInfo for backwards compatibility */
+#define WindowInfo (*Globals->WindowInfo)
 #define Window_Main WindowInfo
 /* Data for alternate game window (e.g. 3DS) */
 extern struct cc_window Window_Alt;

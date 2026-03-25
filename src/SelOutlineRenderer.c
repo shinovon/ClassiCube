@@ -46,7 +46,7 @@ static void BuildMesh(struct RayTracer* selected) {
 	float size, scale;
 	Vec3 coords[4];
 
-	Vec3_Sub(&delta, &Camera.CurrentPos, &selected->Min);
+	Vec3_Sub(&delta, &Global_Camera.CurrentPos, &selected->Min);
 	dist = Vec3_LengthSquared(&delta);
 
 	offset = 0.01f;

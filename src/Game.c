@@ -516,7 +516,7 @@ static void Render3DFrame(float delta, float t) {
 	struct Matrix mvp;
 	Vec3 pos;
 
-	Camera.Active->GetView(&Gfx.View);
+	Global_Camera.Active->GetView(&Gfx.View);
 	/*Gfx_LoadMatrix(MATRIX_PROJ, &Gfx.Projection);
 	Gfx_LoadMatrix(MATRIX_VIEW, &Gfx.View);
 	FrustumCulling_CalcFrustumEquations(&Gfx.Projection, &Gfx.View);*/
@@ -542,7 +542,7 @@ static void Render3DFrame(float delta, float t) {
 	}
 
 	/* Render water over translucent blocks when under the water outside the map for proper alpha blending */
-	pos = Camera.CurrentPos;
+	pos = Global_Camera.CurrentPos;
 	if (pos.y < Env.EdgeHeight && (pos.x < 0 || pos.z < 0 || pos.x > World.Width || pos.z > World.Length)) {
 		MapRenderer_RenderTranslucent(delta);
 		EnvRenderer_RenderMapEdges();
@@ -683,7 +683,7 @@ static CC_INLINE void Game_DrawFrame(float delta, float t) {
 	int i;
 
 	if (!Gui_GetBlocksWorld()) {
-		Camera.Active->GetPickedBlock(&Game_SelectedPos); /* TODO: only pick when necessary */
+		Global_Camera.Active->GetPickedBlock(&Game_SelectedPos); /* TODO: only pick when necessary */
 		Camera_KeyLookUpdate(delta);
 		InputHandler_Tick(delta);
 
@@ -726,7 +726,7 @@ static void DrawSplitscreen(float delta, float t, int i, int x, int y, int w, in
 	
 	Entities.CurPlayer = &LocalPlayer_Instances[i];
 	LocalPlayer_SetInterpPosition(Entities.CurPlayer, t);
-	Camera.CurrentPos = Camera.Active->GetPosition(t);
+	Global_Camera.CurrentPos = Global_Camera.Active->GetPosition(t);
 	
 	Game_DrawFrame(delta, t);
 }
@@ -784,19 +784,19 @@ void Game_RenderFrame(void) {
 	{
 		Game.CurrentState  = i;
 		Entities.CurPlayer = &LocalPlayer_Instances[i];
-		Camera.Active->UpdateMouse(Entities.CurPlayer, delta);
+		Global_Camera.Active->UpdateMouse(Entities.CurPlayer, delta);
 	}
 	Game.CurrentState  = 0;
 	Entities.CurPlayer = &LocalPlayer_Instances[0];
 #else
-	Camera.Active->UpdateMouse(Entities.CurPlayer, delta);
+	Global_Camera.Active->UpdateMouse(Entities.CurPlayer, delta);
 #endif
 
 	if (!Window_Main.Focused && !Gui.InputGrab && autoPause) 
 		Gui_ShowPauseMenu();
 
 	if (Bind_IsTriggered[BIND_ZOOM_SCROLL] && !Gui.InputGrab) {
-		InputHandler_SetFOV(Camera.ZoomFov);
+		InputHandler_SetFOV(Global_Camera.ZoomFov);
 	}
 
 	PerformScheduledTasks(deltaD);
@@ -804,7 +804,7 @@ void Game_RenderFrame(void) {
 	t = (float)(entTask.accumulator / entTask.interval);
 	LocalPlayer_SetInterpPosition(Entities.CurPlayer, t);
 
-	Camera.CurrentPos = Camera.Active->GetPosition(t);
+	Global_Camera.CurrentPos = Global_Camera.Active->GetPosition(t);
 	/* NOTE: EnvRenderer_UpdateFog also also sets clear color */
 	EnvRenderer_UpdateFog();
 	AudioBackend_Tick();

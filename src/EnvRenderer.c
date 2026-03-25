@@ -60,14 +60,14 @@ static cc_bool CameraInsideBlock(BlockID block, IVec3* coords) {
 
 	Vec3_Add(&blockBB.Min, &pos, &Global_Blocks.MinBB[block]);
 	Vec3_Add(&blockBB.Max, &pos, &Global_Blocks.MaxBB[block]);
-	return AABB_ContainsPoint(&blockBB, &Camera.CurrentPos);
+	return AABB_ContainsPoint(&blockBB, &Global_Camera.CurrentPos);
 }
 
 static PackedCol CalcFog(float* density) {
 	IVec3 coords;
 	BlockID block;
 
-	IVec3_Floor(&coords, &Camera.CurrentPos); /* coords = floor(camera_pos); */
+	IVec3_Floor(&coords, &Global_Camera.CurrentPos); /* coords = floor(camera_pos); */
 	block = World_SafeGetBlock(coords.x, coords.y, coords.z);
 
 	if (Global_Blocks.FogDensity[block] && CameraInsideBlock(block, &coords)) {
@@ -271,7 +271,7 @@ void EnvRenderer_RenderSky(void) {
 	}
 
 	normY = (float)World.Height + 8.0f;
-	skyY  = max(Camera.CurrentPos.y + 8.0f, normY);
+	skyY  = max(Global_Camera.CurrentPos.y + 8.0f, normY);
 	Gfx_SetVertexFormat(VERTEX_FORMAT_COLOURED);
 	Gfx_BindVb(sky_vb);
 
@@ -351,11 +351,11 @@ void EnvRenderer_RenderSkybox(void) {
 	Matrix_Mul(&m, &rotY, &rotX);
 
 	/* Rotate around camera */
-	pos = Camera.CurrentPos;
-	Vec3_Set(Camera.CurrentPos, 0,0,0);
-	Camera.Active->GetView(&view); 
+	pos = Global_Camera.CurrentPos;
+	Vec3_Set(Global_Camera.CurrentPos, 0,0,0);
+	Global_Camera.Active->GetView(&view); 
 	Matrix_MulBy(&m, &view);
-	Camera.CurrentPos = pos;
+	Global_Camera.CurrentPos = pos;
 
 	Gfx_LoadMatrix(MATRIX_VIEW, &m);
 	Gfx_BindVb(skybox_vb);
@@ -484,7 +484,7 @@ void EnvRenderer_RenderWeather(float delta) {
 	if (!weather_vb)
 		weather_vb = Gfx_CreateDynamicVb(VERTEX_FORMAT_TEXTURED, WEATHER_VERTS_COUNT);
 
-	IVec3_Floor(&pos, &Camera.CurrentPos);
+	IVec3_Floor(&pos, &Global_Camera.CurrentPos);
 	moved   = pos.x != lastPos.x || pos.y != lastPos.y || pos.z != lastPos.z;
 	lastPos = pos;
 
@@ -812,7 +812,7 @@ void EnvRenderer_RenderMapEdges(void) {
 	/* Do not draw water when player cannot see it */
 	/* Fixes some 'depth bleeding through' issues with 16 bit depth buffers on large maps */
 	int yVisible = min(0, Env_SidesHeight);
-	if (Camera.CurrentPos.y < yVisible && sides_vb) return;
+	if (Global_Camera.CurrentPos.y < yVisible && sides_vb) return;
 
 	if (!edges_vb) {
 		BuildMapEdges();

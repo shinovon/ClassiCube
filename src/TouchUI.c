@@ -265,7 +265,7 @@ static void TouchCtrls_UpdateSensitivity(void* screen) {
 	struct TouchCtrlsScreen* s = (struct TouchCtrlsScreen*)screen;
 	String_InitArray(value, valueBuffer);
 
-	String_Format1(&value, "Sensitivity: %i", &Camera.Sensitivity);
+	String_Format1(&value, "Sensitivity: %i", &Global_Camera.Sensitivity);
 	ButtonWidget_Set(&s->btns[2], &value, &s->font);
 	s->dirty = true;
 }
@@ -298,7 +298,7 @@ static void TouchCtrls_SensitivityDone(const cc_string* value, cc_bool valid) {
 	if (!valid) return;
 	
 	Convert_ParseInt(value, &sensitivity);
-	Camera.Sensitivity = sensitivity;
+	Global_Camera.Sensitivity = sensitivity;
 	Options_Set(OPT_SENSITIVITY, value);
 	TouchCtrls_UpdateSensitivity(&TouchCtrlsScreen);
 }
@@ -310,7 +310,7 @@ static void TouchCtrls_Sensitivity(void* screen, void* w) {
 	String_InitArray(value, valueBuffer);
 
 	MenuInput_Int(desc, 1, 200, 30);
-	String_AppendInt(&value, Camera.Sensitivity);
+	String_AppendInt(&value, Global_Camera.Sensitivity);
 	MenuInputOverlay_Show(&desc, &value, TouchCtrls_SensitivityDone, true);
 	/* Fix Sensitivity button getting stuck as 'active' */
 	/* (input overlay swallows subsequent pointer events) */

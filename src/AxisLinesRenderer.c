@@ -39,13 +39,13 @@ void AxisLinesRenderer_Render(void) {
 	}
 	e = &Entities.CurPlayer->Base;
 	
-	if (Camera.Active->isThirdPerson) {
+	if (Global_Camera.Active->isThirdPerson) {
 		pos = e->Position;
 		axisLengthScale = 1;
 		axisThicknessScale = 1;
 		pos.y += 0.05f;
 	} else {
-		pos = Camera.CurrentPos;
+		pos = Global_Camera.CurrentPos;
 		dirVector = Vec3_GetDirVector(e->Yaw * MATH_DEG2RAD, e->Pitch * MATH_DEG2RAD);
 		Vec3_Mul1(&dirVector, &dirVector, 0.5f);
 		Vec3_Add(&pos, &dirVector, &pos);
