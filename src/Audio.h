@@ -1,13 +1,14 @@
 #ifndef CC_AUDIO_H
 #define CC_AUDIO_H
 #include "Core.h"
+#include "Game.h"
 /* Manages playing sound and music.
    Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 CC_BEGIN_HEADER
 
 struct IGameComponent;
-extern struct IGameComponent Audio_Component; 
+const struct IGameComponent Audio_Component; 
 struct AudioContext;
 
 #ifdef CC_BUILD_WEBAUDIO

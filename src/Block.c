@@ -800,7 +800,7 @@ static void OnInit(void) {
 	OnReset();
 }
 
-struct IGameComponent Blocks_Component = {
+const struct IGameComponent Blocks_Component = {
 	OnInit,  /* Init  */
 	NULL,    /* Free  */
 	OnReset, /* Reset */

@@ -135,7 +135,7 @@ static void OnInit(void) {
 
 static void OnFree(void) { OnContextLost(NULL); }
 
-struct IGameComponent SelOutlineRenderer_Component = {
+const struct IGameComponent SelOutlineRenderer_Component = {
 	OnInit, /* Init */
 	OnFree, /* Free */
 };

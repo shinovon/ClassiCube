@@ -816,7 +816,7 @@ static void OnFree(void) {
 	cmds_head = NULL;
 }
 
-struct IGameComponent Commands_Component = {
+const struct IGameComponent Commands_Component = {
 	OnInit, /* Init  */
 	OnFree  /* Free  */
 };

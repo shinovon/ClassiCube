@@ -11,7 +11,7 @@ struct RayTracer;
 struct Camera;
 struct IGameComponent;
 struct LocalPlayer;
-extern struct IGameComponent Camera_Component;
+const struct IGameComponent Camera_Component;
 
 /* Shared data for cameras. */
 CC_VAR extern struct _CameraData {

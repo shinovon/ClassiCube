@@ -309,7 +309,7 @@ static void OnFree(void) {
 	StringsBuffer_Clear(&Chat_InputLog);
 }
 
-struct IGameComponent Chat_Component = {
+const struct IGameComponent Chat_Component = {
 	OnInit, /* Init  */
 	OnFree, /* Free  */
 	OnReset /* Reset */

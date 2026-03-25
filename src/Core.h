@@ -672,6 +672,7 @@ typedef cc_uint8  cc_bool;
 	#if defined CC_BUILD_SYMBIAN_ESTLIB
 		#define DEFAULT_AUD_BACKEND CC_AUD_BACKEND_NULL
 		#define CC_BUILD_FPU_MODE CC_FPU_MODE_MINIMAL
+		#define CC_BUILD_TINYMEM
 		#if defined CC_BUILD_SYMBIAN_GLES10
 			#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1
 			#define CC_BUILD_GLES10
@@ -681,6 +682,7 @@ typedef cc_uint8  cc_bool;
 		#define CC_BUILD_NOMUSIC
 		#define CC_BUILD_NOSOUNDS
 		#undef CC_BUILD_NETWORKING
+		#undef CC_BUILD_PLUGINS
 	#else
 		#define CC_BUILD_TOUCH
 		#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1

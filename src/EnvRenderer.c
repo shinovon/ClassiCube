@@ -994,7 +994,7 @@ static void OnReset(void) {
 
 static void OnNewMapLoaded(void) { OnContextRecreated(NULL); }
 
-struct IGameComponent EnvRenderer_Component = {
+const struct IGameComponent EnvRenderer_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

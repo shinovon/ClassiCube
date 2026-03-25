@@ -2,6 +2,7 @@
 #define CC_GUI_H
 #include "Core.h"
 #include "PackedCol.h"
+#include "Game.h"
 
 CC_BEGIN_HEADER
 

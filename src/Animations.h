@@ -8,7 +8,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 CC_BEGIN_HEADER
 
 struct IGameComponent;
-extern struct IGameComponent Animations_Component;
+const struct IGameComponent Animations_Component;
 
 CC_END_HEADER
 #endif

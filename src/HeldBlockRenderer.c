@@ -270,6 +270,6 @@ void HeldBlockRenderer_Render(float delta) { }
 static void OnInit(void) { }
 #endif
 
-struct IGameComponent HeldBlockRenderer_Component = {
+const struct IGameComponent HeldBlockRenderer_Component = {
 	OnInit /* Init  */
 };

@@ -7,7 +7,7 @@ CC_BEGIN_HEADER
    Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct IGameComponent;
-extern struct IGameComponent EntityRenderers_Component;
+const struct IGameComponent EntityRenderers_Component;
 struct Entity;
 
 /* Draws shadows under entities, depending on Entities.ShadowsMode */

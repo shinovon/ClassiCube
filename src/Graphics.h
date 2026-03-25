@@ -2,6 +2,7 @@
 #define CC_GFXAPI_H
 #include "Vectors.h"
 #include "PackedCol.h"
+#include "Game.h"
 CC_BEGIN_HEADER
 
 /* 
@@ -25,7 +26,7 @@ struct Bitmap;
 struct Stream;
 struct IGameComponent;
 struct MenuOptionsScreen;
-extern struct IGameComponent Gfx_Component;
+extern const struct IGameComponent Gfx_Component;
 
 typedef enum VertexFormat_ {
 	VERTEX_FORMAT_COLOURED, VERTEX_FORMAT_TEXTURED

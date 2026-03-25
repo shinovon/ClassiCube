@@ -778,7 +778,7 @@ static void OnFree(void) {
 	OnReset();
 }
 
-struct IGameComponent Gui_Component = {
+const struct IGameComponent Gui_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

@@ -13,7 +13,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct ChunkInfo;
 struct IGameComponent;
-extern struct IGameComponent Builder_Component;
+const struct IGameComponent Builder_Component;
 
 extern int Builder_SidesLevel, Builder_EdgeLevel;
 /* Whether smooth/advanced lighting mesh builder is used. */

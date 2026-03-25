@@ -622,7 +622,7 @@ static void OnFree(void) { OnContextLost(NULL); }
 
 static void OnReset(void) { rain_count = 0; terrain_count = 0; custom_count = 0; }
 
-struct IGameComponent Particles_Component = {
+const struct IGameComponent Particles_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

@@ -544,7 +544,7 @@ static void OnFree(void) {
 	AudioBackend_Free();
 }
 
-struct IGameComponent Audio_Component = {
+const struct IGameComponent Audio_Component = {
 	OnInit, /* Init  */
 	OnFree  /* Free  */
 };

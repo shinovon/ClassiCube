@@ -8,7 +8,7 @@ Renders the held block/arm at bottom right of game
 Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct IGameComponent;
-extern struct IGameComponent HeldBlockRenderer_Component;
+const struct IGameComponent HeldBlockRenderer_Component;
 /* Whether held block/arm should be shown at all. */
 extern cc_bool HeldBlockRenderer_Show;
 

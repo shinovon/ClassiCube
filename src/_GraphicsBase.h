@@ -542,7 +542,7 @@ static void OnInit(void) {
 	OnContextRecreated(NULL);
 }
 
-struct IGameComponent Gfx_Component = {
+const struct IGameComponent Gfx_Component = {
 	OnInit /* Init */
 	/* Can't use OnFree because then Gfx would wrongly be the */
 	/* first component freed, even though it MUST be the last */

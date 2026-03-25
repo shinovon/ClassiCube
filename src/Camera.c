@@ -394,6 +394,6 @@ static void OnInit(void) {
 	Camera_UpdateProjection();
 }
 
-struct IGameComponent Camera_Component = {
+const struct IGameComponent Camera_Component = {
 	OnInit /* Init  */
 };

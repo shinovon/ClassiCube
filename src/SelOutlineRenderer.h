@@ -8,7 +8,7 @@ CC_BEGIN_HEADER
 */
 struct RayTracer;
 struct IGameComponent;
-extern struct IGameComponent SelOutlineRenderer_Component;
+const struct IGameComponent SelOutlineRenderer_Component;
 
 void SelOutlineRenderer_Render(struct RayTracer* selected, cc_bool dirty);
 

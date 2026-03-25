@@ -225,7 +225,7 @@ static void OnReset(void) { selections_count = 0; }
 
 static void OnFree(void) { Selections_ContextLost(NULL); }
 
-struct IGameComponent Selections_Component = {
+const struct IGameComponent Selections_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

@@ -14,7 +14,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 struct Stream;
 struct HttpRequest;
 struct IGameComponent;
-extern struct IGameComponent Textures_Component;
+const struct IGameComponent Textures_Component;
 
 /* Number of tiles in each row */
 #define ATLAS2D_TILES_PER_ROW 16

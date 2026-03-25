@@ -478,7 +478,7 @@ static void EntityRenderers_Free(void) {
 	EntityRenderers_ContextLost(NULL);
 }
 
-struct IGameComponent EntityRenderers_Component = {
+const struct IGameComponent EntityRenderers_Component = {
 	EntityRenderers_Init,  /* Init  */
 	EntityRenderers_Free   /* Free  */
 };

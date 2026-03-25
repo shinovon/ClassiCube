@@ -2,6 +2,7 @@
 #define CC_DRAWER2D_H
 #include "Bitmap.h"
 #include "Constants.h"
+#include "Game.h"
 CC_BEGIN_HEADER
 
 /*  Performs a variety of drawing operations on bitmaps, and converts bitmaps into textures.
@@ -14,7 +15,7 @@ struct DrawTextArgs { cc_string text; struct FontDesc* font; cc_bool useShadow; 
 struct Context2D { struct Bitmap bmp; int width, height; void* meta; };
 struct Texture;
 struct IGameComponent;
-extern struct IGameComponent Drawer2D_Component;
+extern const struct IGameComponent Drawer2D_Component;
 
 #define DRAWER2D_MAX_TEXT_LENGTH 256
 

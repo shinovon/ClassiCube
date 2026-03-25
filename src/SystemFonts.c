@@ -26,7 +26,7 @@ static void OnInit(void) {
 	if (Game_ClassicMode) font_default.length = 0;
 }
 
-struct IGameComponent SystemFonts_Component = {
+const struct IGameComponent SystemFonts_Component = {
 	OnInit /* Init  */
 };
 

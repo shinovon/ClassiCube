@@ -1,6 +1,7 @@
 #ifndef CC_CHAT_H
 #define CC_CHAT_H
 #include "Core.h"
+#include "Game.h"
 CC_BEGIN_HEADER
 
 /* Manages sending, adding, logging and handling chat.
@@ -8,7 +9,7 @@ CC_BEGIN_HEADER
 */
 struct IGameComponent;
 struct StringsBuffer;
-extern struct IGameComponent Chat_Component;
+const struct IGameComponent Chat_Component;
 
 enum MsgType {
 	MSG_TYPE_NORMAL   = 0,

@@ -1659,7 +1659,7 @@ static void OnNewMapLoaded(void) {
 	Builder_EdgeLevel  = max(0, Env.EdgeHeight);
 }
 
-struct IGameComponent Builder_Component = {
+const struct IGameComponent Builder_Component = {
 	OnInit, /* Init */
 	NULL, /* Free */
 	NULL, /* Reset */

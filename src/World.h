@@ -2,6 +2,7 @@
 #define CC_WORLD_H
 #include "Vectors.h"
 #include "PackedCol.h"
+#include "Game.h"
 CC_BEGIN_HEADER
 
 /* 
@@ -9,7 +10,7 @@ Represents a fixed size 3D array of blocks and associated metadata
 Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct AABB;
-extern struct IGameComponent World_Component;
+const struct IGameComponent World_Component;
 
 /* Unpacka an index into x,y,z (slow!) */
 #define World_Unpack(idx, x, y, z) x = idx % World.Width; z = (idx / World.Width) % World.Length; y = (idx / World.Width) / World.Length;

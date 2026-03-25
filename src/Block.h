@@ -4,6 +4,7 @@
 #include "Vectors.h"
 #include "Constants.h"
 #include "BlockID.h"
+#include "Game.h"
 /* Stores properties and data for blocks.
    Also performs automatic rotation of directional blocks.
    Copyright 2014-2025 ClassiCube | Licensed under BSD-3
@@ -11,7 +12,7 @@
 CC_BEGIN_HEADER
 
 struct IGameComponent;
-extern struct IGameComponent Blocks_Component;
+const struct IGameComponent Blocks_Component;
 
 /* Describes how a block is rendered in the world. */
 enum DrawType {

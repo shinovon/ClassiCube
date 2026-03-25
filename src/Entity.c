@@ -657,7 +657,7 @@ static void TabList_Clear(void) {
 	StringsBuffer_Clear(&TabList._buffer);
 }
 
-struct IGameComponent TabList_Component = {
+const struct IGameComponent TabList_Component = {
 	Tablist_Init,  /* Init  */
 	TabList_Clear, /* Free  */
 	TabList_Clear  /* Reset */
@@ -1210,7 +1210,7 @@ static void Entities_Free(void) {
 	sources_head = NULL;
 }
 
-struct IGameComponent Entities_Component = {
+const struct IGameComponent Entities_Component = {
 	Entities_Init,  /* Init  */
 	Entities_Free,  /* Free  */
 	LocalPlayers_Reset,    /* Reset */

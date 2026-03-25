@@ -7,7 +7,7 @@ CC_BEGIN_HEADER
    Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct IGameComponent;
-extern struct IGameComponent Commands_Component;
+const struct IGameComponent Commands_Component;
 
 cc_bool Commands_Execute(const cc_string* input);
 

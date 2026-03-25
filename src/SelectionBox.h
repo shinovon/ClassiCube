@@ -8,7 +8,7 @@ CC_BEGIN_HEADER
    Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct IGameComponent;
-extern struct IGameComponent Selections_Component;
+const struct IGameComponent Selections_Component;
 
 void Selections_Render(void);
 /* Adds or replaces the selection box with the given ID */

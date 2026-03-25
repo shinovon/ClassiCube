@@ -2001,7 +2001,7 @@ static void OnInit(void) { }
 static void OnReset(void) { }
 #endif
 
-struct IGameComponent Protocol_Component = {
+const struct IGameComponent Protocol_Component = {
 	OnInit,  /* Init  */
 	NULL,    /* Free  */
 	OnReset, /* Reset */

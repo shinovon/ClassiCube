@@ -720,7 +720,7 @@ static void OnFree(void) {
 	fontBitmap.scan0 = NULL;
 }
 
-struct IGameComponent Drawer2D_Component = {
+const struct IGameComponent Drawer2D_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

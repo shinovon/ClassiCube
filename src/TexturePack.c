@@ -800,7 +800,7 @@ static void OnFree(void) {
 	entries_head = NULL;
 }
 
-struct IGameComponent Textures_Component = {
+const struct IGameComponent Textures_Component = {
 	OnInit, /* Init  */
 	OnFree, /* Free  */
 	OnReset /* Reset */

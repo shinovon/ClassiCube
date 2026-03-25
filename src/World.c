@@ -320,7 +320,7 @@ Vec3 Respawn_FindSpawnPosition(float x, float z, Vec3 modelSize) {
 	return spawn;
 }
 
-struct IGameComponent World_Component = {
+const struct IGameComponent World_Component = {
 	World_Reset, /* Init  */
 	World_Reset  /* Free  */
 };

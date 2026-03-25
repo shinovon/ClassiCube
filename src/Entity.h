@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "PackedCol.h"
 #include "String_.h"
+#include "Game.h"
 CC_BEGIN_HEADER
 
 /* Represents an in-game entity.
@@ -15,8 +16,8 @@ struct IGameComponent;
 struct ScheduledTask;
 struct LocalPlayer;
 
-extern struct IGameComponent TabList_Component;
-extern struct IGameComponent Entities_Component;
+const struct IGameComponent TabList_Component;
+const struct IGameComponent Entities_Component;
 
 #ifdef CC_BUILD_SPLITSCREEN
 #define MAX_LOCAL_PLAYERS 4

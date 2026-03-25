@@ -554,7 +554,7 @@ static void OnClose(void) {
 	}
 }
 
-struct IGameComponent Server_Component = {
+const struct IGameComponent Server_Component = {
 	OnInit,  /* Init  */
 	OnFree,  /* Free  */
 	OnReset, /* Reset */

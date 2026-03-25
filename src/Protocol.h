@@ -68,7 +68,7 @@ CC_VAR extern struct _ProtocolData {
 
 struct RayTracer;	
 struct IGameComponent;
-extern struct IGameComponent Protocol_Component;
+const struct IGameComponent Protocol_Component;
 
 void Protocol_Tick(void);
 

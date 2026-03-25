@@ -9,7 +9,7 @@ CC_BEGIN_HEADER
 
 struct Stream; 
 struct IGameComponent;
-extern struct IGameComponent Formats_Component;
+const struct IGameComponent Formats_Component;
 
 /* Imports a world encoded in a particular map file format */
 typedef cc_result (*MapImportFunc)(struct Stream* stream);

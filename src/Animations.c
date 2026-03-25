@@ -404,7 +404,7 @@ static void Animations_Clear(void) { }
 static void OnInit(void) { }
 #endif
 
-struct IGameComponent Animations_Component = {
+const struct IGameComponent Animations_Component = {
 	OnInit,            /* Init  */
 	Animations_Clear  /* Free  */
 };

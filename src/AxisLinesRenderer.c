@@ -89,7 +89,7 @@ static void OnInit(void) {
 
 static void OnFree(void) { OnContextLost(NULL); }
 
-struct IGameComponent AxisLinesRenderer_Component = {
+const struct IGameComponent AxisLinesRenderer_Component = {
 	OnInit, /* Init */
 	OnFree, /* Free */
 };

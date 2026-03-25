@@ -10,7 +10,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 
 struct IGameComponent;
 struct ScheduledTask;
-extern struct IGameComponent Server_Component;
+extern const struct IGameComponent Server_Component;
 
 /* Prepares a ping entry for sending to the server, then returns its ID */
 int Ping_NextPingId(void);

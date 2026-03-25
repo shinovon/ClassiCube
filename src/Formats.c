@@ -1895,7 +1895,7 @@ static void OnInit(void) { }
 static void OnFree(void) { }
 #endif
 
-struct IGameComponent Formats_Component = {
+const struct IGameComponent Formats_Component = {
 	OnInit, /* Init  */
 	OnFree  /* Free  */
 };

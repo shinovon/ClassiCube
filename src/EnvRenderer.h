@@ -8,7 +8,7 @@ Renders environment of the map (clouds, sky, fog, map sides/edges, skybox, rain/
 Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 */
 struct IGameComponent;
-extern struct IGameComponent EnvRenderer_Component;
+const struct IGameComponent EnvRenderer_Component;
 
 #define ENV_MINIMAL 1
 #define ENV_LEGACY  2

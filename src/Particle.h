@@ -12,7 +12,7 @@ Copyright 2014-2025 ClassiCube | Licensed under BSD-3
 struct IGameComponent;
 struct VertexTextured;
 struct ScheduledTask;
-extern struct IGameComponent Particles_Component;
+const struct IGameComponent Particles_Component;
 
 struct Particle {
 	Vec3 velocity;
