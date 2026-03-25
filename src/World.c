@@ -11,8 +11,6 @@
 #include "TexturePack.h"
 #include "Window.h"
 
-struct _WorldData World;
-static char nameBuffer[STRING_SIZE];
 /*########################################################################################################################*
 *----------------------------------------------------------World----------------------------------------------------------*
 *#########################################################################################################################*/
@@ -38,6 +36,7 @@ static void GenerateNewUuid(void) {
 }
 
 void World_Reset(void) {
+	// FIXME: initialize world global
 #ifdef EXTENDED_BLOCKS
 	if (World.Global_Blocks != World.Blocks2) Mem_Free(World.Blocks2);
 	World.Blocks2 = NULL;
@@ -45,7 +44,7 @@ void World_Reset(void) {
 #endif
 	Mem_Free(World.Blocks);
 	World.Blocks = NULL;
-	String_InitArray(World.Name, nameBuffer);
+	String_InitArray(World.Name, Globals->World_nameBuffer);
 
 	World_SetDimensions(0, 0, 0);
 	World.Loaded   = false;

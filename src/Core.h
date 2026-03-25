@@ -792,7 +792,8 @@ struct _WorldData;
 
 extern struct _Globals {
 	struct _BlockLists* Blocks;
-	struct _WorlsData* World;
+	struct _WorldData* World;
+	char World_nameBuffer[64];
 }* Globals;
 
 #ifdef __cplusplus

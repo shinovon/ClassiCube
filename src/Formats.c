@@ -1734,19 +1734,11 @@ cc_result Schematic_Save(struct Stream* stream) {
 /*########################################################################################################################*
 *------------------------------------------------------Dat export---------------------------------------------------------*
 *#########################################################################################################################*/
-static const struct JField {
+
+struct JField {
 	cc_uint8 type, isFloat;
 	const char* name;
 	void* value;
-} level_fields[] = {
-	{ JFIELD_I32, false, "width",  &World.Width  },
-	{ JFIELD_I32, false, "depth",  &World.Height },
-	{ JFIELD_I32, false, "height", &World.Length },
-	{ JFIELD_I32, true,  "xSpawn", &LocalPlayer_Instances[0].Base.Position.x },
-	{ JFIELD_I32, true,  "ySpawn", &LocalPlayer_Instances[0].Base.Position.y },
-	{ JFIELD_I32, true,  "zSpawn", &LocalPlayer_Instances[0].Base.Position.z },
-	{ JFIELD_ARRAY,0, "blocks" }
-	/* TODO classic only blocks */
 };
 
 static int WriteJavaString(cc_uint8* dst, const char* value) {
@@ -1835,6 +1827,17 @@ cc_result Dat_Save(struct Stream* stream) {
 	cc_uint8 tmp[4];
 	cc_result res;
 	int i, value;
+	
+	const struct JField level_fields[] = {
+		{ JFIELD_I32, false, "width",  &World.Width  },
+		{ JFIELD_I32, false, "depth",  &World.Height },
+		{ JFIELD_I32, false, "height", &World.Length },
+		{ JFIELD_I32, true,  "xSpawn", &LocalPlayer_Instances[0].Base.Position.x },
+		{ JFIELD_I32, true,  "ySpawn", &LocalPlayer_Instances[0].Base.Position.y },
+		{ JFIELD_I32, true,  "zSpawn", &LocalPlayer_Instances[0].Base.Position.z },
+		{ JFIELD_ARRAY,0, "blocks" }
+		/* TODO classic only blocks */
+	};
 
 	if ((res = Stream_Write(stream, header, sizeof(header)))) return res;
 	if ((res = WriteClassDesc(stream, TC_OBJECT, "com.mojang.minecraft.level.Level", 

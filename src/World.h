@@ -22,7 +22,7 @@ const struct IGameComponent World_Component;
 /* TODO: Swap Y and Z? Make sure to update MapRenderer's ResetChunkCache and ClearChunkCache methods! */
 
 
-CC_VAR extern struct _WorldData {
+struct _WorldData {
 	/* The blocks in the world. */
 	BlockRaw* Blocks;
 #ifdef EXTENDED_BLOCKS
@@ -61,7 +61,9 @@ CC_VAR extern struct _WorldData {
 	int ChunksCount;
 	/* Seed world was generated with. May be 0 (unknown) */
 	int Seed;
-} World;
+};
+
+#define World (*Globals->World)
 
 /* Frees the blocks array, sets dimensions to 0, resets environment to default. */
 void World_Reset(void);
