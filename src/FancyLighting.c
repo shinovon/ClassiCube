@@ -195,20 +195,20 @@ static cc_uint8 GetBrightness(int x, int y, int z, cc_bool isLamp) {
 
 /* Light can never pass through a block that's full sized and blocks light */
 /* We can assume a block is full sized if none of the LightOffset flags are 0 */
-#define IsFullOpaque(thisBlock) (Blocks.BlocksLight[thisBlock] && Blocks.LightOffset[thisBlock] == 0xFF)
+#define IsFullOpaque(thisBlock) (Global_Blocks.BlocksLight[thisBlock] && Global_Blocks.LightOffset[thisBlock] == 0xFF)
 
 /* If it's not opaque and it doesn't block light, or it is brighter than 0, we can always pass through */
 /* Light can always pass through leaves and water */
 #define IsFullTransparent(thisBlock)\
 (\
-(Blocks.Draw[thisBlock] > DRAW_OPAQUE && !Blocks.BlocksLight[thisBlock]) || \
-Blocks.Draw[thisBlock] == DRAW_TRANSPARENT_THICK || \
-Blocks.Draw[thisBlock] == DRAW_TRANSLUCENT\
+(Global_Blocks.Draw[thisBlock] > DRAW_OPAQUE && !Global_Blocks.BlocksLight[thisBlock]) || \
+Global_Blocks.Draw[thisBlock] == DRAW_TRANSPARENT_THICK || \
+Global_Blocks.Draw[thisBlock] == DRAW_TRANSLUCENT\
 )
 
 static cc_bool CanLightPass(BlockID thisBlock, Face face) {
 	if (IsFullTransparent(thisBlock)) { return true; }
-	if (Blocks.Brightness[thisBlock]) { return true; }
+	if (Global_Blocks.Brightness[thisBlock]) { return true; }
 	if (IsFullOpaque(thisBlock)) { return false; }
 	/* Is stone's face hidden by thisBlock? TODO: Don't hardcode using stone */
 	return !Block_IsFaceHidden(BLOCK_STONE, thisBlock, face);
@@ -262,8 +262,8 @@ static void FlushLightQueue(cc_bool isLamp, cc_bool refreshChunk) {
 }
 
 cc_uint8 GetBlockBrightness(BlockID curBlock, cc_bool isLamp) {
-	if (isLamp) return Blocks.Brightness[curBlock] >> FANCY_LIGHTING_LAMP_SHIFT;
-	return Blocks.Brightness[curBlock] & FANCY_LIGHTING_MAX_LEVEL;
+	if (isLamp) return Global_Blocks.Brightness[curBlock] >> FANCY_LIGHTING_LAMP_SHIFT;
+	return Global_Blocks.Brightness[curBlock] & FANCY_LIGHTING_MAX_LEVEL;
 }
 
 #define LightNode_Init(node, X, Y, Z, bright) \
@@ -294,7 +294,7 @@ static void CalculateChunkLightingSelf(int chunkIndex, int cx, int cy, int cz) {
 
 				curBlock = World_GetBlock(x, y, z);
 				
-				if (Blocks.Brightness[curBlock] > 0) {
+				if (Global_Blocks.Brightness[curBlock] > 0) {
 
 					brightness = GetBlockBrightness(curBlock, false);
 
@@ -305,7 +305,7 @@ static void CalculateChunkLightingSelf(int chunkIndex, int cx, int cy, int cz) {
 					}
 					else {
 						/* If no lava brightness, it must use lamp brightness */
-						brightness = Blocks.Brightness[curBlock] >> FANCY_LIGHTING_LAMP_SHIFT;
+						brightness = Global_Blocks.Brightness[curBlock] >> FANCY_LIGHTING_LAMP_SHIFT;
 						LightNode_Init(entry, x, y, z, brightness);
 						Queue_Enqueue(&lightQueue, &entry);
 						FlushLightQueue(true, false);

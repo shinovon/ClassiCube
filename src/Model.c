@@ -2052,13 +2052,13 @@ static struct VertexTextured* bModel_vertices;
 
 static float BlockModel_GetNameY(struct Entity* e) {
 	BlockID block = e->ModelBlock;
-	return Blocks.MaxBB[block].y + 0.075f;
+	return Global_Blocks.MaxBB[block].y + 0.075f;
 }
 
 static float BlockModel_GetEyeY(struct Entity* e) {
 	BlockID block = e->ModelBlock;
-	float minY    = Blocks.MinBB[block].y;
-	float maxY    = Blocks.MaxBB[block].y;
+	float minY    = Global_Blocks.MinBB[block].y;
+	float maxY    = Global_Blocks.MaxBB[block].y;
 	return (minY + maxY) / 2.0f;
 }
 
@@ -2067,7 +2067,7 @@ static void BlockModel_GetSize(struct Entity* e) {
 	Vec3* size = &e->Size;
 	BlockID block = e->ModelBlock;
 
-	Vec3_Sub(size, &Blocks.MaxBB[block], &Blocks.MinBB[block]);
+	Vec3_Sub(size, &Global_Blocks.MaxBB[block], &Global_Blocks.MinBB[block]);
 	/* to fit slightly inside */
 	Vec3_SubBy(size, &shrink);
 
@@ -2081,8 +2081,8 @@ static void BlockModel_GetBounds(struct Entity* e) {
 	static Vec3 offset = { -0.5f, 0.0f, -0.5f };
 	BlockID block = e->ModelBlock;
 
-	Vec3_Add(&e->ModelAABB.Min, &Blocks.MinBB[block], &offset);
-	Vec3_Add(&e->ModelAABB.Max, &Blocks.MaxBB[block], &offset);
+	Vec3_Add(&e->ModelAABB.Min, &Global_Blocks.MinBB[block], &offset);
+	Vec3_Add(&e->ModelAABB.Max, &Global_Blocks.MaxBB[block], &offset);
 }
 
 static TextureLoc BlockModel_GetTex(Face face) {
@@ -2172,13 +2172,13 @@ static void BlockModel_BuildParts(struct Entity* e, cc_bool sprite) {
 		BlockModel_SpriteXQuad(true, false);
 		BlockModel_SpriteXQuad(true, true);
 	} else {
-		Drawer.MinBB = Blocks.MinBB[bModel_block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
-		Drawer.MaxBB = Blocks.MaxBB[bModel_block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
-		Drawer.Tinted  = Blocks.Tinted[bModel_block];
-		Drawer.TintCol = Blocks.FogCol[bModel_block];
+		Drawer.MinBB = Global_Blocks.MinBB[bModel_block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
+		Drawer.MaxBB = Global_Blocks.MaxBB[bModel_block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
+		Drawer.Tinted  = Global_Blocks.Tinted[bModel_block];
+		Drawer.TintCol = Global_Blocks.FogCol[bModel_block];
 
-		min = Blocks.RenderMinBB[bModel_block];
-		max = Blocks.RenderMaxBB[bModel_block];
+		min = Global_Blocks.RenderMinBB[bModel_block];
+		max = Global_Blocks.RenderMaxBB[bModel_block];
 
 		Drawer.X1 = min.x - 0.5f; Drawer.Y1 = min.y; Drawer.Z1 = min.z - 0.5f;
 		Drawer.X2 = max.x - 0.5f; Drawer.Y2 = max.y; Drawer.Z2 = max.z - 0.5f;		
@@ -2223,16 +2223,16 @@ static void BlockModel_Draw(struct Entity* e) {
 
 	bModel_block = e->ModelBlock;
 	bModel_index = 0;
-	if (Blocks.Draw[bModel_block] == DRAW_GAS) return;
+	if (Global_Blocks.Draw[bModel_block] == DRAW_GAS) return;
 
-	if (Blocks.Brightness[bModel_block]) {
+	if (Global_Blocks.Brightness[bModel_block]) {
 		for (i = 0; i < FACE_COUNT; i++)
 		{
 			Models.Cols[i] = PACKEDCOL_WHITE;
 		}
 	}
 
-	sprite = Blocks.Draw[bModel_block] == DRAW_SPRITE;
+	sprite = Global_Blocks.Draw[bModel_block] == DRAW_SPRITE;
 	BlockModel_BuildParts(e, sprite);
 
 	if (sprite) Gfx_SetFaceCulling(true);

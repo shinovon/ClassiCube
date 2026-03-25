@@ -39,7 +39,7 @@ static void GenerateNewUuid(void) {
 
 void World_Reset(void) {
 #ifdef EXTENDED_BLOCKS
-	if (World.Blocks != World.Blocks2) Mem_Free(World.Blocks2);
+	if (World.Global_Blocks != World.Blocks2) Mem_Free(World.Blocks2);
 	World.Blocks2 = NULL;
 	World.IDMask  = 0xFF;
 #endif
@@ -71,7 +71,7 @@ void World_SetNewMap(BlockRaw* blocks, int width, int height, int length) {
 #ifdef EXTENDED_BLOCKS
 	/* .cw maps may have set this to a non-NULL when importing */
 	if (!World.Blocks2) {
-		World.Blocks2 = World.Blocks;
+		World.Blocks2 = World.Global_Blocks;
 		World.IDMask  = 0xFF;
 	}
 #endif
@@ -124,10 +124,10 @@ static CC_NOINLINE void LazyInitUpper(int i, BlockID block) {
 
 void World_SetBlock(int x, int y, int z, BlockID block) {
 	int i = World_Pack(x, y, z);
-	World.Blocks[i] = (BlockRaw)block;
+	World.Global_Blocks[i] = (BlockRaw)block;
 
 	/* defer allocation of second map array if possible */
-	if (World.Blocks == World.Blocks2) {
+	if (World.Global_Blocks == World.Blocks2) {
 		if (block < 256) return;
 		LazyInitUpper(i, block);
 		return;
@@ -288,10 +288,10 @@ float Respawn_HighestSolidY(struct AABB* bb) {
 				/* Not sure if this is really necessary though, it seems to work */
 				/* just fine already when you're standing on the bottom of the map. */
 				block = World_SafeGetBlock(x, y, z);
-				Vec3_Add(&blockBB.Min, &v, &Blocks.MinBB[block]);
-				Vec3_Add(&blockBB.Max, &v, &Blocks.MaxBB[block]);
+				Vec3_Add(&blockBB.Min, &v, &Global_Blocks.MinBB[block]);
+				Vec3_Add(&blockBB.Max, &v, &Global_Blocks.MaxBB[block]);
 
-				if (Blocks.Collide[block] != COLLIDE_SOLID) continue;
+				if (Global_Blocks.Collide[block] != COLLIDE_SOLID) continue;
 				if (!AABB_Intersects(bb, &blockBB)) continue;
 				if (blockBB.Max.y > highestY) highestY = blockBB.Max.y;
 			}

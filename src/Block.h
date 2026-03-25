@@ -36,7 +36,7 @@ enum CollideType {
 	COLLIDE_CLIMB         /* Rope/Ladder style climbing interaction when player collides. */
 };
 
-CC_VAR extern struct _BlockLists {
+struct _BlockLists {
 	/* Whether this block is a liquid. (Like water/lava) */
 	cc_bool IsLiquid[BLOCK_COUNT];
 	/* Whether this block prevents lights from passing through it. */
@@ -98,10 +98,12 @@ CC_VAR extern struct _BlockLists {
 	cc_uint8 CanStretch[BLOCK_COUNT];
 	/* Gravity of particles spawned when this block is broken */
 	float ParticleGravity[BLOCK_COUNT];
-} Blocks;
+};
+
+#define Global_Blocks (*Globals->Blocks)
 
 #define Block_Tint(col, block)\
-if (Blocks.Tinted[block]) col = PackedCol_Tint(col, Blocks.FogCol[block]);
+if (Global_Blocks.Tinted[block]) col = PackedCol_Tint(col, Global_Blocks.FogCol[block]);
 
 /* Most blocks which 'stop' light actually stop the light starting at block below */
 /*  except for e.g. upside down slabs which 'stop' the light at same block level */
@@ -135,10 +137,10 @@ CC_API int Block_Parse(const cc_string* name);
 /* Sets the textures of the side faces of the given block */
 void Block_SetSide(TextureLoc texLoc, BlockID blockId);
 /* The texture for the given face of the given block */
-#define Block_Tex(block, face) Blocks.Textures[(block) * FACE_COUNT + (face)]
+#define Block_Tex(block, face) Global_Blocks.Textures[(block) * FACE_COUNT + (face)]
 
 /* Whether the given face of this block is occluded/hidden */
-#define Block_IsFaceHidden(block, other, face) (Blocks.Hidden[((block) * BLOCK_COUNT) + (other)] & (1 << (face)))
+#define Block_IsFaceHidden(block, other, face) (Global_Blocks.Hidden[((block) * BLOCK_COUNT) + (other)] & (1 << (face)))
 
 /* Whether blocks can be automatically rotated */
 extern cc_bool AutoRotate_Enabled;

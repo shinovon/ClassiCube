@@ -337,7 +337,7 @@ static void Physics_PropagateLava(int posIndex, int x, int y, int z) {
 		if (block == BLOCK_WATER || block == BLOCK_STILL_WATER) {
 			Game_UpdateBlock(x, y, z, BLOCK_STONE);
 		}
-	} else if (Blocks.Collide[block] == COLLIDE_NONE) {
+	} else if (Global_Blocks.Collide[block] == COLLIDE_NONE) {
 		TickQueue_Enqueue(&lavaQ, PHYSICS_LAVA_DELAY | posIndex);
 		Game_UpdateBlock(x, y, z, BLOCK_LAVA);
 	}
@@ -380,7 +380,7 @@ static void Physics_PropagateWater(int posIndex, int x, int y, int z) {
 		if (block == BLOCK_LAVA || block == BLOCK_STILL_LAVA) {
 			Game_UpdateBlock(x, y, z, BLOCK_STONE);
 		}
-	} else if (Blocks.Collide[block] == COLLIDE_NONE) {
+	} else if (Global_Blocks.Collide[block] == COLLIDE_NONE) {
 		/* Sponge check */		
 		for (yy = (y < 2 ? 0 : y - 2); yy <= (y > physics_maxWaterY ? World.MaxY : y + 2); yy++) {
 			for (zz = (z < 2 ? 0 : z - 2); zz <= (z > physics_maxWaterZ ? World.MaxZ : z + 2); zz++) {
@@ -486,7 +486,7 @@ static void Physics_HandleCobblestoneSlab(int index, BlockID block) {
 static cc_bool BlocksTNT(BlockID b) {
 	/* NOTE: A bit hacky, but works well enough */
 	return (b >= BLOCK_WATER && b <= BLOCK_STILL_LAVA) || 
-		(Blocks.ExtendedCollide[b] == COLLIDE_SOLID && (Blocks.DigSounds[b] == SOUND_METAL || Blocks.DigSounds[b] == SOUND_STONE));
+		(Global_Blocks.ExtendedCollide[b] == COLLIDE_SOLID && (Global_Blocks.DigSounds[b] == SOUND_METAL || Global_Blocks.DigSounds[b] == SOUND_STONE));
 }
 
 #define TNT_POWER 4

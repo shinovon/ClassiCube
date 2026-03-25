@@ -1732,8 +1732,8 @@ static void InventoryScreen_GetTitleText(cc_string* desc, BlockID block) {
 	if (Game_ClassicMode) return;
 
 	String_Format1(desc, " (ID %i&f", &block_);
-	if (!Blocks.CanPlace[block])  { String_AppendConst(desc,  ", place &cNo&f"); }
-	if (!Blocks.CanDelete[block]) { String_AppendConst(desc, ", delete &cNo&f"); }
+	if (!Global_Blocks.CanPlace[block])  { String_AppendConst(desc,  ", place &cNo&f"); }
+	if (!Global_Blocks.CanDelete[block]) { String_AppendConst(desc, ", delete &cNo&f"); }
 	String_Append(desc, ')');
 }
 

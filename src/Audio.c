@@ -207,11 +207,11 @@ static void Sounds_Play(cc_uint8 type, struct Soundboard* board) {
 
 static void Audio_PlayBlockSound(void* obj, IVec3 coords, BlockID old, BlockID now) {
 	if (now == BLOCK_AIR) {
-		Audio_PlayDigSound(Blocks.DigSounds[old]);
+		Audio_PlayDigSound(Global_Blocks.DigSounds[old]);
 	} else if (!Game_ClassicMode) {
 		/* use StepSounds instead when placing, as don't want */
 		/*  to play glass break sound when placing glass */
-		Audio_PlayDigSound(Blocks.StepSounds[now]);
+		Audio_PlayDigSound(Global_Blocks.StepSounds[now]);
 	}
 }
 

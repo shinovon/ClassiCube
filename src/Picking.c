@@ -179,8 +179,8 @@ static cc_bool RayTrace(struct RayTracer* t, const Vec3* origin, const Vec3* dir
 		v.x = (float)x; v.y = (float)y; v.z = (float)z;
 
 		t->block = insideMap ? Picking_GetInside(x, y, z) : Picking_GetOutside(x, y, z, pOrigin);
-		Vec3_Add(&t->Min, &v, &Blocks.RenderMinBB[t->block]);
-		Vec3_Add(&t->Max, &v, &Blocks.RenderMaxBB[t->block]);
+		Vec3_Add(&t->Min, &v, &Global_Blocks.RenderMinBB[t->block]);
+		Vec3_Add(&t->Max, &v, &Global_Blocks.RenderMaxBB[t->block]);
 
 		dxMin = Math_AbsF(origin->x - t->Min.x); dxMax = Math_AbsF(origin->x - t->Max.x);
 		dyMin = Math_AbsF(origin->y - t->Min.y); dyMax = Math_AbsF(origin->y - t->Max.y);
@@ -226,7 +226,7 @@ static cc_bool ClipCamera(struct RayTracer* t) {
 	Vec3 intersect;
 	float t0, t1;
 
-	if (Blocks.Draw[t->block] == DRAW_GAS || Blocks.Collide[t->block] != COLLIDE_SOLID) return false;
+	if (Global_Blocks.Draw[t->block] == DRAW_GAS || Global_Blocks.Collide[t->block] != COLLIDE_SOLID) return false;
 	if (!Intersection_RayIntersectsBox(t->origin, t->invDir, t->Min, t->Max, &t0, &t1)) return false;
 
 	/* Need to collide with slightly outside block, to avoid camera clipping issues */

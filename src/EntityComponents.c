@@ -527,11 +527,11 @@ static cc_bool Collisions_CanSlideThrough(struct AABB* adjFinalBB) {
 			for (x = bbMin.x; x <= bbMax.x; x++) { v.x = (float)x;
 
 				block = World_GetPhysicsBlock(x, y, z);
-				Vec3_Add(&blockBB.Min, &v, &Blocks.MinBB[block]);
-				Vec3_Add(&blockBB.Max, &v, &Blocks.MaxBB[block]);
+				Vec3_Add(&blockBB.Min, &v, &Global_Blocks.MinBB[block]);
+				Vec3_Add(&blockBB.Max, &v, &Global_Blocks.MaxBB[block]);
 
 				if (!AABB_Intersects(&blockBB, adjFinalBB)) continue;
-				if (Blocks.Collide[block] == COLLIDE_SOLID) return false;
+				if (Global_Blocks.Collide[block] == COLLIDE_SOLID) return false;
 			}
 		}
 	}
@@ -641,8 +641,8 @@ static void Collisions_CollideWithReachableBlocks(struct CollisionsComp* comp, i
 		bPos.x = state.x >> 3; bPos.y = state.y >> 4; bPos.z = state.z >> 3;
 		block  = (state.x & 0x7) | (state.y & 0xF) << 3 | (state.z & 0x7) << 7;
 
-		Vec3_Add(&blockBB.Min, &Blocks.MinBB[block], &bPos);
-		Vec3_Add(&blockBB.Max, &Blocks.MaxBB[block], &bPos);
+		Vec3_Add(&blockBB.Min, &Global_Blocks.MinBB[block], &bPos);
+		Vec3_Add(&blockBB.Max, &Global_Blocks.MaxBB[block], &bPos);
 		if (!AABB_Intersects(extentBB, &blockBB)) continue;
 
 		/* Recheck time to collide with block (as colliding with blocks modifies this) */
@@ -721,7 +721,7 @@ void PhysicsComp_Init(struct PhysicsComp* comp, struct Entity* entity) {
 	Vec3_Set(comp->groundFriction, 0.6f,   1.0f,  0.6f);
 }
 
-static cc_bool PhysicsComp_TouchesLiquid(BlockID block) { return Blocks.Collide[block] == COLLIDE_LIQUID; }
+static cc_bool PhysicsComp_TouchesLiquid(BlockID block) { return Global_Blocks.Collide[block] == COLLIDE_LIQUID; }
 void PhysicsComp_UpdateVelocityState(struct PhysicsComp* comp) {
 	struct Entity* entity   = comp->Entity;
 	struct HacksComp* hacks = comp->Hacks;
@@ -799,7 +799,7 @@ void PhysicsComp_DoNormalJump(struct PhysicsComp* comp) {
 	comp->CanLiquidJump = false;
 }
 
-static cc_bool PhysicsComp_TouchesSlipperyIce(BlockID b) { return Blocks.ExtendedCollide[b] == COLLIDE_SLIPPERY_ICE; }
+static cc_bool PhysicsComp_TouchesSlipperyIce(BlockID b) { return Global_Blocks.ExtendedCollide[b] == COLLIDE_SLIPPERY_ICE; }
 static cc_bool PhysicsComp_OnIce(struct Entity* e) {
 	struct AABB bounds;
 	int feetX, feetY, feetZ;
@@ -810,7 +810,7 @@ static cc_bool PhysicsComp_OnIce(struct Entity* e) {
 	feetZ = Math_Floor(e->Position.z);
 
 	feetBlock = World_GetPhysicsBlock(feetX, feetY, feetZ);
-	if (Blocks.ExtendedCollide[feetBlock] == COLLIDE_ICE) return true;
+	if (Global_Blocks.ExtendedCollide[feetBlock] == COLLIDE_ICE) return true;
 
 	Entity_GetBounds(e, &bounds);
 	bounds.Min.y -= 0.01f; bounds.Max.y = bounds.Min.y;
@@ -889,15 +889,15 @@ static float PhysicsComp_LowestModifier(struct PhysicsComp* comp, struct AABB* b
 				block = World_GetBlock(x, y, z);
 
 				if (block == BLOCK_AIR) continue;
-				collide = Blocks.Collide[block];
+				collide = Global_Blocks.Collide[block];
 				if (collide == COLLIDE_SOLID && !checkSolid) continue;
 
-				Vec3_Add(&blockBB.Min, &v, &Blocks.MinBB[block]);
-				Vec3_Add(&blockBB.Max, &v, &Blocks.MaxBB[block]);
+				Vec3_Add(&blockBB.Min, &v, &Global_Blocks.MinBB[block]);
+				Vec3_Add(&blockBB.Max, &v, &Global_Blocks.MaxBB[block]);
 				if (!AABB_Intersects(&blockBB, bounds)) continue;
 
-				modifier = min(modifier, Blocks.SpeedMultiplier[block]);
-				if (Blocks.ExtendedCollide[block] == COLLIDE_LIQUID) {
+				modifier = min(modifier, Global_Blocks.SpeedMultiplier[block]);
+				if (Global_Blocks.ExtendedCollide[block] == COLLIDE_LIQUID) {
 					comp->UseLiquidGravity = true;
 				}
 			}
@@ -1063,19 +1063,19 @@ static cc_bool  sounds_anyNonAir;
 static cc_uint8 sounds_type;
 
 static cc_bool Sounds_CheckNonSolid(BlockID b) {
-	cc_uint8 type = Blocks.StepSounds[b];
-	cc_uint8 collide = Blocks.Collide[b];
+	cc_uint8 type = Global_Blocks.StepSounds[b];
+	cc_uint8 collide = Global_Blocks.Collide[b];
 	if (type != SOUND_NONE && collide != COLLIDE_SOLID) sounds_type = type;
 
-	if (Blocks.Draw[b] != DRAW_GAS) sounds_anyNonAir = true;
+	if (Global_Blocks.Draw[b] != DRAW_GAS) sounds_anyNonAir = true;
 	return false;
 }
 
 static cc_bool Sounds_CheckSolid(BlockID b) {
-	cc_uint8 type = Blocks.StepSounds[b];
+	cc_uint8 type = Global_Blocks.StepSounds[b];
 	if (type != SOUND_NONE) sounds_type = type;
 
-	if (Blocks.Draw[b] != DRAW_GAS) sounds_anyNonAir = true;
+	if (Global_Blocks.Draw[b] != DRAW_GAS) sounds_anyNonAir = true;
 	return false;
 }
 
@@ -1099,10 +1099,10 @@ static void SoundComp_GetSound(struct LocalPlayer* p) {
 	pos = p->Base.next.pos; pos.y -= 0.01f;
 	IVec3_Floor(&coords, &pos);
 	blockUnder = World_SafeGetBlock(coords.x, coords.y, coords.z);
-	maxY = coords.y + Blocks.MaxBB[blockUnder].y;
+	maxY = coords.y + Global_Blocks.MaxBB[blockUnder].y;
 
-	typeUnder    = Blocks.StepSounds[blockUnder];
-	collideUnder = Blocks.Collide[blockUnder];
+	typeUnder    = Global_Blocks.StepSounds[blockUnder];
+	collideUnder = Global_Blocks.Collide[blockUnder];
 	if (maxY >= pos.y && collideUnder == COLLIDE_SOLID && typeUnder != SOUND_NONE) {
 		sounds_anyNonAir = true; sounds_type = typeUnder; return;
 	}

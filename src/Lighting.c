@@ -40,8 +40,8 @@ static cc_int16* classic_heightmap;
 for (y = maxY; y >= 0; y--, i -= World.OneY) {\
 	block = get_block;\
 \
-	if (Blocks.BlocksLight[block]) {\
-		offset = (Blocks.LightOffset[block] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;\
+	if (Global_Blocks.BlocksLight[block]) {\
+		offset = (Global_Blocks.LightOffset[block] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;\
 		classic_heightmap[hIndex] = y - offset;\
 		return y - offset;\
 	}\
@@ -56,9 +56,9 @@ static int ClassicLighting_CalcHeightAt(int x, int maxY, int z, int hIndex) {
 	ClassicLighting_CalcBody(World.Blocks[i]);
 #else
 	if (World.IDMask <= 0xFF) {
-		ClassicLighting_CalcBody(World.Blocks[i]);
+		ClassicLighting_CalcBody(World.Global_Blocks[i]);
 	} else {
-		ClassicLighting_CalcBody(World.Blocks[i] | (World.Blocks2[i] << 8));
+		ClassicLighting_CalcBody(World.Global_Blocks[i] | (World.Blocks2[i] << 8));
 	}
 #endif
 
@@ -88,7 +88,7 @@ static PackedCol ClassicLighting_Color(int x, int y, int z) {
 
 static PackedCol SmoothLighting_Color(int x, int y, int z) {
 	if (!World_Contains(x, y, z)) return Env.SunCol;
-	if (Blocks.Brightness[World_GetBlock(x, y, z)]) return Env.SunCol;
+	if (Global_Blocks.Brightness[World_GetBlock(x, y, z)]) return Env.SunCol;
 	return y > ClassicLighting_GetLightHeight(x, z) ? Env.SunCol : Env.ShadowCol;
 }
 
@@ -129,10 +129,10 @@ void ClassicLighting_Refresh(void) {
 *----------------------------------------------------Lighting update------------------------------------------------------*
 *#########################################################################################################################*/
 static void ClassicLighting_UpdateLighting(int x, int y, int z, BlockID oldBlock, BlockID newBlock, int index, int lightH) {
-	cc_bool didBlock  = Blocks.BlocksLight[oldBlock];
-	cc_bool nowBlocks = Blocks.BlocksLight[newBlock];
-	int oldOffset     = (Blocks.LightOffset[oldBlock] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;
-	int newOffset     = (Blocks.LightOffset[newBlock] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;
+	cc_bool didBlock  = Global_Blocks.BlocksLight[oldBlock];
+	cc_bool nowBlocks = Global_Blocks.BlocksLight[newBlock];
+	int oldOffset     = (Global_Blocks.LightOffset[oldBlock] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;
+	int newOffset     = (Global_Blocks.LightOffset[newBlock] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;
 	BlockID above;
 
 	/* Two cases we need to handle here: */
@@ -153,7 +153,7 @@ static void ClassicLighting_UpdateLighting(int x, int y, int z, BlockID oldBlock
 		/* For a solid block on top of an upside down slab, they will both have the same light height. */
 		/* So we need to account for this particular case. */
 		above = y == (World.Height - 1) ? BLOCK_AIR : World_GetBlock(x, y + 1, z);
-		if (Blocks.BlocksLight[above]) return;
+		if (Global_Blocks.BlocksLight[above]) return;
 
 		if (nowBlocks) {
 			classic_heightmap[index] = y - newOffset;
@@ -164,14 +164,14 @@ static void ClassicLighting_UpdateLighting(int x, int y, int z, BlockID oldBlock
 }
 
 static cc_bool ClassicLighting_Needs(BlockID block, BlockID other) {
-	return Blocks.Draw[block] != DRAW_OPAQUE || Blocks.Draw[other] != DRAW_GAS;
+	return Global_Blocks.Draw[block] != DRAW_OPAQUE || Global_Blocks.Draw[other] != DRAW_GAS;
 }
 
 #define ClassicLighting_NeedsNeighourBody(get_block)\
 /* Update if any blocks in the chunk are affected by light change. */ \
 for (; y >= minY; y--, i -= World.OneY) {\
 	other    = get_block;\
-	affected = y == nY ? ClassicLighting_Needs(block, other) : Blocks.Draw[other] != DRAW_GAS;\
+	affected = y == nY ? ClassicLighting_Needs(block, other) : Global_Blocks.Draw[other] != DRAW_GAS;\
 	if (affected) return true;\
 }
 
@@ -183,9 +183,9 @@ static cc_bool ClassicLighting_NeedsNeighour(BlockID block, int i, int minY, int
 	ClassicLighting_NeedsNeighourBody(World.Blocks[i]);
 #else
 	if (World.IDMask <= 0xFF) {
-		ClassicLighting_NeedsNeighourBody(World.Blocks[i]);
+		ClassicLighting_NeedsNeighourBody(World.Global_Blocks[i]);
 	} else {
-		ClassicLighting_NeedsNeighourBody(World.Blocks[i] | (World.Blocks2[i] << 8));
+		ClassicLighting_NeedsNeighourBody(World.Global_Blocks[i] | (World.Blocks2[i] << 8));
 	}
 #endif
 	return false;
@@ -310,8 +310,8 @@ for (y = World.Height - 1; y >= 0; y--) {\
 			curRunCount = skip[index];\
 			x += curRunCount; mapIndex += curRunCount; index += curRunCount;\
 \
-			if (x < xCount && Blocks.BlocksLight[get_block]) {\
-				lightOffset = (Blocks.LightOffset[get_block] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;\
+			if (x < xCount && Global_Blocks.BlocksLight[get_block]) {\
+				lightOffset = (Global_Blocks.LightOffset[get_block] >> LIGHT_FLAG_SHADES_FROM_BELOW) & 1;\
 				classic_heightmap[hIndex + x] = (cc_int16)(y - lightOffset);\
 				elemsLeft--;\
 				skip[index] = 0;\
@@ -350,9 +350,9 @@ static cc_bool Heightmap_CalculateCoverage(int x1, int z1, int xCount, int zCoun
 	Heightmap_CalculateBody(World.Blocks[mapIndex]);
 #else
 	if (World.IDMask <= 0xFF) {
-		Heightmap_CalculateBody(World.Blocks[mapIndex]);
+		Heightmap_CalculateBody(World.Global_Blocks[mapIndex]);
 	} else {
-		Heightmap_CalculateBody(World.Blocks[mapIndex] | (World.Blocks2[mapIndex] << 8));
+		Heightmap_CalculateBody(World.Global_Blocks[mapIndex] | (World.Blocks2[mapIndex] << 8));
 	}
 #endif
 	return false;

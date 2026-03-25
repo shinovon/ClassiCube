@@ -188,12 +188,12 @@ int Searcher_FindReachableBlocks(struct Entity* entity, struct AABB* entityBB, s
 		for (z = min.z; z <= max.z; z++) {
 			for (x = min.x; x <= max.x; x++) {
 				block = World_GetPhysicsBlock(x, y, z);
-				if (Blocks.Collide[block] != COLLIDE_SOLID) continue;
+				if (Global_Blocks.Collide[block] != COLLIDE_SOLID) continue;
 
 				xx = (float)x; yy = (float)y; zz = (float)z;
-				blockBB.Min = Blocks.MinBB[block];
+				blockBB.Min = Global_Blocks.MinBB[block];
 				blockBB.Min.x += xx; blockBB.Min.y += yy; blockBB.Min.z += zz;
-				blockBB.Max = Blocks.MaxBB[block];
+				blockBB.Max = Global_Blocks.MaxBB[block];
 				blockBB.Max.x += xx; blockBB.Max.y += yy; blockBB.Max.z += zz;
 
 				if (!AABB_Intersects(entityExtentBB, &blockBB)) continue; /* necessary for non whole blocks. (slabs) */

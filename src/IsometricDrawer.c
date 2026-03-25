@@ -78,9 +78,9 @@ static void IsometricDrawer_Angled(BlockID block, float size) {
 	/* we need to divide by (2 * cosY), as the calling function expects size to be in pixels. */
 	scale = size / (2.0f * iso_cosY);
 
-	Drawer.MinBB = Blocks.MinBB[block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
-	Drawer.MaxBB = Blocks.MaxBB[block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
-	min = Blocks.MinBB[block]; max = Blocks.MaxBB[block];
+	Drawer.MinBB = Global_Blocks.MinBB[block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
+	Drawer.MaxBB = Global_Blocks.MaxBB[block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
+	min = Global_Blocks.MinBB[block]; max = Global_Blocks.MaxBB[block];
 
 	Drawer.X1 = scale * (1.0f - min.x * 2.0f);
 	Drawer.X2 = scale * (1.0f - max.x * 2.0f);
@@ -89,9 +89,9 @@ static void IsometricDrawer_Angled(BlockID block, float size) {
 	Drawer.Z1 = scale * (1.0f - min.z * 2.0f);
 	Drawer.Z2 = scale * (1.0f - max.z * 2.0f);
 
-	bright = Blocks.Brightness[block];
-	Drawer.Tinted  = Blocks.Tinted[block];
-	Drawer.TintCol = Blocks.FogCol[block];
+	bright = Global_Blocks.Brightness[block];
+	Drawer.Tinted  = Global_Blocks.Tinted[block];
+	Drawer.TintCol = Global_Blocks.FogCol[block];
 
 	Drawer_XMax(1, bright ? PACKEDCOL_WHITE : iso_colorXSide,
 		IsometricDrawer_GetTexLoc(block, FACE_XMAX), &iso_vertices);
@@ -126,14 +126,14 @@ void IsometricDrawer_BeginBatch(struct VertexTextured* vertices, int* state) {
 }
 
 void IsometricDrawer_AddBatch(BlockID block, float size, float x, float y) {
-	if (Blocks.Draw[block] == DRAW_GAS) return;
+	if (Global_Blocks.Draw[block] == DRAW_GAS) return;
 
 	iso_posX = x; iso_posY = y;
 
 #if CC_BUILD_FPU_MODE <= CC_FPU_MODE_MINIMAL
 	IsometricDrawer_Flat(block, size);
 #else
-	if (Blocks.Draw[block] == DRAW_SPRITE) {
+	if (Global_Blocks.Draw[block] == DRAW_SPRITE) {
 		IsometricDrawer_Flat(block, size);
 	} else {
 		IsometricDrawer_Angled(block, size);

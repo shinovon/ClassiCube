@@ -79,8 +79,8 @@ CC_NOINLINE static int MapRenderer_UsedAtlases(void) {
 	TextureLoc maxLoc = 0;
 	int i;
 
-	for (i = 0; i < Array_Elems(Blocks.Textures); i++) {
-		maxLoc = max(maxLoc, Blocks.Textures[i]);
+	for (i = 0; i < Array_Elems(Global_Blocks.Textures); i++) {
+		maxLoc = max(maxLoc, Global_Blocks.Textures[i]);
 	}
 	return Atlas1D_Index(maxLoc) + 1;
 }
@@ -97,7 +97,7 @@ static void CheckWeather(float delta) {
 
 	block   = World_SafeGetBlock(pos.x, pos.y, pos.z);
 	outside = pos.y < 0 || !World_ContainsXZ(pos.x, pos.z);
-	inTranslucent = Blocks.Draw[block] == DRAW_TRANSLUCENT || (pos.y < Env.EdgeHeight && outside);
+	inTranslucent = Global_Blocks.Draw[block] == DRAW_TRANSLUCENT || (pos.y < Env.EdgeHeight && outside);
 
 	/* If we are under water, render weather before to blend properly */
 	if (!inTranslucent || Env.Weather == WEATHER_SUNNY) return;
@@ -718,7 +718,7 @@ void MapRenderer_OnBlockChanged(int x, int y, int z, BlockID block) {
 	struct ChunkInfo* chunk;
 
 	chunk = &mapChunks[World_ChunkPack(cx, cy, cz)];
-	chunk->allAir &= Blocks.Draw[block] == DRAW_GAS;
+	chunk->allAir &= Global_Blocks.Draw[block] == DRAW_GAS;
 	/* TODO: Don't lookup twice, refresh directly using chunk pointer */
 	ChunkInfo_Refresh(chunk);
 }

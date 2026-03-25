@@ -787,6 +787,14 @@ struct Texture {
 	TextureRec uv;
 };
 
+struct _BlockLists;
+struct _WorldData;
+
+extern struct _Globals {
+	struct _BlockLists* Blocks;
+	struct _WorlsData* World;
+}* Globals;
+
 #ifdef __cplusplus
 	#define CC_BEGIN_HEADER extern "C" {
 	#define CC_END_HEADER }

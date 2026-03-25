@@ -744,35 +744,35 @@ static void BlockEditCommand_Execute(const cc_string* args, int argsCount__) {
 	} else if (String_CaselessEqualsConst(prop, "collide")) {
 		if (!BlockEditCommand_GetInt(value, "Collide mode", &v, 0, COLLIDE_CLIMB)) return;
 
-		Blocks.Collide[block] = v;
+		Global_Blocks.Collide[block] = v;
 	} else if (String_CaselessEqualsConst(prop, "drawmode")) {
 		if (!BlockEditCommand_GetInt(value, "Draw mode", &v, 0, DRAW_SPRITE)) return;
 
-		Blocks.Draw[block] = v;
+		Global_Blocks.Draw[block] = v;
 	} else if (String_CaselessEqualsConst(prop, "min")) {
 		if (!BlockEditCommand_GetCoords(value, &coords)) return;
 
-		Blocks.MinBB[block] = coords;
+		Global_Blocks.MinBB[block] = coords;
 	} else if (String_CaselessEqualsConst(prop, "max")) {
 		if (!BlockEditCommand_GetCoords(value, &coords)) return;
 
-		Blocks.MaxBB[block] = coords;
+		Global_Blocks.MaxBB[block] = coords;
 	} else if (String_CaselessEqualsConst(prop, "walksound")) {
 		if (!BlockEditCommand_GetInt(value, "Sound", &v, 0, SOUND_COUNT - 1)) return;
 
-		Blocks.StepSounds[block] = v;
+		Global_Blocks.StepSounds[block] = v;
 	} else if (String_CaselessEqualsConst(prop, "breaksound")) {
 		if (!BlockEditCommand_GetInt(value, "Sound", &v, 0, SOUND_COUNT - 1)) return;
 
-		Blocks.DigSounds[block]  = v;
+		Global_Blocks.DigSounds[block]  = v;
 	} else if (String_CaselessEqualsConst(prop, "fullbright")) {
 		if (!BlockEditCommand_GetBool(value, "Full brightness", &b))  return;
 		//TODO: Fix this, brightness isn't just a bool anymore
-		Blocks.Brightness[block] = b;
+		Global_Blocks.Brightness[block] = b;
 	} else if (String_CaselessEqualsConst(prop, "blockslight")) {
 		if (!BlockEditCommand_GetBool(value, "Blocks light", &b)) return;
 
-		Blocks.BlocksLight[block] = b;
+		Global_Blocks.BlocksLight[block] = b;
 	} else {
 		Chat_Add1("&eBlockEdit: &eUnknown property %s &e(See &a/client help blockedit&e)", prop);
 		return;

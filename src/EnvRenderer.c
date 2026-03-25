@@ -58,8 +58,8 @@ static cc_bool CameraInsideBlock(BlockID block, IVec3* coords) {
 	Vec3 pos;
 	IVec3_ToVec3(&pos, coords); /* pos = coords; */
 
-	Vec3_Add(&blockBB.Min, &pos, &Blocks.MinBB[block]);
-	Vec3_Add(&blockBB.Max, &pos, &Blocks.MaxBB[block]);
+	Vec3_Add(&blockBB.Min, &pos, &Global_Blocks.MinBB[block]);
+	Vec3_Add(&blockBB.Max, &pos, &Global_Blocks.MaxBB[block]);
 	return AABB_ContainsPoint(&blockBB, &Camera.CurrentPos);
 }
 
@@ -70,9 +70,9 @@ static PackedCol CalcFog(float* density) {
 	IVec3_Floor(&coords, &Camera.CurrentPos); /* coords = floor(camera_pos); */
 	block = World_SafeGetBlock(coords.x, coords.y, coords.z);
 
-	if (Blocks.FogDensity[block] && CameraInsideBlock(block, &coords)) {
-		*density = Blocks.FogDensity[block];
-		return Blocks.FogCol[block];
+	if (Global_Blocks.FogDensity[block] && CameraInsideBlock(block, &coords)) {
+		*density = Global_Blocks.FogDensity[block];
+		return Global_Blocks.FogCol[block];
 	} else {
 		*density = 0.0f;
 		return fog_color;
@@ -391,7 +391,7 @@ static void InitWeatherHeightmap(void) {
 
 #define RainCalcBody(get_block)\
 for (y = maxY; y >= 0; y--, i -= World.OneY) {\
-	draw = Blocks.Draw[get_block];\
+	draw = Global_Blocks.Draw[get_block];\
 \
 	if (!(draw == DRAW_GAS || draw == DRAW_SPRITE)) {\
 		Weather_Heightmap[hIndex] = y;\
@@ -407,9 +407,9 @@ static int CalcRainHeightAt(int x, int maxY, int z, int hIndex) {
 	RainCalcBody(World.Blocks[i]);
 #else
 	if (World.IDMask <= 0xFF) {
-		RainCalcBody(World.Blocks[i]);
+		RainCalcBody(World.Global_Blocks[i]);
 	} else {
-		RainCalcBody(World.Blocks[i] | (World.Blocks2[i] << 8));
+		RainCalcBody(World.Global_Blocks[i] | (World.Blocks2[i] << 8));
 	}
 #endif
 
@@ -426,12 +426,12 @@ static float GetRainHeight(int x, int z) {
 	height = Weather_Heightmap[hIndex];
 
 	y = height == Int16_MaxValue ? CalcRainHeightAt(x, World.MaxY, z, hIndex) : height;
-	return y == -1 ? 0 : y + Blocks.MaxBB[World_GetBlock(x, y, z)].y;
+	return y == -1 ? 0 : y + Global_Blocks.MaxBB[World_GetBlock(x, y, z)].y;
 }
 
 void EnvRenderer_OnBlockChanged(int x, int y, int z, BlockID oldBlock, BlockID newBlock) {
-	cc_bool didBlock = !(Blocks.Draw[oldBlock] == DRAW_GAS || Blocks.Draw[oldBlock] == DRAW_SPRITE);
-	cc_bool nowBlock = !(Blocks.Draw[newBlock] == DRAW_GAS || Blocks.Draw[newBlock] == DRAW_SPRITE);
+	cc_bool didBlock = !(Global_Blocks.Draw[oldBlock] == DRAW_GAS || Global_Blocks.Draw[oldBlock] == DRAW_SPRITE);
+	cc_bool nowBlock = !(Global_Blocks.Draw[newBlock] == DRAW_GAS || Global_Blocks.Draw[newBlock] == DRAW_SPRITE);
 	int hIndex, height;
 	if (didBlock == nowBlock) return;
 
@@ -622,8 +622,8 @@ static void UpdateBorderTextures(void) {
 	MakeBorderTex(&sides_tex, Env.SidesBlock);
 }
 
-#define Borders_HorOffset(block) (Blocks.RenderMinBB[block].x - Blocks.MinBB[block].x)
-#define Borders_YOffset(block)   (Blocks.RenderMinBB[block].y - Blocks.MinBB[block].y)
+#define Borders_HorOffset(block) (Global_Blocks.RenderMinBB[block].x - Global_Blocks.MinBB[block].x)
+#define Borders_YOffset(block)   (Global_Blocks.RenderMinBB[block].y - Global_Blocks.MinBB[block].y)
 
 static void DrawBorderX(int x, int z1, int z2, int y1, int y2, PackedCol color, struct VertexTextured** vertices) {
 	int endZ = z2, endY = y2, startY = y1, axisSize = EnvRenderer_AxisSize();
@@ -707,7 +707,7 @@ static CC_NOINLINE void BuildMapSides(void) {
 	if (Gfx.Limitations & GFX_LIMIT_WORLD_ONLY) return;
 	block = Env.SidesBlock;
 
-	if (Blocks.Draw[block] == DRAW_GAS) return;
+	if (Global_Blocks.Draw[block] == DRAW_GAS) return;
 	CalcBorderRects(rects);
 
 	sides_vertices = 0;
@@ -725,7 +725,7 @@ static CC_NOINLINE void BuildMapSides(void) {
 	data = (struct VertexTextured*)Gfx_LockVb(sides_vb,
 										VERTEX_FORMAT_TEXTURED, sides_vertices);
 
-	sides_fullBright = Blocks.Brightness[block];
+	sides_fullBright = Global_Blocks.Brightness[block];
 	color = sides_fullBright ? PACKEDCOL_WHITE : Env.ShadowCol;
 	Block_Tint(color, block)
 
@@ -760,7 +760,7 @@ static CC_NOINLINE void BuildMapEdges(void) {
 	if (Gfx.Limitations & GFX_LIMIT_WORLD_ONLY) return;
 	block = Env.EdgeBlock;
 
-	if (Blocks.Draw[block] == DRAW_GAS) return;
+	if (Global_Blocks.Draw[block] == DRAW_GAS) return;
 	CalcBorderRects(rects);
 
 	edges_vertices = 0;
@@ -773,7 +773,7 @@ static CC_NOINLINE void BuildMapEdges(void) {
 	data = (struct VertexTextured*)Gfx_LockVb(edges_vb,
 										VERTEX_FORMAT_TEXTURED, edges_vertices);
 
-	edges_fullBright = Blocks.Brightness[block];
+	edges_fullBright = Global_Blocks.Brightness[block];
 	color = edges_fullBright ? PACKEDCOL_WHITE : Env.SunCol;
 	Block_Tint(color, block)
 
@@ -787,7 +787,7 @@ static CC_NOINLINE void BuildMapEdges(void) {
 }
 
 static void RenderBorders(BlockID block, GfxResourceID vb, GfxResourceID tex, int count) {
-	Gfx_SetupAlphaState(Blocks.Draw[block]);
+	Gfx_SetupAlphaState(Global_Blocks.Draw[block]);
 	Gfx_EnableMipmaps();
 
 	Gfx_BindTexture(tex);
@@ -796,7 +796,7 @@ static void RenderBorders(BlockID block, GfxResourceID vb, GfxResourceID tex, in
 	Gfx_DrawVb_IndexedTris(count);
 
 	Gfx_DisableMipmaps();
-	Gfx_RestoreAlphaState(Blocks.Draw[block]);
+	Gfx_RestoreAlphaState(Global_Blocks.Draw[block]);
 }
 
 void EnvRenderer_RenderMapSides(void) {

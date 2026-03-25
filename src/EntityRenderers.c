@@ -84,13 +84,13 @@ static void EntityShadow_DrawCircle(struct VertexTextured** vertices, struct Ent
 	Vec3 min, max, nMin, nMax;
 	int i;
 	x = (float)Math_Floor(x); z = (float)Math_Floor(z);
-	min = Blocks.MinBB[data[0].block]; max = Blocks.MaxBB[data[0].block];
+	min = Global_Blocks.MinBB[data[0].block]; max = Global_Blocks.MaxBB[data[0].block];
 
 	EntityShadow_DrawCoords(vertices, e, &data[0], x + min.x, z + min.z, x + max.x, z + max.z);
 	for (i = 1; i < 4; i++) 
 	{
 		if (data[i].block == BLOCK_AIR) return;
-		nMin = Blocks.MinBB[data[i].block]; nMax = Blocks.MaxBB[data[i].block];
+		nMin = Global_Blocks.MinBB[data[i].block]; nMax = Global_Blocks.MaxBB[data[i].block];
 
 		EntityShadow_DrawCoords(vertices, e, &data[i], x +  min.x, z + nMin.z, x +  max.x, z +  min.z);
 		EntityShadow_DrawCoords(vertices, e, &data[i], x +  min.x, z +  max.z, x +  max.x, z + nMax.z);
@@ -134,16 +134,16 @@ static cc_bool EntityShadow_GetBlocks(struct Entity* e, int x, int y, int z, str
 		if (!outside) {
 			block = World_GetBlock(x, y, z);
 		} else if (y == Env.EdgeHeight - 1) {
-			block = Blocks.Draw[Env.EdgeBlock] == DRAW_GAS  ? BLOCK_AIR : BLOCK_BEDROCK;
+			block = Global_Blocks.Draw[Env.EdgeBlock] == DRAW_GAS  ? BLOCK_AIR : BLOCK_BEDROCK;
 		} else if (y == Env_SidesHeight - 1) {
-			block = Blocks.Draw[Env.SidesBlock] == DRAW_GAS ? BLOCK_AIR : BLOCK_BEDROCK;
+			block = Global_Blocks.Draw[Env.SidesBlock] == DRAW_GAS ? BLOCK_AIR : BLOCK_BEDROCK;
 		} else {
 			block = BLOCK_AIR;
 		}
 
-		draw = Blocks.Draw[block];
-		if (draw == DRAW_GAS || draw == DRAW_SPRITE || Blocks.IsLiquid[block]) continue;
-		topY = y + Blocks.MaxBB[block].y;
+		draw = Global_Blocks.Draw[block];
+		if (draw == DRAW_GAS || draw == DRAW_SPRITE || Global_Blocks.IsLiquid[block]) continue;
+		topY = y + Global_Blocks.MaxBB[block].y;
 		if (topY >= posY + 0.01f) continue;
 
 		cur->block = block; cur->y = topY;
@@ -151,8 +151,8 @@ static cc_bool EntityShadow_GetBlocks(struct Entity* e, int x, int y, int z, str
 		i++; cur++;
 
 		/* Check if the casted shadow will continue on further down. */
-		if (Blocks.MinBB[block].x == 0.0f && Blocks.MaxBB[block].x == 1.0f &&
-			Blocks.MinBB[block].z == 0.0f && Blocks.MaxBB[block].z == 1.0f) return true;
+		if (Global_Blocks.MinBB[block].x == 0.0f && Global_Blocks.MaxBB[block].x == 1.0f &&
+			Global_Blocks.MinBB[block].z == 0.0f && Global_Blocks.MaxBB[block].z == 1.0f) return true;
 	}
 
 	if (i < 4) {

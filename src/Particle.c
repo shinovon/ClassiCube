@@ -47,8 +47,8 @@ void Particle_DoRender(const Vec2* size, const Vec3* pos, const TextureRec* rec,
 static cc_bool CollidesHor(Vec3* nextPos, BlockID block) {
 	Vec3 horPos = Vec3_Create3((float)Math_Floor(nextPos->x), 0.0f, (float)Math_Floor(nextPos->z));
 	Vec3 min, max;
-	Vec3_Add(&min, &Blocks.MinBB[block], &horPos);
-	Vec3_Add(&max, &Blocks.MaxBB[block], &horPos);
+	Vec3_Add(&min, &Global_Blocks.MinBB[block], &horPos);
+	Vec3_Add(&max, &Global_Blocks.MaxBB[block], &horPos);
 	return nextPos->x >= min.x && nextPos->z >= min.z && nextPos->x < max.x && nextPos->z < max.z;
 }
 
@@ -77,7 +77,7 @@ static cc_bool ClipY(struct Particle* p, int y, cc_bool topFace, CanPassThroughF
 
 	block = GetBlock((int)p->nextPos.x, y, (int)p->nextPos.z);
 	if (canPassThrough(block)) return true;
-	minBB = Blocks.MinBB[block]; maxBB = Blocks.MaxBB[block];
+	minBB = Global_Blocks.MinBB[block]; maxBB = Global_Blocks.MaxBB[block];
 
 	collideY   = y + (topFace ? maxBB.y : minBB.y);
 	collideVer = topFace ? (p->nextPos.y < collideY) : (p->nextPos.y > collideY);
@@ -96,8 +96,8 @@ static cc_bool ClipY(struct Particle* p, int y, cc_bool topFace, CanPassThroughF
 
 static cc_bool IntersectsBlock(struct Particle* p, CanPassThroughFunc canPassThrough) {
 	BlockID cur = GetBlock((int)p->nextPos.x, (int)p->nextPos.y, (int)p->nextPos.z);
-	float minY  = Math_Floor(p->nextPos.y) + Blocks.MinBB[cur].y;
-	float maxY  = Math_Floor(p->nextPos.y) + Blocks.MaxBB[cur].y;
+	float minY  = Math_Floor(p->nextPos.y) + Global_Blocks.MinBB[cur].y;
+	float maxY  = Math_Floor(p->nextPos.y) + Global_Blocks.MaxBB[cur].y;
 
 	return !canPassThrough(cur) && p->nextPos.y >= minY && p->nextPos.y < maxY && CollidesHor(&p->nextPos, cur);
 }
@@ -136,7 +136,7 @@ static int rain_count;
 static TextureRec rain_rec = { 2.0f/128.0f, 14.0f/128.0f, 5.0f/128.0f, 16.0f/128.0f };
 
 static cc_bool RainParticle_CanPass(BlockID block) {
-	cc_uint8 draw = Blocks.Draw[block];
+	cc_uint8 draw = Global_Blocks.Draw[block];
 	return draw == DRAW_GAS || draw == DRAW_SPRITE;
 }
 
@@ -233,12 +233,12 @@ static cc_uint16 terrain_1DCount[ATLAS1D_MAX_ATLASES];
 static cc_uint16 terrain_1DIndices[ATLAS1D_MAX_ATLASES];
 
 static cc_bool TerrainParticle_CanPass(BlockID block) {
-	cc_uint8 draw = Blocks.Draw[block];
-	return draw == DRAW_GAS || draw == DRAW_SPRITE || Blocks.IsLiquid[block];
+	cc_uint8 draw = Global_Blocks.Draw[block];
+	return draw == DRAW_GAS || draw == DRAW_SPRITE || Global_Blocks.IsLiquid[block];
 }
 
 static cc_bool TerrainParticle_Tick(struct TerrainParticle* p, float delta) {
-	return PhysicsTick(&p->base, Blocks.ParticleGravity[p->block], TerrainParticle_CanPass, delta);
+	return PhysicsTick(&p->base, Global_Blocks.ParticleGravity[p->block], TerrainParticle_CanPass, delta);
 }
 
 static void TerrainParticle_Render(struct TerrainParticle* p, float t, struct VertexTextured* vertices) {
@@ -250,7 +250,7 @@ static void TerrainParticle_Render(struct TerrainParticle* p, float t, struct Ve
 	Vec3_Lerp(&pos, &p->base.lastPos, &p->base.nextPos, t);
 	size.x = p->base.size * 0.015625f; size.y = size.x;
 	
-	if (!Blocks.Brightness[p->block]) {
+	if (!Global_Blocks.Brightness[p->block]) {
 		x = Math_Floor(pos.x); y = Math_Floor(pos.y); z = Math_Floor(pos.z);
 		col = Lighting.Color_XSide(x, y, z);
 	}
@@ -342,14 +342,14 @@ void Particles_BreakBlockEffect(IVec3 coords, BlockID old, BlockID now) {
 	Vec3 cell;
 	int x, y, z, type;
 
-	if (now != BLOCK_AIR || Blocks.Draw[old] == DRAW_GAS) return;
+	if (now != BLOCK_AIR || Global_Blocks.Draw[old] == DRAW_GAS) return;
 	IVec3_ToVec3(&origin, &coords);
 	loc = Block_Tex(old, FACE_XMIN);
 	
 	baseRec = Atlas1D_TexRec(loc, 1, &texIndex);
 	uScale  = (1.0f/16.0f); vScale = (1.0f/16.0f) * Atlas1D.InvTileSize;
 
-	minBB = Blocks.MinBB[old];    maxBB = Blocks.MaxBB[old];
+	minBB = Global_Blocks.MinBB[old];    maxBB = Global_Blocks.MaxBB[old];
 	minX  = (int)(minBB.x * 16); maxX  = (int)(maxBB.x * 16);
 	minZ  = (int)(minBB.z * 16); maxZ  = (int)(maxBB.z * 16);
 
@@ -428,10 +428,10 @@ static cc_uint8 collideFlags;
 static cc_bool CustomParticle_CanPass(BlockID block) {
 	cc_uint8 draw, collide;
 	
-	draw = Blocks.Draw[block];
+	draw = Global_Blocks.Draw[block];
 	if (draw == DRAW_TRANSPARENT_THICK && !(collideFlags & LEAF_COLLIDES)) return true;
 
-	collide = Blocks.Collide[block];
+	collide = Global_Blocks.Collide[block];
 	if (collide == COLLIDE_SOLID  && (collideFlags & SOLID_COLLIDES))  return false;
 	if (collide == COLLIDE_LIQUID && (collideFlags & LIQUID_COLLIDES)) return false;
 	return true;

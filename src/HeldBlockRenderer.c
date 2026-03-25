@@ -40,7 +40,7 @@ static void HeldBlockRenderer_RenderModel(void) {
 	/* Gfx_SetDepthWrite(false); */
 	/* TODO: Need to properly reallocate per model VB here */
 
-	if (Blocks.Draw[held_block] == DRAW_GAS) {
+	if (Global_Blocks.Draw[held_block] == DRAW_GAS) {
 		model = Entities.CurPlayer->Base.Model;
 		SetHeldModel(model);
 		Vec3_Set(held_entity.ModelScale, 1.0f, 1.0f, 1.0f);
@@ -53,9 +53,9 @@ static void HeldBlockRenderer_RenderModel(void) {
 		SetHeldModel(model);
 		Vec3_Set(held_entity.ModelScale, 0.4f, 0.4f, 0.4f);
 
-		Gfx_SetupAlphaState(Blocks.Draw[held_block]);
+		Gfx_SetupAlphaState(Global_Blocks.Draw[held_block]);
 		Model_Render(model, &held_entity);
-		Gfx_RestoreAlphaState(Blocks.Draw[held_block]);
+		Gfx_RestoreAlphaState(Global_Blocks.Draw[held_block]);
 	}
 	
 	Gfx_SetDepthTest(true);
@@ -94,14 +94,14 @@ static void ResetHeldState(void) {
 }
 
 static void SetBaseOffset(void) {
-	cc_bool sprite = Blocks.Draw[held_block] == DRAW_SPRITE;
+	cc_bool sprite = Global_Blocks.Draw[held_block] == DRAW_SPRITE;
 	Vec3 normalOffset = { 0.56f, -0.72f, -0.72f };
 	Vec3 spriteOffset = { 0.46f, -0.52f, -0.72f };
 	Vec3 offset = sprite ? spriteOffset : normalOffset;
 
 	Vec3_AddBy(&held_entity.Position, &offset);
-	if (!sprite && Blocks.Draw[held_block] != DRAW_GAS) {
-		float height = Blocks.MaxBB[held_block].y - Blocks.MinBB[held_block].y;
+	if (!sprite && Global_Blocks.Draw[held_block] != DRAW_GAS) {
+		float height = Global_Blocks.MaxBB[held_block].y - Global_Blocks.MinBB[held_block].y;
 		held_entity.Position.y += 0.2f * (1.0f - height);
 	}
 }

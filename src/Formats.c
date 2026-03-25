@@ -766,16 +766,16 @@ static void Cw_Callback_4(struct NbtTag* tag) {
 		if (!String_CaselessStarts(&tag->name, &blockStr)) return;	
 
 		/* hack for sprite draw (can't rely on order of tags when reading) */
-		if (Blocks.SpriteOffset[id] == 0) {
-			Blocks.SpriteOffset[id] = Blocks.Draw[id];
-			Blocks.Draw[id] = DRAW_SPRITE;
+		if (Global_Blocks.SpriteOffset[id] == 0) {
+			Global_Blocks.SpriteOffset[id] = Global_Blocks.Draw[id];
+			Global_Blocks.Draw[id] = DRAW_SPRITE;
 		} else {
-			Blocks.SpriteOffset[id] = 0;
+			Global_Blocks.SpriteOffset[id] = 0;
 		}
 
 		Block_DefineCustom(id, false);
-		Blocks.CanPlace[id]  = true;
-		Blocks.CanDelete[id] = true;
+		Global_Blocks.CanPlace[id]  = true;
+		Global_Blocks.CanDelete[id] = true;
 		Event_RaiseVoid(&BlockEvents.PermissionsChanged);
 
 		cw_curID = 0;
@@ -799,12 +799,12 @@ static void Cw_Callback_5(struct NbtTag* tag) {
 	if (IsTag(tag->parent->parent, "BlockDefinitions") && Game_AllowCustomBlocks) {
 		if (IsTag(tag, "ID"))             { cw_curID = NbtTag_U8(tag);  return; }
 		if (IsTag(tag, "ID2"))            { cw_curID = NbtTag_U16(tag); return; }
-		if (IsTag(tag, "CollideType"))    { Blocks.Collide[id] = NbtTag_U8(tag); return; }
-		if (IsTag(tag, "Speed"))          { Blocks.SpeedMultiplier[id] = NbtTag_F32(tag); return; }
-		if (IsTag(tag, "TransmitsLight")) { Blocks.BlocksLight[id] = NbtTag_U8(tag) == 0; return; }
-		if (IsTag(tag, "FullBright"))     { Blocks.Brightness[id] = Block_ReadBrightness(NbtTag_U8(tag)); return; }
-		if (IsTag(tag, "BlockDraw"))      { Blocks.Draw[id] = NbtTag_U8(tag); return; }
-		if (IsTag(tag, "Shape"))          { Blocks.SpriteOffset[id] = NbtTag_U8(tag); return; }
+		if (IsTag(tag, "CollideType"))    { Global_Blocks.Collide[id] = NbtTag_U8(tag); return; }
+		if (IsTag(tag, "Speed"))          { Global_Blocks.SpeedMultiplier[id] = NbtTag_F32(tag); return; }
+		if (IsTag(tag, "TransmitsLight")) { Global_Blocks.BlocksLight[id] = NbtTag_U8(tag) == 0; return; }
+		if (IsTag(tag, "FullBright"))     { Global_Blocks.Brightness[id] = Block_ReadBrightness(NbtTag_U8(tag)); return; }
+		if (IsTag(tag, "BlockDraw"))      { Global_Blocks.Draw[id] = NbtTag_U8(tag); return; }
+		if (IsTag(tag, "Shape"))          { Global_Blocks.SpriteOffset[id] = NbtTag_U8(tag); return; }
 
 		if (IsTag(tag, "Name")) {
 			cc_string name = NbtTag_String(tag);
@@ -831,9 +831,9 @@ static void Cw_Callback_5(struct NbtTag* tag) {
 		
 		if (IsTag(tag, "WalkSound")) {
 			sound = NbtTag_U8(tag);
-			Blocks.DigSounds[id]  = sound;
-			Blocks.StepSounds[id] = sound;
-			if (sound == SOUND_GLASS) Blocks.StepSounds[id] = SOUND_STONE;
+			Global_Blocks.DigSounds[id]  = sound;
+			Global_Blocks.StepSounds[id] = sound;
+			if (sound == SOUND_GLASS) Global_Blocks.StepSounds[id] = SOUND_STONE;
 			return;
 		}
 
@@ -841,10 +841,10 @@ static void Cw_Callback_5(struct NbtTag* tag) {
 			arr = NbtTag_U8_Array(tag, 4);
 			if (!arr) return;
 
-			Blocks.FogDensity[id] = (arr[0] + 1) / 128.0f;
+			Global_Blocks.FogDensity[id] = (arr[0] + 1) / 128.0f;
 			/* Backwards compatibility with apps that use 0xFF to indicate no fog */
-			if (arr[0] == 0 || arr[0] == 0xFF) Blocks.FogDensity[id] = 0.0f;
-			Blocks.FogCol[id] = PackedCol_Make(arr[1], arr[2], arr[3], 255);
+			if (arr[0] == 0 || arr[0] == 0xFF) Global_Blocks.FogDensity[id] = 0.0f;
+			Global_Blocks.FogCol[id] = PackedCol_Make(arr[1], arr[2], arr[3], 255);
 			return;
 		}
 
@@ -852,9 +852,9 @@ static void Cw_Callback_5(struct NbtTag* tag) {
 			arr = NbtTag_U8_Array(tag, 6);
 			if (!arr) return;
 
-			Blocks.MinBB[id].x = (cc_int8)arr[0] / 16.0f; Blocks.MaxBB[id].x = (cc_int8)arr[3] / 16.0f;
-			Blocks.MinBB[id].y = (cc_int8)arr[1] / 16.0f; Blocks.MaxBB[id].y = (cc_int8)arr[4] / 16.0f;
-			Blocks.MinBB[id].z = (cc_int8)arr[2] / 16.0f; Blocks.MaxBB[id].z = (cc_int8)arr[5] / 16.0f;
+			Global_Blocks.MinBB[id].x = (cc_int8)arr[0] / 16.0f; Global_Blocks.MaxBB[id].x = (cc_int8)arr[3] / 16.0f;
+			Global_Blocks.MinBB[id].y = (cc_int8)arr[1] / 16.0f; Global_Blocks.MaxBB[id].y = (cc_int8)arr[4] / 16.0f;
+			Global_Blocks.MinBB[id].z = (cc_int8)arr[2] / 16.0f; Global_Blocks.MaxBB[id].z = (cc_int8)arr[5] / 16.0f;
 			return;
 		}
 	}
@@ -1512,7 +1512,7 @@ static cc_result Cw_WriteBockDef(struct Stream* stream, int b) {
 	char nameBuffer[10];
 	cc_uint8* cur;
 	cc_string name;
-	cc_bool sprite = Blocks.Draw[b] == DRAW_SPRITE;
+	cc_bool sprite = Global_Blocks.Draw[b] == DRAW_SPRITE;
 	TextureLoc tex;
 	cc_uint8 fog;
 	PackedCol col;
@@ -1532,8 +1532,8 @@ static cc_result Cw_WriteBockDef(struct Stream* stream, int b) {
 		/* It would be have been better to just change ID to be a I16 */
 		/* Unfortunately this isn't backwards compatible with ClassicalSharp */
 		cur  = Nbt_WriteUInt16(cur, "ID2", b);
-		cur  = Nbt_WriteUInt8(cur,  "CollideType", Blocks.Collide[b]);
-		cur  = Nbt_WriteFloat(cur,  "Speed", Blocks.SpeedMultiplier[b]);
+		cur  = Nbt_WriteUInt8(cur,  "CollideType", Global_Blocks.Collide[b]);
+		cur  = Nbt_WriteFloat(cur,  "Speed", Global_Blocks.SpeedMultiplier[b]);
 
 		/* Originally only up to 256 textures were supported, which used up 6 bytes total */
 		/*  Later, support for more textures was added, which requires 2 bytes per texture */
@@ -1548,21 +1548,21 @@ static cc_result Cw_WriteBockDef(struct Stream* stream, int b) {
 		tex = Block_Tex(b, FACE_ZMAX); cur[5] = (cc_uint8)tex; cur[11] = (cc_uint8)(tex >> 8);
 		cur += 12;
 
-		cur  = Nbt_WriteUInt8(cur,  "TransmitsLight", Blocks.BlocksLight[b] ? 0 : 1);
-		cur  = Nbt_WriteUInt8(cur,  "WalkSound",      Blocks.DigSounds[b]);
-		cur  = Nbt_WriteUInt8(cur,  "FullBright",     Block_WriteFullBright(Blocks.Brightness[b]));
-		cur  = Nbt_WriteUInt8(cur,  "Shape",          sprite ? 0 : (cc_uint8)(Blocks.MaxBB[b].y * 16));
-		cur  = Nbt_WriteUInt8(cur,  "BlockDraw",      sprite ? Blocks.SpriteOffset[b] : Blocks.Draw[b]);
+		cur  = Nbt_WriteUInt8(cur,  "TransmitsLight", Global_Blocks.BlocksLight[b] ? 0 : 1);
+		cur  = Nbt_WriteUInt8(cur,  "WalkSound",      Global_Blocks.DigSounds[b]);
+		cur  = Nbt_WriteUInt8(cur,  "FullBright",     Block_WriteFullBright(Global_Blocks.Brightness[b]));
+		cur  = Nbt_WriteUInt8(cur,  "Shape",          sprite ? 0 : (cc_uint8)(Global_Blocks.MaxBB[b].y * 16));
+		cur  = Nbt_WriteUInt8(cur,  "BlockDraw",      sprite ? Global_Blocks.SpriteOffset[b] : Global_Blocks.Draw[b]);
 
 		cur = Nbt_WriteArray(cur, "Fog", 4);
-		fog = (cc_uint8)(128 * Blocks.FogDensity[b] - 1);
-		col = Blocks.FogCol[b];
-		cur[0] = Blocks.FogDensity[b] ? fog : 0xFF; /* write 0xFF instead of 0 for backwards compatibility */
+		fog = (cc_uint8)(128 * Global_Blocks.FogDensity[b] - 1);
+		col = Global_Blocks.FogCol[b];
+		cur[0] = Global_Blocks.FogDensity[b] ? fog : 0xFF; /* write 0xFF instead of 0 for backwards compatibility */
 		cur[1] = PackedCol_R(col); cur[2] = PackedCol_G(col); cur[3] = PackedCol_B(col);
 		cur += 4;
 
 		cur  = Nbt_WriteArray(cur,  "Coords", 6);
-		minBB  = Blocks.MinBB[b]; maxBB = Blocks.MaxBB[b];
+		minBB  = Global_Blocks.MinBB[b]; maxBB = Global_Blocks.MaxBB[b];
 		cur[0] = (cc_uint8)(minBB.x * 16); cur[1] = (cc_uint8)(minBB.y * 16); cur[2] = (cc_uint8)(minBB.z * 16);
 		cur[3] = (cc_uint8)(maxBB.x * 16); cur[4] = (cc_uint8)(maxBB.y * 16); cur[5] = (cc_uint8)(maxBB.z * 16);
 		cur += 6;
@@ -1610,7 +1610,7 @@ cc_result Cw_Save(struct Stream* stream) {
 	if ((res = Stream_Write(stream, World.Blocks, World.Volume)))  return res;
 
 #ifdef EXTENDED_BLOCKS
-	if (World.Blocks != World.Blocks2) {
+	if (World.Global_Blocks != World.Blocks2) {
 		cur = buffer;
 		cur = Nbt_WriteArray(cur, "BlockArray2", World.Volume);
 

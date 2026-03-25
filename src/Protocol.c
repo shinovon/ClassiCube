@@ -243,12 +243,12 @@ static void UpdateUserType(struct HacksComp* hacks, cc_uint8 value) {
 	hacks->IsOp  = isOp;
 	if (IsSupported(blockPerms_Ext)) return;
 
-	Blocks.CanPlace[BLOCK_BEDROCK]     = isOp;
-	Blocks.CanDelete[BLOCK_BEDROCK]    = isOp;
-	Blocks.CanPlace[BLOCK_WATER]       = isOp;
-	Blocks.CanPlace[BLOCK_STILL_WATER] = isOp;
-	Blocks.CanPlace[BLOCK_LAVA]        = isOp;
-	Blocks.CanPlace[BLOCK_STILL_LAVA]  = isOp;
+	Global_Blocks.CanPlace[BLOCK_BEDROCK]     = isOp;
+	Global_Blocks.CanDelete[BLOCK_BEDROCK]    = isOp;
+	Global_Blocks.CanPlace[BLOCK_WATER]       = isOp;
+	Global_Blocks.CanPlace[BLOCK_STILL_WATER] = isOp;
+	Global_Blocks.CanPlace[BLOCK_LAVA]        = isOp;
+	Global_Blocks.CanPlace[BLOCK_STILL_LAVA]  = isOp;
 }
 
 
@@ -1222,8 +1222,8 @@ static void CPE_SetBlockPermission(cc_uint8* data) {
 	BlockID block; 
 	ReadBlock(data, block);
 
-	Blocks.CanPlace[block]  = *data++ != 0;
-	Blocks.CanDelete[block] = *data++ != 0;
+	Global_Blocks.CanPlace[block]  = *data++ != 0;
+	Global_Blocks.CanDelete[block] = *data++ != 0;
 	Event_RaiseVoid(&BlockEvents.PermissionsChanged);
 }
 
@@ -1825,14 +1825,14 @@ static void CustomModels_Reset(void) { }
 static void BlockDefs_OnBlocksLightPropertyUpdated(BlockID block, cc_bool oldProp) {
 	if (!World.Loaded) return;
 	/* Need to refresh lighting when a block's light blocking state changes */
-	if (Blocks.BlocksLight[block] != oldProp) Lighting.Refresh();
+	if (Global_Blocks.BlocksLight[block] != oldProp) Lighting.Refresh();
 }
 
 static void BlockDefs_OnBrightnessPropertyUpdated(BlockID block, cc_uint8 oldProp) {
 	if (!World.Loaded) return;
 	if (Lighting_Mode == LIGHTING_MODE_CLASSIC) return;
 	/* Need to refresh fancy lighting when a block's brightness changes */
-	if (Blocks.Brightness[block] != oldProp) Lighting.Refresh();
+	if (Global_Blocks.Brightness[block] != oldProp) Lighting.Refresh();
 }
 
 static TextureLoc BlockDefs_Tex(cc_uint8** ptr) {
@@ -1858,16 +1858,16 @@ static BlockID BlockDefs_DefineBlockCommonStart(cc_uint8** ptr, cc_bool uniqueSi
 	cc_uint8* data = *ptr;
 
 	ReadBlock(data, block);
-	oldBlocksLight = Blocks.BlocksLight[block];
-	oldBrightness = Blocks.Brightness[block];
+	oldBlocksLight = Global_Blocks.BlocksLight[block];
+	oldBrightness = Global_Blocks.Brightness[block];
 	Block_ResetProps(block);
 	
 	name = UNSAFE_GetString(data); data += STRING_SIZE;
 	Block_SetName(block, &name);
-	Blocks.Collide[block] = *data++;
+	Global_Blocks.Collide[block] = *data++;
 
 	speedLog2 = (*data++ - 128) / 64.0f;
-	Blocks.SpeedMultiplier[block] = (float)Math_Exp2(speedLog2);
+	Global_Blocks.SpeedMultiplier[block] = (float)Math_Exp2(speedLog2);
 
 	Block_Tex(block, FACE_YMAX) = BlockDefs_Tex(&data);
 	if (uniqueSideTexs) {
@@ -1880,15 +1880,15 @@ static BlockID BlockDefs_DefineBlockCommonStart(cc_uint8** ptr, cc_bool uniqueSi
 	}
 	Block_Tex(block, FACE_YMIN) = BlockDefs_Tex(&data);
 
-	Blocks.BlocksLight[block] = *data++ == 0;
+	Global_Blocks.BlocksLight[block] = *data++ == 0;
 	BlockDefs_OnBlocksLightPropertyUpdated(block, oldBlocksLight);
 
 	sound = *data++;
-	Blocks.StepSounds[block] = sound;
-	Blocks.DigSounds[block]  = sound;
-	if (sound == SOUND_GLASS) Blocks.StepSounds[block] = SOUND_STONE;
+	Global_Blocks.StepSounds[block] = sound;
+	Global_Blocks.DigSounds[block]  = sound;
+	if (sound == SOUND_GLASS) Global_Blocks.StepSounds[block] = SOUND_STONE;
 
-	Blocks.Brightness[block] = Block_ReadBrightness(*data++);
+	Global_Blocks.Brightness[block] = Block_ReadBrightness(*data++);
 	BlockDefs_OnBrightnessPropertyUpdated(block, oldBrightness);
 	*ptr = data;
 	return block;
@@ -1897,13 +1897,13 @@ static BlockID BlockDefs_DefineBlockCommonStart(cc_uint8** ptr, cc_bool uniqueSi
 static void BlockDefs_DefineBlockCommonEnd(cc_uint8* data, cc_uint8 shape, BlockID block) {
 	cc_uint8 draw = data[0];
 	if (shape == 0) {
-		Blocks.SpriteOffset[block] = draw;
+		Global_Blocks.SpriteOffset[block] = draw;
 		draw = DRAW_SPRITE;
 	}
-	Blocks.Draw[block] = draw;
+	Global_Blocks.Draw[block] = draw;
 
-	Blocks.FogDensity[block] = data[1] == 0 ? 0.0f : (data[1] + 1) / 128.0f;
-	Blocks.FogCol[block]     = PackedCol_Make(data[2], data[3], data[4], 255);
+	Global_Blocks.FogDensity[block] = data[1] == 0 ? 0.0f : (data[1] + 1) / 128.0f;
+	Global_Blocks.FogCol[block]     = PackedCol_Make(data[2], data[3], data[4], 255);
 }
 
 static void BlockDefs_DefineBlock(cc_uint8* data) {
@@ -1911,7 +1911,7 @@ static void BlockDefs_DefineBlock(cc_uint8* data) {
 
 	cc_uint8 shape = *data++;
 	if (shape > 0 && shape <= 16) {
-		Blocks.MaxBB[block].y = shape / 16.0f;
+		Global_Blocks.MaxBB[block].y = shape / 16.0f;
 	}
 
 	BlockDefs_DefineBlockCommonEnd(data, shape, block);
@@ -1923,7 +1923,7 @@ static void BlockDefs_UndefineBlock(cc_uint8* data) {
 	cc_bool didBlockLight;
 
 	ReadBlock(data, block);
-	didBlockLight = Blocks.BlocksLight[block];
+	didBlockLight = Global_Blocks.BlocksLight[block];
 
 	Block_UndefineCustom(block);
 	BlockDefs_OnBlocksLightPropertyUpdated(block, didBlockLight);
@@ -1942,8 +1942,8 @@ static void BlockDefs_DefineBlockExt(cc_uint8* data) {
 	maxBB.y = (cc_int8)(*data++) / 16.0f;
 	maxBB.z = (cc_int8)(*data++) / 16.0f;
 
-	Blocks.MinBB[block] = minBB;
-	Blocks.MaxBB[block] = maxBB;
+	Global_Blocks.MinBB[block] = minBB;
+	Global_Blocks.MaxBB[block] = maxBB;
 	BlockDefs_DefineBlockCommonEnd(data, 1, block);
 	Block_DefineCustom(block, false);
 }

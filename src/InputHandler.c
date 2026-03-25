@@ -296,7 +296,7 @@ void InputHandler_OnScreensChanged(void) {
 	MouseStateRelease(MOUSE_MIDDLE);
 }
 
-static cc_bool TouchesSolid(BlockID b) { return Blocks.Collide[b] == COLLIDE_SOLID; }
+static cc_bool TouchesSolid(BlockID b) { return Global_Blocks.Collide[b] == COLLIDE_SOLID; }
 static cc_bool PushbackPlace(struct AABB* blockBB) {
 	struct Entity* p        = &Entities.CurPlayer->Base;
 	struct HacksComp* hacks = &Entities.CurPlayer->Hacks;
@@ -347,8 +347,8 @@ static cc_bool IntersectsOthers(Vec3 pos, BlockID block) {
 	struct Entity* e;
 	int id;
 
-	Vec3_Add(&blockBB.Min, &pos, &Blocks.MinBB[block]);
-	Vec3_Add(&blockBB.Max, &pos, &Blocks.MaxBB[block]);
+	Vec3_Add(&blockBB.Min, &pos, &Global_Blocks.MinBB[block]);
+	Vec3_Add(&blockBB.Max, &pos, &Global_Blocks.MaxBB[block]);
 	
 	for (id = 0; id < ENTITIES_MAX_COUNT; id++)	
 	{
@@ -371,14 +371,14 @@ static cc_bool CheckIsFree(BlockID block) {
 	struct LocationUpdate update;
 
 	/* Non solid blocks (e.g. water/flowers) can always be placed on players */
-	if (Blocks.Collide[block] != COLLIDE_SOLID) return true;
+	if (Global_Blocks.Collide[block] != COLLIDE_SOLID) return true;
 
 	IVec3_ToVec3(&pos, &Game_SelectedPos.translatedPos);
 	if (IntersectsOthers(pos, block)) return false;
 	
 	nextPos = p->next.pos;
-	Vec3_Add(&blockBB.Min, &pos, &Blocks.MinBB[block]);
-	Vec3_Add(&blockBB.Max, &pos, &Blocks.MaxBB[block]);
+	Vec3_Add(&blockBB.Min, &pos, &Global_Blocks.MinBB[block]);
+	Vec3_Add(&blockBB.Max, &pos, &Global_Blocks.MaxBB[block]);
 
 	/* NOTE: Need to also test against next position here, otherwise player can */
 	/* fall through the block at feet as collision is performed against nextPos */
@@ -394,7 +394,7 @@ static cc_bool CheckIsFree(BlockID block) {
 	if (AABB_Intersects(&playerBB, &blockBB)) return false;
 
 	/* Push player upwards when they are jumping and trying to place a block underneath them */
-	nextPos.y = pos.y + Blocks.MaxBB[block].y + ENTITY_ADJUSTMENT;
+	nextPos.y = pos.y + Global_Blocks.MaxBB[block].y + ENTITY_ADJUSTMENT;
 
 	update.flags = LU_HAS_POS | LU_POS_ABSOLUTE_INSTANT;
 	update.pos   = nextPos;
@@ -412,7 +412,7 @@ static void InputHandler_DeleteBlock(void) {
 	if (!Game_SelectedPos.valid || !World_Contains(pos.x, pos.y, pos.z)) return;
 
 	old = World_GetBlock(pos.x, pos.y, pos.z);
-	if (Blocks.Draw[old] == DRAW_GAS || !Blocks.CanDelete[old]) return;
+	if (Global_Blocks.Draw[old] == DRAW_GAS || !Global_Blocks.CanDelete[old]) return;
 
 	Game_ChangeBlock(pos.x, pos.y, pos.z, BLOCK_AIR);
 	Event_RaiseBlock(&UserEvents.BlockChanged, pos, old, BLOCK_AIR);
@@ -428,12 +428,12 @@ static void InputHandler_PlaceBlock(void) {
 	block = Inventory_SelectedBlock;
 	if (AutoRotate_Enabled) block = AutoRotate_RotateBlock(block);
 
-	if (Game_CanPick(old) || !Blocks.CanPlace[block]) return;
+	if (Game_CanPick(old) || !Global_Blocks.CanPlace[block]) return;
 	/* air-ish blocks can only replace over other air-ish blocks */
-	if (Blocks.Draw[block] == DRAW_GAS && Blocks.Draw[old] != DRAW_GAS) return;
+	if (Global_Blocks.Draw[block] == DRAW_GAS && Global_Blocks.Draw[old] != DRAW_GAS) return;
 
 	/* undeletable gas blocks can't be replaced with other blocks */
-	if (Blocks.Collide[old] == COLLIDE_NONE && !Blocks.CanDelete[old]) return;
+	if (Global_Blocks.Collide[old] == COLLIDE_NONE && !Global_Blocks.CanDelete[old]) return;
 
 	if (!CheckIsFree(block)) return;
 
@@ -448,8 +448,8 @@ static void InputHandler_PickBlock(void) {
 	if (!World_Contains(pos.x, pos.y, pos.z)) return;
 
 	cur = World_GetBlock(pos.x, pos.y, pos.z);
-	if (Blocks.Draw[cur] == DRAW_GAS) return;
-	if (!(Blocks.CanPlace[cur] || Blocks.CanDelete[cur])) return;
+	if (Global_Blocks.Draw[cur] == DRAW_GAS) return;
+	if (!(Global_Blocks.CanPlace[cur] || Global_Blocks.CanDelete[cur])) return;
 	Inventory_PickBlock(cur);
 }
 

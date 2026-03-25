@@ -96,7 +96,7 @@ static void AddSpriteVertices(BlockID block) {
 }
 
 static void AddVertices(BlockID block, Face face) {
-	int baseOffset = (Blocks.Draw[block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
+	int baseOffset = (Global_Blocks.Draw[block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
 	int i = Atlas1D_Index(Block_Tex(block, face));
 	struct Builder1DPart* part = &Builder_Parts[baseOffset + i];
 	part->faces.count[face] += 4;
@@ -175,21 +175,21 @@ static void PrepareChunk(int x1, int y1, int z1) {
 
 			for (x = x1, xx = 0; x < xMax; x++, xx++, cIndex++) {
 				b = Builder_Chunk[cIndex];
-				if (Blocks.Draw[b] == DRAW_GAS) continue;
+				if (Global_Blocks.Draw[b] == DRAW_GAS) continue;
 				index = Builder_PackCount(xx, yy, zz);
 
 				/* Sprites can't be stretched, nor can then be they hidden by other blocks. */
 				/* Note sprites are drawn using DrawSprite and not with any of the DrawXFace. */
-				if (Blocks.Draw[b] == DRAW_SPRITE) { AddSpriteVertices(b); continue; }
+				if (Global_Blocks.Draw[b] == DRAW_SPRITE) { AddSpriteVertices(b); continue; }
 
 				Builder_X = x; Builder_Y = y; Builder_Z = z;
-				Builder_FullBright = Blocks.Brightness[b];
+				Builder_FullBright = Global_Blocks.Brightness[b];
 				tileIdx = b * BLOCK_COUNT;
 				/* All of these function calls are inlined as they can be called tens of millions to hundreds of millions of times. */
 
 				if (Builder_Counts[index] == 0 ||
 					(x == 0 && (y < Builder_SidesLevel || (b >= BLOCK_WATER && b <= BLOCK_STILL_LAVA && y < Builder_EdgeLevel))) ||
-					(x != 0 && (Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - 1]] & FACE_BIT_XMIN) != 0)) {
+					(x != 0 && (Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - 1]] & FACE_BIT_XMIN) != 0)) {
 					Builder_Counts[index] = 0;
 				} else {
 					Builder_Counts[index] = Builder_StretchZ(index, x, y, z, cIndex, b, FACE_XMIN);
@@ -198,7 +198,7 @@ static void PrepareChunk(int x1, int y1, int z1) {
 				index++;
 				if (Builder_Counts[index] == 0 ||
 					(x == World.MaxX && (y < Builder_SidesLevel || (b >= BLOCK_WATER && b <= BLOCK_STILL_LAVA && y < Builder_EdgeLevel))) ||
-					(x != World.MaxX && (Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + 1]] & FACE_BIT_XMAX) != 0)) {
+					(x != World.MaxX && (Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + 1]] & FACE_BIT_XMAX) != 0)) {
 					Builder_Counts[index] = 0;
 				} else {
 					Builder_Counts[index] = Builder_StretchZ(index, x, y, z, cIndex, b, FACE_XMAX);
@@ -207,7 +207,7 @@ static void PrepareChunk(int x1, int y1, int z1) {
 				index++;
 				if (Builder_Counts[index] == 0 ||
 					(z == 0 && (y < Builder_SidesLevel || (b >= BLOCK_WATER && b <= BLOCK_STILL_LAVA && y < Builder_EdgeLevel))) ||
-					(z != 0 && (Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - EXTCHUNK_SIZE]] & FACE_BIT_ZMIN) != 0)) {
+					(z != 0 && (Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - EXTCHUNK_SIZE]] & FACE_BIT_ZMIN) != 0)) {
 					Builder_Counts[index] = 0;
 				} else {
 					Builder_Counts[index] = Builder_StretchX(index, x, y, z, cIndex, b, FACE_ZMIN);
@@ -216,7 +216,7 @@ static void PrepareChunk(int x1, int y1, int z1) {
 				index++;
 				if (Builder_Counts[index] == 0 ||
 					(z == World.MaxZ && (y < Builder_SidesLevel || (b >= BLOCK_WATER && b <= BLOCK_STILL_LAVA && y < Builder_EdgeLevel))) ||
-					(z != World.MaxZ && (Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + EXTCHUNK_SIZE]] & FACE_BIT_ZMAX) != 0)) {
+					(z != World.MaxZ && (Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + EXTCHUNK_SIZE]] & FACE_BIT_ZMAX) != 0)) {
 					Builder_Counts[index] = 0;
 				} else {
 					Builder_Counts[index] = Builder_StretchX(index, x, y, z, cIndex, b, FACE_ZMAX);
@@ -224,7 +224,7 @@ static void PrepareChunk(int x1, int y1, int z1) {
 
 				index++;
 				if (Builder_Counts[index] == 0 || y == 0 ||
-					(Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - EXTCHUNK_SIZE_2]] & FACE_BIT_YMIN) != 0) {
+					(Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex - EXTCHUNK_SIZE_2]] & FACE_BIT_YMIN) != 0) {
 					Builder_Counts[index] = 0;
 				} else {
 					Builder_Counts[index] = Builder_StretchX(index, x, y, z, cIndex, b, FACE_YMIN);
@@ -232,7 +232,7 @@ static void PrepareChunk(int x1, int y1, int z1) {
 
 				index++;
 				if (Builder_Counts[index] == 0 ||
-					(Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + EXTCHUNK_SIZE_2]] & FACE_BIT_YMAX) != 0) {
+					(Global_Blocks.Hidden[tileIdx + Builder_Chunk[cIndex + EXTCHUNK_SIZE_2]] & FACE_BIT_YMAX) != 0) {
 					Builder_Counts[index] = 0;
 				} else if (b < BLOCK_WATER || b > BLOCK_STILL_LAVA) {
 					Builder_Counts[index] = Builder_StretchX(index, x, y, z, cIndex, b, FACE_YMAX);
@@ -254,8 +254,8 @@ for (yy = -1; yy < 17; ++yy) {\
 		for (xx = -1; xx < 17; ++xx, ++index, ++cIndex) {\
 \
 			block    = get_block;\
-			allAir   = allAir   && Blocks.Draw[block] == DRAW_GAS;\
-			allSolid = allSolid && Blocks.FullOpaque[block];\
+			allAir   = allAir   && Global_Blocks.Draw[block] == DRAW_GAS;\
+			allSolid = allSolid && Global_Blocks.FullOpaque[block];\
 			Builder_Chunk[cIndex] = block;\
 		}\
 	}\
@@ -305,7 +305,7 @@ for (yy = -1; yy < 17; ++yy) {\
 			if (x >= World.Width) break;\
 \
 			block  = get_block;\
-			allAir = allAir && Blocks.Draw[block] == DRAW_GAS;\
+			allAir = allAir && Global_Blocks.Draw[block] == DRAW_GAS;\
 			Builder_Chunk[cIndex] = block;\
 		}\
 	}\
@@ -439,7 +439,7 @@ void Builder_MakeChunk(struct ChunkInfo* info) {
 
 			for (x = x1, xx = 0; x < xMax; x++, xx++, cIndex++) {
 				Builder_Block = chunk[cIndex];
-				if (Blocks.Draw[Builder_Block] == DRAW_GAS) continue;
+				if (Global_Blocks.Draw[Builder_Block] == DRAW_GAS) continue;
 
 				index = Builder_PackCount(xx, yy, zz);
 				Builder_ChunkIndex = cIndex;
@@ -465,11 +465,11 @@ void Builder_MakeChunk(struct ChunkInfo* info) {
 static cc_bool Builder_OccludedLiquid(int chunkIndex) {
 	chunkIndex += EXTCHUNK_SIZE_2; /* Checking y above */
 	return
-		Blocks.FullOpaque[Builder_Chunk[chunkIndex]]
-		&& Blocks.Draw[Builder_Chunk[chunkIndex - EXTCHUNK_SIZE]] != DRAW_GAS
-		&& Blocks.Draw[Builder_Chunk[chunkIndex - 1]] != DRAW_GAS
-		&& Blocks.Draw[Builder_Chunk[chunkIndex + 1]] != DRAW_GAS
-		&& Blocks.Draw[Builder_Chunk[chunkIndex + EXTCHUNK_SIZE]] != DRAW_GAS;
+		Global_Blocks.FullOpaque[Builder_Chunk[chunkIndex]]
+		&& Global_Blocks.Draw[Builder_Chunk[chunkIndex - EXTCHUNK_SIZE]] != DRAW_GAS
+		&& Global_Blocks.Draw[Builder_Chunk[chunkIndex - 1]] != DRAW_GAS
+		&& Global_Blocks.Draw[Builder_Chunk[chunkIndex + 1]] != DRAW_GAS
+		&& Global_Blocks.Draw[Builder_Chunk[chunkIndex + EXTCHUNK_SIZE]] != DRAW_GAS;
 }
 
 static void DefaultPrePrepateChunk(void) {
@@ -511,7 +511,7 @@ static void Builder_DrawSprite(int x, int y, int z) {
 	v1  = Atlas1D_RowId(loc) * Atlas1D.InvTileSize;
 	v2  = v1 + Atlas1D.InvTileSize * UV2_Scale;
 
-	offsetType = Blocks.SpriteOffset[Builder_Block];
+	offsetType = Global_Blocks.SpriteOffset[Builder_Block];
 	if (offsetType >= 6 && offsetType <= 7) {
 		Random_Seed(&spriteRng, (x + 1217 * z) & 0x7fffffff);
 		valX = Random_Range(&spriteRng, -3, 3 + 1) / 16.0f;
@@ -523,7 +523,7 @@ static void Builder_DrawSprite(int x, int y, int z) {
 		if (offsetType == 7) { y1 -= valY; y2 -= valY; }
 	}
 	
-	bright = Blocks.Brightness[Builder_Block];
+	bright = Global_Blocks.Brightness[Builder_Block];
 	part   = &Builder_Parts[Atlas1D_Index(loc)];
 	color  = bright ? PACKEDCOL_WHITE : Lighting.Color_Sprite_Fast(x, y, z);
 	Block_Tint(color, Builder_Block);
@@ -564,7 +564,7 @@ static void Builder_DrawSprite(int x, int y, int z) {
 *--------------------------------------------------Normal mesh builder----------------------------------------------------*
 *#########################################################################################################################*/
 static PackedCol Normal_LightColor(int x, int y, int z, Face face, BlockID block) {
-	int offset = (Blocks.LightOffset[block] >> face) & 1;
+	int offset = (Global_Blocks.LightOffset[block] >> face) & 1;
 
 	switch (face) {
 	case FACE_XMIN:
@@ -600,7 +600,7 @@ static int NormalBuilder_StretchXLiquid(int countIndex, int x, int y, int z, int
 	x++;
 	chunkIndex++;
 	countIndex += FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << FACE_YMAX)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << FACE_YMAX)) != 0;
 
 	while (x < Builder_ChunkEndX && stretchTile && Normal_CanStretch(block, chunkIndex, x, y, z, FACE_YMAX) && !Builder_OccludedLiquid(chunkIndex)) {
 		Builder_Counts[countIndex] = 0;
@@ -618,7 +618,7 @@ static int NormalBuilder_StretchX(int countIndex, int x, int y, int z, int chunk
 	x++;
 	chunkIndex++;
 	countIndex += FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << face)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << face)) != 0;
 
 	while (x < Builder_ChunkEndX && stretchTile && Normal_CanStretch(block, chunkIndex, x, y, z, face)) {
 		Builder_Counts[countIndex] = 0;
@@ -636,7 +636,7 @@ static int NormalBuilder_StretchZ(int countIndex, int x, int y, int z, int chunk
 	z++;
 	chunkIndex += EXTCHUNK_SIZE;
 	countIndex += CHUNK_SIZE * FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << face)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << face)) != 0;
 
 	while (z < Builder_ChunkEndZ && stretchTile && Normal_CanStretch(block, chunkIndex, x, y, z, face)) {
 		Builder_Counts[countIndex] = 0;
@@ -665,7 +665,7 @@ static void NormalBuilder_RenderBlock(int index, int x, int y, int z) {
 	PackedCol col;
 	int offset;
 
-	if (Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
+	if (Global_Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
 		Builder_DrawSprite(x, y, z); return;
 	}
 
@@ -679,19 +679,19 @@ static void NormalBuilder_RenderBlock(int index, int x, int y, int z) {
 	if (!count_XMin && !count_XMax && !count_ZMin &&
 		!count_ZMax && !count_YMin && !count_YMax) return;
 
-	fullBright = Blocks.Brightness[Builder_Block];
-	baseOffset = (Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
-	lightFlags = Blocks.LightOffset[Builder_Block];
+	fullBright = Global_Blocks.Brightness[Builder_Block];
+	baseOffset = (Global_Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
+	lightFlags = Global_Blocks.LightOffset[Builder_Block];
 
-	Drawer.MinBB = Blocks.MinBB[Builder_Block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
-	Drawer.MaxBB = Blocks.MaxBB[Builder_Block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
+	Drawer.MinBB = Global_Blocks.MinBB[Builder_Block]; Drawer.MinBB.y = 1.0f - Drawer.MinBB.y;
+	Drawer.MaxBB = Global_Blocks.MaxBB[Builder_Block]; Drawer.MaxBB.y = 1.0f - Drawer.MaxBB.y;
 
-	min = Blocks.RenderMinBB[Builder_Block]; max = Blocks.RenderMaxBB[Builder_Block];
+	min = Global_Blocks.RenderMinBB[Builder_Block]; max = Global_Blocks.RenderMaxBB[Builder_Block];
 	Drawer.X1 = x + min.x; Drawer.Y1 = y + min.y; Drawer.Z1 = z + min.z;
 	Drawer.X2 = x + max.x; Drawer.Y2 = y + max.y; Drawer.Z2 = z + max.z;
 
-	Drawer.Tinted  = Blocks.Tinted[Builder_Block];
-	Drawer.TintCol = Blocks.FogCol[Builder_Block];
+	Drawer.Tinted  = Global_Blocks.Tinted[Builder_Block];
+	Drawer.TintCol = Global_Blocks.FogCol[Builder_Block];
 
 	if (count_XMin) {
 		loc    = Block_Tex(Builder_Block, FACE_XMIN);
@@ -817,7 +817,7 @@ static int Adv_Lit(int x, int y, int z, int cIndex) {
 
 	flags = 0;
 	block = Builder_Chunk[cIndex];
-	lightFlags = Blocks.LightOffset[block];
+	lightFlags = Global_Blocks.LightOffset[block];
 
 	/* TODO using LIGHT_FLAG_SHADES_FROM_BELOW is wrong here, */
 	/*  but still produces less broken results than YMIN/YMAX */
@@ -834,9 +834,9 @@ static int Adv_Lit(int x, int y, int z, int cIndex) {
 	flags |= Lighting.IsLit_Fast(x, (y + 1) - offset, z) ? LIT_P1 : 0;
 
 	/* If a block is fullbright, it should also look as if that spot is lit */
-	if (Blocks.Brightness[Builder_Chunk[cIndex - 324]]) flags |= LIT_M1;
-	if (Blocks.Brightness[block])                       flags |= LIT_CC;
-	if (Blocks.Brightness[Builder_Chunk[cIndex + 324]]) flags |= LIT_P1;
+	if (Global_Blocks.Brightness[Builder_Chunk[cIndex - 324]]) flags |= LIT_M1;
+	if (Global_Blocks.Brightness[block])                       flags |= LIT_CC;
+	if (Global_Blocks.Brightness[Builder_Chunk[cIndex + 324]]) flags |= LIT_P1;
 	
 	return flags;
 }
@@ -904,7 +904,7 @@ static int Adv_StretchXLiquid(int countIndex, int x, int y, int z, int chunkInde
 	x++;
 	chunkIndex++;
 	countIndex += FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << FACE_YMAX)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << FACE_YMAX)) != 0;
 
 	while (x < Builder_ChunkEndX && stretchTile && Adv_CanStretch(block, chunkIndex, x, y, z, FACE_YMAX) && !Builder_OccludedLiquid(chunkIndex)) {
 		Builder_Counts[countIndex] = 0;
@@ -925,7 +925,7 @@ static int Adv_StretchX(int countIndex, int x, int y, int z, int chunkIndex, Blo
 	x++;
 	chunkIndex++;
 	countIndex += FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << face)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << face)) != 0;
 
 	while (x < Builder_ChunkEndX && stretchTile && Adv_CanStretch(block, chunkIndex, x, y, z, face)) {
 		Builder_Counts[countIndex] = 0;
@@ -946,7 +946,7 @@ static int Adv_StretchZ(int countIndex, int x, int y, int z, int chunkIndex, Blo
 	z++;
 	chunkIndex += EXTCHUNK_SIZE;
 	countIndex += CHUNK_SIZE * FACE_COUNT;
-	stretchTile = (Blocks.CanStretch[block] & (1 << face)) != 0;
+	stretchTile = (Global_Blocks.CanStretch[block] & (1 << face)) != 0;
 
 	while (z < Builder_ChunkEndZ && stretchTile && Adv_CanStretch(block, chunkIndex, x, y, z, face)) {
 		Builder_Counts[countIndex] = 0;
@@ -983,7 +983,7 @@ static void Adv_DrawXMin(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1025,7 +1025,7 @@ static void Adv_DrawXMax(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1067,7 +1067,7 @@ static void Adv_DrawZMin(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1109,7 +1109,7 @@ static void Adv_DrawZMax(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1151,7 +1151,7 @@ static void Adv_DrawYMin(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1193,7 +1193,7 @@ static void Adv_DrawYMax(int count) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1219,7 +1219,7 @@ static void Adv_RenderBlock(int index, int x, int y, int z) {
 	int count_XMin, count_XMax, count_ZMin;
 	int count_ZMax, count_YMin, count_YMax;
 
-	if (Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
+	if (Global_Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
 		Builder_DrawSprite(x, y, z); return;
 	}
 
@@ -1233,15 +1233,15 @@ static void Adv_RenderBlock(int index, int x, int y, int z) {
 	if (!count_XMin && !count_XMax && !count_ZMin &&
 		!count_ZMax && !count_YMin && !count_YMax) return;
 
-	Builder_FullBright = Blocks.Brightness[Builder_Block];
-	adv_baseOffset = (Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
-	adv_tinted     = Blocks.Tinted[Builder_Block];
+	Builder_FullBright = Global_Blocks.Brightness[Builder_Block];
+	adv_baseOffset = (Global_Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
+	adv_tinted     = Global_Blocks.Tinted[Builder_Block];
 
-	min = Blocks.RenderMinBB[Builder_Block]; max = Blocks.RenderMaxBB[Builder_Block];
+	min = Global_Blocks.RenderMinBB[Builder_Block]; max = Global_Blocks.RenderMaxBB[Builder_Block];
 	adv_x1 = x + min.x; adv_y1 = y + min.y; adv_z1 = z + min.z;
 	adv_x2 = x + max.x; adv_y2 = y + max.y; adv_z2 = z + max.z;
 
-	adv_minBB = Blocks.MinBB[Builder_Block]; adv_maxBB = Blocks.MaxBB[Builder_Block];
+	adv_minBB = Global_Blocks.MinBB[Builder_Block]; adv_maxBB = Global_Blocks.MaxBB[Builder_Block];
 	adv_minBB.y = 1.0f - adv_minBB.y; adv_maxBB.y = 1.0f - adv_maxBB.y;
 
 	if (count_XMin) Adv_DrawXMin(count_XMin);
@@ -1288,9 +1288,9 @@ static void AdvBuilder_SetActive(void) { NormalBuilder_SetActive(); }
 
 static cc_bool Modern_IsOccluded(int x, int y, int z) {
 	BlockID block = World_SafeGetBlock(x, y, z);
-	if (Blocks.Brightness[block] > 0) { return false; }
+	if (Global_Blocks.Brightness[block] > 0) { return false; }
 	/* If the block we're pulling colors from is solid, return a darker version of original and increment how many are like this */
-	if (Blocks.FullOpaque[block] || (Blocks.Draw[block] == DRAW_TRANSPARENT && Blocks.BlocksLight[block] && Blocks.LightOffset[block] == 0xFF)) {
+	if (Global_Blocks.FullOpaque[block] || (Global_Blocks.Draw[block] == DRAW_TRANSPARENT && Global_Blocks.BlocksLight[block] && Global_Blocks.LightOffset[block] == 0xFF)) {
 		return true;
 	}
 	return false;
@@ -1351,7 +1351,7 @@ static void Modern_DrawXMin(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1384,7 +1384,7 @@ static void Modern_DrawXMax(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1430,7 +1430,7 @@ static void Modern_DrawZMin(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1463,7 +1463,7 @@ static void Modern_DrawZMax(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1509,7 +1509,7 @@ static void Modern_DrawYMin(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1556,7 +1556,7 @@ static void Modern_DrawYMax(int count, int x, int y, int z) {
 	struct VertexTextured* vertices, v;
 
 	if (adv_tinted) {
-		tint   = Blocks.FogCol[Builder_Block];
+		tint   = Global_Blocks.FogCol[Builder_Block];
 		col0_0 = PackedCol_Tint(col0_0, tint); col1_0 = PackedCol_Tint(col1_0, tint);
 		col1_1 = PackedCol_Tint(col1_1, tint); col0_1 = PackedCol_Tint(col0_1, tint);
 	}
@@ -1575,7 +1575,7 @@ static void Modern_RenderBlock(int index, int x, int y, int z) {
 	int count_XMin, count_XMax, count_ZMin;
 	int count_ZMax, count_YMin, count_YMax;
 
-	if (Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
+	if (Global_Blocks.Draw[Builder_Block] == DRAW_SPRITE) {
 		Builder_DrawSprite(x, y, z); return;
 	}
 
@@ -1589,15 +1589,15 @@ static void Modern_RenderBlock(int index, int x, int y, int z) {
 	if (!count_XMin && !count_XMax && !count_ZMin &&
 		!count_ZMax && !count_YMin && !count_YMax) return;
 
-	Builder_FullBright = Blocks.Brightness[Builder_Block];
-	adv_baseOffset = (Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
-	adv_tinted = Blocks.Tinted[Builder_Block];
+	Builder_FullBright = Global_Blocks.Brightness[Builder_Block];
+	adv_baseOffset = (Global_Blocks.Draw[Builder_Block] == DRAW_TRANSLUCENT) * ATLAS1D_MAX_ATLASES;
+	adv_tinted = Global_Blocks.Tinted[Builder_Block];
 
-	min = Blocks.RenderMinBB[Builder_Block]; max = Blocks.RenderMaxBB[Builder_Block];
+	min = Global_Blocks.RenderMinBB[Builder_Block]; max = Global_Blocks.RenderMaxBB[Builder_Block];
 	adv_x1 = x + min.x; adv_y1 = y + min.y; adv_z1 = z + min.z;
 	adv_x2 = x + max.x; adv_y2 = y + max.y; adv_z2 = z + max.z;
 
-	adv_minBB = Blocks.MinBB[Builder_Block]; adv_maxBB = Blocks.MaxBB[Builder_Block];
+	adv_minBB = Global_Blocks.MinBB[Builder_Block]; adv_maxBB = Global_Blocks.MaxBB[Builder_Block];
 	adv_minBB.y = 1.0f - adv_minBB.y; adv_maxBB.y = 1.0f - adv_maxBB.y;
 
 	if (count_XMin) Modern_DrawXMin(count_XMin, x, y, z);

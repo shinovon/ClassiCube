@@ -170,8 +170,8 @@ cc_bool Entity_TouchesAny(struct AABB* bounds, Entity_TouchesCondition condition
 			for (x = bbMin.x; x <= bbMax.x; x++) { v.x = (float)x;
 
 				block = World_GetBlock(x, y, z);
-				Vec3_Add(&blockBB.Min, &v, &Blocks.MinBB[block]);
-				Vec3_Add(&blockBB.Max, &v, &Blocks.MaxBB[block]);
+				Vec3_Add(&blockBB.Min, &v, &Global_Blocks.MinBB[block]);
+				Vec3_Add(&blockBB.Max, &v, &Global_Blocks.MaxBB[block]);
 
 				if (!AABB_Intersects(&blockBB, bounds)) continue;
 				if (condition(block)) return true;
@@ -181,7 +181,7 @@ cc_bool Entity_TouchesAny(struct AABB* bounds, Entity_TouchesCondition condition
 	return false;
 }
 
-static cc_bool IsRopeCollide(BlockID b) { return Blocks.ExtendedCollide[b] == COLLIDE_CLIMB; }
+static cc_bool IsRopeCollide(BlockID b) { return Global_Blocks.ExtendedCollide[b] == COLLIDE_CLIMB; }
 cc_bool Entity_TouchesAnyRope(struct Entity* e) {
 	struct AABB bounds; Entity_GetBounds(e, &bounds);
 	bounds.Max.y += 0.5f / 16.0f;
@@ -189,14 +189,14 @@ cc_bool Entity_TouchesAnyRope(struct Entity* e) {
 }
 
 static const Vec3 entity_liqExpand = { 0.25f/16.0f, 0.0f/16.0f, 0.25f/16.0f };
-static cc_bool IsLavaCollide(BlockID b) { return Blocks.ExtendedCollide[b] == COLLIDE_LAVA; }
+static cc_bool IsLavaCollide(BlockID b) { return Global_Blocks.ExtendedCollide[b] == COLLIDE_LAVA; }
 cc_bool Entity_TouchesAnyLava(struct Entity* e) {
 	struct AABB bounds; Entity_GetBounds(e, &bounds);
 	AABB_Offset(&bounds, &bounds, &entity_liqExpand);
 	return Entity_TouchesAny(&bounds, IsLavaCollide);
 }
 
-static cc_bool IsWaterCollide(BlockID b) { return Blocks.ExtendedCollide[b] == COLLIDE_WATER; }
+static cc_bool IsWaterCollide(BlockID b) { return Global_Blocks.ExtendedCollide[b] == COLLIDE_WATER; }
 cc_bool Entity_TouchesAnyWater(struct Entity* e) {
 	struct AABB bounds; Entity_GetBounds(e, &bounds);
 	AABB_Offset(&bounds, &bounds, &entity_liqExpand);
@@ -850,7 +850,7 @@ static void LocalPlayers_OnNewMap(void) {
 	}
 }
 
-static cc_bool LocalPlayer_IsSolidCollide(BlockID b) { return Blocks.Collide[b] == COLLIDE_SOLID; }
+static cc_bool LocalPlayer_IsSolidCollide(BlockID b) { return Global_Blocks.Collide[b] == COLLIDE_SOLID; }
 
 static void LocalPlayer_DoRespawn(struct LocalPlayer* p) {
 	struct EntityLocation* prev;
@@ -874,7 +874,7 @@ static void LocalPlayer_DoRespawn(struct LocalPlayer* p) {
 
 			if (spawnY == RESPAWN_NOT_FOUND) {
 				block   = World_SafeGetBlock(pos.x, y, pos.z);
-				height  = Blocks.Collide[block] == COLLIDE_SOLID ? Blocks.MaxBB[block].y : 0.0f;
+				height  = Global_Blocks.Collide[block] == COLLIDE_SOLID ? Global_Blocks.MaxBB[block].y : 0.0f;
 				spawn.y = y + height + ENTITY_ADJUSTMENT;
 				break;
 			}

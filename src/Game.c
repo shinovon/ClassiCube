@@ -214,9 +214,9 @@ void Game_ChangeBlock(int x, int y, int z, BlockID block) {
 }
 
 cc_bool Game_CanPick(BlockID block) {
-	if (Blocks.Draw[block] == DRAW_GAS)    return false;
-	if (Blocks.Draw[block] == DRAW_SPRITE) return true;
-	return Blocks.Collide[block] != COLLIDE_LIQUID || Game_BreakableLiquids;
+	if (Global_Blocks.Draw[block] == DRAW_GAS)    return false;
+	if (Global_Blocks.Draw[block] == DRAW_SPRITE) return true;
+	return Global_Blocks.Collide[block] != COLLIDE_LIQUID || Game_BreakableLiquids;
 }
 
 cc_bool Game_UpdateTexture(GfxResourceID* texId, struct Stream* src, const cc_string* file,
@@ -553,7 +553,7 @@ static void Render3DFrame(float delta, float t) {
 
 	/* Need to render again over top of translucent block, as the selection outline */
 	/* is drawn without writing to the depth buffer */
-	if (Game_SelectedPos.valid && !Game_HideGui && Blocks.Draw[Game_SelectedPos.block] == DRAW_TRANSLUCENT) {
+	if (Game_SelectedPos.valid && !Game_HideGui && Global_Blocks.Draw[Game_SelectedPos.block] == DRAW_TRANSLUCENT) {
 		SelOutlineRenderer_Render(&Game_SelectedPos, false);
 	}
 

@@ -10,8 +10,6 @@
 #include "Lighting.h"
 #include "Audio.h"
 
-struct _BlockLists Blocks;
-
 /*########################################################################################################################*
 *---------------------------------------------------Default properties----------------------------------------------------*
 *#########################################################################################################################*/
@@ -134,15 +132,15 @@ static cc_uint8 DefaultSet_MapOldCollide(BlockID b, cc_uint8 collide) {
 *---------------------------------------------------Block properties------------------------------------------------------*
 *#########################################################################################################################*/
 static void Block_RecalcIsLiquid(BlockID b) {
-	cc_uint8 collide = Blocks.ExtendedCollide[b];
-	Blocks.IsLiquid[b] =
-		(collide == COLLIDE_WATER && Blocks.Draw[b] == DRAW_TRANSLUCENT) ||
-		(collide == COLLIDE_LAVA  && Blocks.Draw[b] == DRAW_TRANSPARENT);
+	cc_uint8 collide = Global_Blocks.ExtendedCollide[b];
+	Global_Blocks.IsLiquid[b] =
+		(collide == COLLIDE_WATER && Global_Blocks.Draw[b] == DRAW_TRANSLUCENT) ||
+		(collide == COLLIDE_LAVA  && Global_Blocks.Draw[b] == DRAW_TRANSPARENT);
 }
 
 /* Sets the basic and extended collide types of the given block */
 static void Block_SetCollide(BlockID block, cc_uint8 collide) {
-	Blocks.ExtendedCollide[block] = collide;
+	Global_Blocks.ExtendedCollide[block] = collide;
 	Block_RecalcIsLiquid(block);
 
 	/* Reduce extended collision types to their simpler forms */
@@ -151,28 +149,28 @@ static void Block_SetCollide(BlockID block, cc_uint8 collide) {
 
 	if (collide == COLLIDE_WATER) collide = COLLIDE_LIQUID;
 	if (collide == COLLIDE_LAVA)  collide = COLLIDE_LIQUID;
-	Blocks.Collide[block] = collide;
+	Global_Blocks.Collide[block] = collide;
 }
 
 /* Sets draw type and updates related state (e.g. FullOpaque) for the given block */
 static void Block_SetDrawType(BlockID block, cc_uint8 draw) {
-	if (draw == DRAW_OPAQUE && Blocks.Collide[block] != COLLIDE_SOLID) draw = DRAW_TRANSPARENT;
-	Blocks.Draw[block] = draw;
+	if (draw == DRAW_OPAQUE && Global_Blocks.Collide[block] != COLLIDE_SOLID) draw = DRAW_TRANSPARENT;
+	Global_Blocks.Draw[block] = draw;
 	Block_RecalcIsLiquid(block);
 
 	/* Whether a block is opaque and exactly occupies a cell in the world */
 	/* The mesh builder module needs this information for optimisation purposes */
-	Blocks.FullOpaque[block] = draw == DRAW_OPAQUE
-		&& Blocks.MinBB[block].x == 0 && Blocks.MinBB[block].y == 0 && Blocks.MinBB[block].z == 0
-		&& Blocks.MaxBB[block].x == 1 && Blocks.MaxBB[block].y == 1 && Blocks.MaxBB[block].z == 1;
+	Global_Blocks.FullOpaque[block] = draw == DRAW_OPAQUE
+		&& Global_Blocks.MinBB[block].x == 0 && Global_Blocks.MinBB[block].y == 0 && Global_Blocks.MinBB[block].z == 0
+		&& Global_Blocks.MaxBB[block].x == 1 && Global_Blocks.MaxBB[block].y == 1 && Global_Blocks.MaxBB[block].z == 1;
 }
 
 void Block_SetSide(TextureLoc texLoc, BlockID blockId) {
 	int index = blockId * FACE_COUNT;
-	Blocks.Textures[index + FACE_XMIN] = texLoc;
-	Blocks.Textures[index + FACE_XMAX] = texLoc;
-	Blocks.Textures[index + FACE_ZMIN] = texLoc;
-	Blocks.Textures[index + FACE_ZMAX] = texLoc;
+	Global_Blocks.Textures[index + FACE_XMIN] = texLoc;
+	Global_Blocks.Textures[index + FACE_XMAX] = texLoc;
+	Global_Blocks.Textures[index + FACE_ZMIN] = texLoc;
+	Global_Blocks.Textures[index + FACE_ZMAX] = texLoc;
 }
 
 
@@ -182,25 +180,25 @@ void Block_SetSide(TextureLoc texLoc, BlockID blockId) {
 /* Calculates render min/max corners of this block */
 /* Works by slightly offsetting collision min/max corners */
 static void Block_CalcRenderBounds(BlockID block) {
-	Vec3 min = Blocks.MinBB[block], max = Blocks.MaxBB[block];
+	Vec3 min = Global_Blocks.MinBB[block], max = Global_Blocks.MaxBB[block];
 
-	if (Blocks.IsLiquid[block]) {
+	if (Global_Blocks.IsLiquid[block]) {
 		min.x += 0.1f/16.0f; max.x += 0.1f/16.0f;
 		min.z += 0.1f/16.0f; max.z += 0.1f/16.0f;
 		min.y -= 1.5f/16.0f; max.y -= 1.5f/16.0f;
-	} else if (Blocks.Draw[block] == DRAW_TRANSLUCENT && Blocks.Collide[block] != COLLIDE_SOLID) {
+	} else if (Global_Blocks.Draw[block] == DRAW_TRANSLUCENT && Global_Blocks.Collide[block] != COLLIDE_SOLID) {
 		min.x += 0.1f/16.0f; max.x += 0.1f/16.0f;
 		min.z += 0.1f/16.0f; max.z += 0.1f/16.0f;
 		min.y -= 0.1f/16.0f; max.y -= 0.1f/16.0f;
 	}
 
-	Blocks.RenderMinBB[block] = min; Blocks.RenderMaxBB[block] = max;
+	Global_Blocks.RenderMinBB[block] = min; Global_Blocks.RenderMaxBB[block] = max;
 }
 
 /* Calculates light colour offset for each face of the given block */
 static void Block_CalcLightOffset(BlockID block) {
 	int flags = 0xFF;
-	Vec3 min = Blocks.MinBB[block], max = Blocks.MaxBB[block];
+	Vec3 min = Global_Blocks.MinBB[block], max = Global_Blocks.MaxBB[block];
 
 	if (min.x != 0) flags &= ~FACE_BIT_XMIN;
 	if (max.x != 1) flags &= ~FACE_BIT_XMAX;
@@ -209,10 +207,10 @@ static void Block_CalcLightOffset(BlockID block) {
 	if (min.y != 0) flags &= ~FACE_BIT_YMIN;
 	if (max.y != 1) flags &= ~FACE_BIT_YMAX;
 
-	if ((min.y != 0 && max.y == 1) && Blocks.Draw[block] != DRAW_GAS) {
+	if ((min.y != 0 && max.y == 1) && Global_Blocks.Draw[block] != DRAW_GAS) {
 		flags &= ~(1 << LIGHT_FLAG_SHADES_FROM_BELOW);
 	}
-	Blocks.LightOffset[block] = flags;
+	Global_Blocks.LightOffset[block] = flags;
 }
 
 
@@ -288,8 +286,8 @@ static void Block_RecalculateBB(BlockID block) {
 
 	minRaw = Vec3_RotateY3(minX - 0.5f, minY, 0.0f, 45.0f * MATH_DEG2RAD);
 	maxRaw = Vec3_RotateY3(maxX - 0.5f, maxY, 0.0f, 45.0f * MATH_DEG2RAD);
-	Vec3_Add(&Blocks.MinBB[block], &minRaw, &centre);
-	Vec3_Add(&Blocks.MaxBB[block], &maxRaw, &centre);
+	Vec3_Add(&Global_Blocks.MinBB[block], &minRaw, &centre);
+	Vec3_Add(&Global_Blocks.MaxBB[block], &maxRaw, &centre);
 	Block_CalcRenderBounds(block);
 }
 
@@ -297,7 +295,7 @@ static void Block_RecalculateBB(BlockID block) {
 static void Block_RecalculateAllSpriteBB(void) {
 	int block;
 	for (block = BLOCK_AIR; block < BLOCK_COUNT; block++) {
-		if (Blocks.Draw[block] != DRAW_SPRITE) continue;
+		if (Global_Blocks.Draw[block] != DRAW_SPRITE) continue;
 
 		Block_RecalculateBB((BlockID)block);
 	}
@@ -306,28 +304,28 @@ static void Block_RecalculateAllSpriteBB(void) {
 
 static void Block_CalcStretch(BlockID block) {
 	/* faces which can be stretched on X axis */
-	if (Blocks.MinBB[block].x == 0.0f && Blocks.MaxBB[block].x == 1.0f) {
-		Blocks.CanStretch[block] |= 0x3C;
+	if (Global_Blocks.MinBB[block].x == 0.0f && Global_Blocks.MaxBB[block].x == 1.0f) {
+		Global_Blocks.CanStretch[block] |= 0x3C;
 	} else {
-		Blocks.CanStretch[block] &= 0xC3; /* ~0x3C */
+		Global_Blocks.CanStretch[block] &= 0xC3; /* ~0x3C */
 	}
 
 	/* faces which can be stretched on Z axis */
-	if (Blocks.MinBB[block].z == 0.0f && Blocks.MaxBB[block].z == 1.0f) {
-		Blocks.CanStretch[block] |= 0x03;
+	if (Global_Blocks.MinBB[block].z == 0.0f && Global_Blocks.MaxBB[block].z == 1.0f) {
+		Global_Blocks.CanStretch[block] |= 0x03;
 	} else {
-		Blocks.CanStretch[block] &= 0xFC; /* ~0x03 */
+		Global_Blocks.CanStretch[block] &= 0xFC; /* ~0x03 */
 	}
 
 	#if defined CC_BUILD_PS1 || defined CC_BUILD_SATURN
-	Blocks.CanStretch[block] = 0;
+	Global_Blocks.CanStretch[block] = 0;
 	#endif
 }
 
 static cc_bool Block_MightCull(BlockID block, BlockID other) {
 	cc_uint8 bType, oType;
 	/* Sprite blocks can never cull blocks. */
-	if (Blocks.Draw[block] == DRAW_SPRITE) return false;
+	if (Global_Blocks.Draw[block] == DRAW_SPRITE) return false;
 
 	/* NOTE: Water is always culled by lava */
 	if ((block == BLOCK_WATER || block == BLOCK_STILL_WATER)
@@ -335,16 +333,16 @@ static cc_bool Block_MightCull(BlockID block, BlockID other) {
 		return true;
 
 	/* All blocks (except for say leaves) cull with themselves */
-	if (block == other) return Blocks.Draw[block] != DRAW_TRANSPARENT_THICK;
+	if (block == other) return Global_Blocks.Draw[block] != DRAW_TRANSPARENT_THICK;
 
 	/* An opaque neighbour (asides from lava) culls this block. */
-	if (Blocks.Draw[other] == DRAW_OPAQUE && !Blocks.IsLiquid[other]) return true;
+	if (Global_Blocks.Draw[other] == DRAW_OPAQUE && !Global_Blocks.IsLiquid[other]) return true;
 	/* Transparent/Gas blocks don't cull other blocks (except themselves) */
-	if (Blocks.Draw[block] != DRAW_TRANSLUCENT || Blocks.Draw[other] != DRAW_TRANSLUCENT) return false;
+	if (Global_Blocks.Draw[block] != DRAW_TRANSLUCENT || Global_Blocks.Draw[other] != DRAW_TRANSLUCENT) return false;
 
 	/* Some translucent blocks may still cull other translucent blocks */
 	/* e.g. for water/ice, don't need to draw faces of water */
-	bType = Blocks.Collide[block]; oType = Blocks.Collide[other]; 
+	bType = Global_Blocks.Collide[block]; oType = Global_Blocks.Collide[other]; 
 	return (bType == COLLIDE_SOLID && oType == COLLIDE_SOLID) || bType != COLLIDE_SOLID;
 }
 
@@ -354,27 +352,27 @@ static void Block_CalcCulling(BlockID block, BlockID other) {
 	int f;
 
 	/* Fast path: Full opaque neighbouring blocks will always have all shared faces hidden */
-	if (Blocks.FullOpaque[block] && Blocks.FullOpaque[other]) {
-		Blocks.Hidden[(block * BLOCK_COUNT) + other] = 0x3F;
+	if (Global_Blocks.FullOpaque[block] && Global_Blocks.FullOpaque[other]) {
+		Global_Blocks.Hidden[(block * BLOCK_COUNT) + other] = 0x3F;
 		return;
 	}
 
 	/* Some blocks may not cull 'other' block, in which case just skip detailed check */
 	/* e.g. sprite blocks, default leaves, will not cull any other blocks */
 	if (!Block_MightCull(block, other)) {	
-		Blocks.Hidden[(block * BLOCK_COUNT) + other] = 0;
+		Global_Blocks.Hidden[(block * BLOCK_COUNT) + other] = 0;
 		return;
 	}
 
-	bMin = Blocks.MinBB[block]; bMax = Blocks.MaxBB[block];
-	oMin = Blocks.MinBB[other]; oMax = Blocks.MaxBB[other];
+	bMin = Global_Blocks.MinBB[block]; bMax = Global_Blocks.MaxBB[block];
+	oMin = Global_Blocks.MinBB[other]; oMax = Global_Blocks.MaxBB[other];
 
 	/* Extend offsets of liquid down to match rendered position */
 	/* This isn't completely correct, but works well enough */
-	if (Blocks.IsLiquid[block]) bMax.y -= 1.50f / 16.0f;
-	if (Blocks.IsLiquid[other]) oMax.y -= 1.50f / 16.0f;
+	if (Global_Blocks.IsLiquid[block]) bMax.y -= 1.50f / 16.0f;
+	if (Global_Blocks.IsLiquid[other]) oMax.y -= 1.50f / 16.0f;
 
-	bothLiquid = Blocks.IsLiquid[block] && Blocks.IsLiquid[other];
+	bothLiquid = Global_Blocks.IsLiquid[block] && Global_Blocks.IsLiquid[other];
 	f = 0; /* mark all faces initially 'not hidden' */
 
 	/* Whether the 'texture region' of a face on block fits inside corresponding region on other block */
@@ -388,7 +386,7 @@ static void Block_CalcCulling(BlockID block, BlockID other) {
 	f |= occludedZ && oMin.z == 0.0f && bMax.z == 1.0f ? FACE_BIT_ZMAX : 0;
 	f |= occludedY && (bothLiquid || (oMax.y == 1.0f && bMin.y == 0.0f)) ? FACE_BIT_YMIN : 0;
 	f |= occludedY && (bothLiquid || (oMin.y == 0.0f && bMax.y == 1.0f)) ? FACE_BIT_YMAX : 0;
-	Blocks.Hidden[(block * BLOCK_COUNT) + other] = f;
+	Global_Blocks.Hidden[(block * BLOCK_COUNT) + other] = f;
 }
 
 /* Updates culling data of all blocks */
@@ -440,11 +438,11 @@ void Block_DefineCustom(BlockID block, cc_bool checkSprite) {
 	PackedCol black  = PackedCol_Make(0, 0, 0, 255);
 	cc_string name   = Block_UNSAFE_GetName(block);
 	/* necessary if servers redefined core blocks, before extended collide types were added */
-	cc_uint8 collide = DefaultSet_MapOldCollide(block, Blocks.Collide[block]);
-	Blocks.Tinted[block] = Blocks.FogCol[block] != black && String_IndexOf(&name, '#') >= 0;
+	cc_uint8 collide = DefaultSet_MapOldCollide(block, Global_Blocks.Collide[block]);
+	Global_Blocks.Tinted[block] = Global_Blocks.FogCol[block] != black && String_IndexOf(&name, '#') >= 0;
 
 	Block_SetCollide(block,  collide);
-	Block_SetDrawType(block, Blocks.Draw[block]);
+	Block_SetDrawType(block, Global_Blocks.Draw[block]);
 	Block_CalcRenderBounds(block);
 	Block_UpdateCulling(block);
 	Block_CalcLightOffset(block);
@@ -455,7 +453,7 @@ void Block_DefineCustom(BlockID block, cc_bool checkSprite) {
 
 	if (!checkSprite) return; /* TODO eliminate this */
 	/* Update sprite BoundingBox if necessary */
-	if (Blocks.Draw[block] == DRAW_SPRITE) Block_RecalculateBB(block);
+	if (Global_Blocks.Draw[block] == DRAW_SPRITE) Block_RecalculateBB(block);
 }
 
 void Block_UndefineCustom(BlockID block) {
@@ -469,32 +467,32 @@ void Block_UndefineCustom(BlockID block) {
 	Event_RaiseVoid(&BlockEvents.BlockDefChanged);
 
 	/* Update sprite BoundingBox if necessary */
-	if (Blocks.Draw[block] == DRAW_SPRITE) Block_RecalculateBB(block);
+	if (Global_Blocks.Draw[block] == DRAW_SPRITE) Block_RecalculateBB(block);
 }
 
 void Block_ResetProps(BlockID block) {
 	const struct SimpleBlockDef* def = block <= Game_Version.MaxCoreBlock ? &core_blockDefs[block] : &invalid_blockDef;
 	const cc_string name = String_FromReadonly(def->name);
 
-	Blocks.BlocksLight[block] = def->blocksLight;
-	Blocks.Brightness[block]  = def->brightness;
-	Blocks.FogCol[block]      = def->fogColor;
-	Blocks.FogDensity[block]  = def->fogDensity / 100.0f;
+	Global_Blocks.BlocksLight[block] = def->blocksLight;
+	Global_Blocks.Brightness[block]  = def->brightness;
+	Global_Blocks.FogCol[block]      = def->fogColor;
+	Global_Blocks.FogDensity[block]  = def->fogDensity / 100.0f;
 	Block_SetCollide(block,     def->collide);
-	Blocks.DigSounds[block]   = def->digSound;
-	Blocks.StepSounds[block]  = def->stepSound;
-	Blocks.SpeedMultiplier[block] = 1.0f;
+	Global_Blocks.DigSounds[block]   = def->digSound;
+	Global_Blocks.StepSounds[block]  = def->stepSound;
+	Global_Blocks.SpeedMultiplier[block] = 1.0f;
 	Block_SetName(block, &name);
-	Blocks.Tinted[block]       = false;
-	Blocks.SpriteOffset[block] = 0;
+	Global_Blocks.Tinted[block]       = false;
+	Global_Blocks.SpriteOffset[block] = 0;
 
-	Blocks.Draw[block] = def->draw;
+	Global_Blocks.Draw[block] = def->draw;
 	if (def->draw == DRAW_SPRITE) {
-		Vec3_Set(Blocks.MinBB[block], 2.50f/16.0f, 0, 2.50f/16.0f);
-		Vec3_Set(Blocks.MaxBB[block], 13.5f/16.0f, 1, 13.5f/16.0f);
+		Vec3_Set(Global_Blocks.MinBB[block], 2.50f/16.0f, 0, 2.50f/16.0f);
+		Vec3_Set(Global_Blocks.MaxBB[block], 13.5f/16.0f, 1, 13.5f/16.0f);
 	} else {		
-		Vec3_Set(Blocks.MinBB[block], 0, 0,                   0);
-		Vec3_Set(Blocks.MaxBB[block], 1, def->height / 16.0f, 1);
+		Vec3_Set(Global_Blocks.MinBB[block], 0, 0,                   0);
+		Vec3_Set(Global_Blocks.MaxBB[block], 1, def->height / 16.0f, 1);
 	}
 
 	Block_SetDrawType(block, def->draw);
@@ -505,7 +503,7 @@ void Block_ResetProps(BlockID block) {
 	Block_Tex(block, FACE_YMIN) = def->bottomTexture;
 	Block_SetSide(def->sideTexture, block);
 
-	Blocks.ParticleGravity[block] = 5.4f * (def->gravity / 100.0f);
+	Global_Blocks.ParticleGravity[block] = 5.4f * (def->gravity / 100.0f);
 }
 
 STRING_REF cc_string Block_UNSAFE_GetName(BlockID block) {
@@ -788,13 +786,14 @@ static void OnReset(void) {
 	Block_RecalculateAllSpriteBB();
 
 	for (block = BLOCK_AIR; block < BLOCK_COUNT; block++) {
-		Blocks.CanPlace[block]  = true;
-		Blocks.CanDelete[block] = true;
+		Global_Blocks.CanPlace[block]  = true;
+		Global_Blocks.CanDelete[block] = true;
 	}
 }
 
 static void OnAtlasChanged(void* obj) { Block_RecalculateAllSpriteBB(); }
 static void OnInit(void) {
+	// FIXME: initialize global blocks
 	AutoRotate_Enabled = true;
 	Event_Register_(&TextureEvents.AtlasChanged, NULL, OnAtlasChanged);
 	OnReset();
