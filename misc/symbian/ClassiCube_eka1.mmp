@@ -11,7 +11,6 @@ SYSTEMINCLUDE \Epoc32\include\libc
 USERINCLUDE ../../src
 
 MACRO CC_BUILD_SYMBIAN_ESTLIB
-//MACRO CC_BUILD_SYMBIAN_AVKON
 
 LIBRARY euser.lib
 LIBRARY apgrfx.lib
@@ -45,7 +44,76 @@ START RESOURCE classicube_eka1.rss
 	LANG SC
 END
 SOURCEPATH ../../src
-SOURCE Animations.c Audio.c Audio_Null.c AxisLinesRenderer.c Bitmap.c Block.c BlockPhysics.c Builder.c Camera.c Chat.c Commands.c Deflate.c Drawer.c Drawer2D.c Entity.c EntityComponents.c EntityRenderers.c EnvRenderer.c Event.c ExtMath.c FancyLighting.c Formats.c Game.c GameVersion.c Generator.c Graphics_GL1.c Graphics_SoftGPU.c Gui.c HeldBlockRenderer.c Http_Worker.c Input.c InputHandler.c Inventory.c IsometricDrawer.c LBackend.c LScreens.c LWeb.c LWidgets.c Launcher.c Lighting.c Logger.c MapRenderer.c MenuOptions.c Menus.c Model.c Options.c PackedCol.c Particle.c Physics.c Picking.c Platform_Posix.c Protocol.c Queue.c Resources.c SSL.c Screens.c SelOutlineRenderer.c SelectionBox.c Server.c Stream.c String.c SystemFonts.c TexturePack.c TouchUI.c Utils.c Vectors.c Widgets.c World.c Vorbis.c Certs.c Graphics_SoftMin.c Graphics_SoftFP.c
+SOURCE Animations.c
+SOURCE Audio.c
+SOURCE Audio_Null.c
+SOURCE AxisLinesRenderer.c
+SOURCE Bitmap.c
+SOURCE Block.c
+SOURCE BlockPhysics.c
+SOURCE Builder.c
+SOURCE Camera.c
+SOURCE Chat.c
+SOURCE Commands.c
+SOURCE Deflate.c
+SOURCE Drawer.c
+SOURCE Drawer2D.c
+SOURCE Entity.c
+SOURCE EntityComponents.c
+SOURCE EnvRenderer.c
+SOURCE EntityRenderers.c
+SOURCE Graphics_GL1.c
+SOURCE Graphics_SoftGPU.c
+SOURCE Graphics_SoftMin.c
+SOURCE Graphics_SoftFP.c
+SOURCE Event.c
+SOURCE ExtMath.c
+SOURCE FancyLighting.c
+SOURCE Formats.c
+SOURCE Game.c
+SOURCE GameVersion.c
+SOURCE Generator.c
+SOURCE Gui.c
+SOURCE HeldBlockRenderer.c
+SOURCE Http_Worker.c
+SOURCE Input.c
+SOURCE InputHandler.c
+SOURCE Inventory.c
+SOURCE IsometricDrawer.c
+SOURCE LBackend.c
+SOURCE LScreens.c
+SOURCE LWeb.c
+SOURCE LWidgets.c
+SOURCE Launcher.c
+SOURCE Lighting.c
+SOURCE Logger.c
+SOURCE MapRenderer.c
+SOURCE MenuOptions.c
+SOURCE Menus.c
+SOURCE Model.c
+SOURCE Options.c
+SOURCE PackedCol.c
+SOURCE Particle.c
+SOURCE Physics.c
+SOURCE Picking.c
+SOURCE Protocol.c
+SOURCE Queue.c
+SOURCE Resources.c
+SOURCE SSL.c
+SOURCE Screens.c
+SOURCE SelOutlineRenderer.c
+SOURCE SelectionBox.c
+SOURCE Server.c
+SOURCE Stream.c
+SOURCE String.c
+SOURCE SystemFonts.c
+SOURCE TexturePack.c
+SOURCE TouchUI.c
+SOURCE Utils.c
+SOURCE Vectors.c
+SOURCE Widgets.c
+SOURCE World.c
+SOURCE Certs.c
 
 SOURCEPATH ../../src/symbian
 SOURCE Platform_Symbian.cpp Window_Symbian.cpp Audio_Symbian.cpp

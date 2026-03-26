@@ -966,6 +966,7 @@ static void SetClipboardL(const cc_string* value) {
 
 void Window_PreInit(void) {
 	TInt keyboardType = -1;
+#ifdef EKA2
 	TUid categoryUid = { 0x101F876E }; //  KCRUidAvkon
 	RProperty::Get(categoryUid, 0x0000000B /* KAknKeyBoardLayout */, keyboardType);
 	
@@ -983,6 +984,7 @@ void Window_PreInit(void) {
 		NormDevice.defaultBinds = symbian_binds_qwerty;
 		break;
 	default: // unknown or platform is older than s60v3.2
+#endif
 		if (HAL::Get(HAL::EKeyboard, keyboardType) == KErrNone) {
 #if defined EKA2 || !defined CC_BUILD_TOCUH
 			if (!(keyboardType & 0x2 /*EKeyboard_Full*/)) {
@@ -993,8 +995,10 @@ void Window_PreInit(void) {
 				NormDevice.defaultBinds = symbian_binds_qwerty;
 			}
 		}
+#ifdef EKA2
 		break;
 	}
+#endif
 }
 
 void Window_Init(void) {
