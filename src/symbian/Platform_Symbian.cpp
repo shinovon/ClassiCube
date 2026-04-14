@@ -813,10 +813,10 @@ int Platform_GetCommandLineArgs(int argc, STRING_REF char** argv, cc_string* arg
 
 cc_result Platform_SetDefaultCurrentDirectory(int argc, char **argv) {
 #if !defined EKA2
-	mkdir("/System", 0777);
-	mkdir("/System/Data/", 0777);
-	mkdir("/System/Data/ClassiCube", 0777);
-	chdir("/System/Data/ClassiCube");
+	mkdir("c:\\System", 0777);
+	mkdir("c:\\System\\Data\\", 0777);
+	mkdir("c:\\System\\Data\\ClassiCube", 0777);
+	chdir("c:\\System\\Data\\ClassiCube");
 #else
 	// Directory is already set by platform: !:/private/e212a5c2
 	return 0;
