@@ -4,12 +4,6 @@ extern "C" {
 #include "_WindowBase.h"
 }
 
-#ifdef EKA2
-const TUid KUidClassiCube = {0xE212A5C2};
-#else
-const TUid KUidClassiCube = {0x1212A5C3};
-#endif
-
 // 12 keys
 const BindMapping symbian_binds_12[BIND_COUNT] = {
 	{ '2', 0 }, { '8', 0 }, { '4', 0 }, { '6', 0 }, /* BIND_FORWARD - BIND_RIGHT */

@@ -32,10 +32,6 @@ LIBRARY estlib.lib
 LIBRARY estor.lib
 LIBRARY bafl.lib
 
-#ifdef WINS
-LIBRARY wserv.lib
-#endif
-
 LIBRARY avkon.lib // s60
 MACRO CC_BUILD_SYMBIAN_AVKON
 
@@ -43,8 +39,6 @@ LIBRARY libgles_cm.lib // s60v2fp3
 MACRO CC_BUILD_SYMBIAN_GLES10
 
 //MACRO CC_BUILD_TOUCH // s90
-
-//EPOCALLOWDLLDATA
 
 //START RESOURCE classicube_eka1.rss
 //	TARGET classicube.rsc

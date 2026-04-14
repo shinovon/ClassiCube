@@ -1,6 +1,7 @@
 #include "Window_Symbian.h"
 
 #ifdef EKA2
+const TUid KUidClassiCube = {0xE212A5C2};
 TUid CCApp::AppDllUid() const {
 	return KUidClassiCube;
 }
@@ -22,6 +23,7 @@ TInt E32Main() {
 }
 #else
 #ifdef __WINS__
+const TUid KUidClassiCube = {0x1212A5C3};
 GLDEF_C TInt E32Dll(TDllReason) {
 	return KErrNone;
 }
@@ -57,6 +59,7 @@ TInt RunUIThread(TAny *aPtr) {
 
 TInt E32Main() {
 	CTrapCleanup* cleanup = CTrapCleanup::New();
+	SpawnPosixServerThread();
 	RWsSession ws;
 	TInt tries = 0;
 	for (;;) {
