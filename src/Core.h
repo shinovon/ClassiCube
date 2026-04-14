@@ -680,7 +680,10 @@ typedef cc_uint8  cc_bool;
 		#endif
 		#define CC_BUILD_NOMUSIC
 		#define CC_BUILD_NOSOUNDS
-		#undef CC_BUILD_NETWORKING
+		#if !defined EKA2
+			#undef CC_BUILD_NETWORKING
+			#define CC_BUILD_TINYMEM
+		#endif
 	#else
 		#define CC_BUILD_TOUCH
 		#define DEFAULT_GFX_BACKEND CC_GFX_BACKEND_GL1

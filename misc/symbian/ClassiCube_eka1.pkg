@@ -9,5 +9,6 @@
 (0x101FBE05), 0, 0, 0, {"Series90ProductID"} ; S90 1.1
 
 "$(EPOCROOT)epoc32\release\$(PLATFORM)\$(TARGET)\classicube.app" - "!:\system\apps\classicube\classicube.app"
+"$(EPOCROOT)epoc32\release\$(PLATFORM)\$(TARGET)\classicube.exe" - "!:\system\apps\classicube\classicube.exe"
 "$(EPOCROOT)epoc32\data\z\system\apps\classicube\classicube.rsc" - "!:\system\apps\classicube\classicube.rsc"
 "$(EPOCROOT)epoc32\winscw\c\system\data\ClassiCube\texpacks\classicube.zip" - "!:\system\data\ClassiCube\texpacks\classicube.zip"

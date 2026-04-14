@@ -28,6 +28,9 @@
 #endif
 #ifdef EKA2
 #include <eikstart.h>
+#else
+#include <estlib.h>
+#include <estw32.h>
 #endif
 #include <baclipb.h>
 #include <s32ucmp.h>
@@ -63,7 +66,7 @@ static cc_bool gameRunning = false;
 #ifdef EKA2
 const TUid KUidClassiCube = {0xE212A5C2};
 #else
-const TUid KUidClassiCube = {0x1212A5C2};
+const TUid KUidClassiCube = {0x1212A5C3};
 #endif
 
 static CCContainer* container;
@@ -171,16 +174,12 @@ static cc_bool Events_Pull(CCEvent* event) {
 	return found;
 }
 
+#if defined EKA2 || defined __WINS__
 class CCApp: public FRAMEWORK_CLASS(Application) {
 private:
 	CApaDocument* CreateDocumentL();
 	TUid AppDllUid() const;
 };
-
-#ifdef EKA2
-LOCAL_C CApaApplication* NewApplication();
-
-GLDEF_C TInt E32Main();
 #endif
 
 class CCContainer: public CCoeControl, MCoeControlObserver {
@@ -240,6 +239,7 @@ private:
 	CCContainer* iAppContainer;
 };
 
+#ifdef EKA2
 // CCApp implementation
 
 TUid CCApp::AppDllUid() const {
@@ -250,26 +250,82 @@ CApaDocument* CCApp::CreateDocumentL() {
 	return CCDocument::NewL(*this);
 }
 
-#ifndef EKA2
-EXPORT_C
-#endif
+LOCAL_C CApaApplication* NewApplication();
+
 CApaApplication* NewApplication() {
 	return new CCApp;
 }
 
-#ifdef EKA2
+GLDEF_C TInt E32Main();
+
 TInt E32Main() {
 	return EikStart::RunApplication(NewApplication);
 }
+#else
+#ifdef __WINS__
+GLDEF_C TInt E32Dll(TDllReason) {
+	return KErrNone;
+}
+
+TUid CCApp::AppDllUid() const {
+	return KUidClassiCube;
+}
+
+CApaDocument* CCApp::CreateDocumentL() {
+	return CCDocument::NewL(*this);
+}
+
+EXPORT_C CApaApplication* NewApplication();
+
+CApaApplication* NewApplication() {
+	return new CCApp;
+}
+
+#else
+TInt RunUIThread(TAny *aPtr) {
+	User::LeaveIfError(RThread().Rename(_L("ClassiCube")));
+	CEikonEnv* env = new CEikonEnv();
+//	env->DisableExitChecks(ETrue);
+	TRAPD(err, env->ConstructL());
+	User::LeaveIfError(err);
+	TRAP(err, {
+		CCAppUi* ui = new CCAppUi;
+		ui->ConstructL();
+	});
+	User::LeaveIfError(err);
+	env->ExecuteD();
+	return 0;
+}
+
+TInt E32Main() {
+	CTrapCleanup* cleanup = CTrapCleanup::New();
+	RWsSession ws;
+	TInt tries = 0;
+	for (;;) {
+		TInt err = ws.Connect();
+		if (err == KErrNone) break;
+		if (tries < 5) {
+			User::After(300000000);
+			tries++;
+			continue;
+		}
+		User::Leave(err);
+	}
+	ws.Close();
+	RunUIThread(NULL);
+//	delete cleanup;
+	return 0;
+}
+#endif
 #endif
 
 // CCAppUi implementation
 
 void CCAppUi::ConstructL() {
 #ifdef CC_BUILD_SYMBIAN_AVKON
-	BaseConstructL(CAknAppUi::EAknEnableSkin);
+	BaseConstructL(CAknAppUi::EAknEnableSkin | ENoAppResourceFile);
 #else
-	BaseConstructL();
+	BaseConstructL(ENoAppResourceFile);
 #endif
 	iAppContainer = new (ELeave) CCContainer;
 #ifdef EKA2

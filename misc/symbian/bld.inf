@@ -11,4 +11,7 @@ PRJ_MMPFILES
 //#else
 //ClassiCube_s60v2_gl.mmp
 ClassiCube_eka1.mmp
+#ifndef WINS
+ClassiCube_launcher.mmp
+#endif
 //#endif

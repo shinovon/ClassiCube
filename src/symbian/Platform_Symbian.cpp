@@ -184,8 +184,12 @@ static void ExceptionHandler(TExcType type) {
 }
 
 void CrashHandler_Install(void) {
-#if !defined _DEBUG && defined EKA2
+#if !defined _DEBUG
+#if defined EKA2
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#endif
+	RThread t;
+	t.SetExceptionHandler(ExceptionHandler, 0xffffffff);
 #endif
 }
 
@@ -848,11 +852,7 @@ static cc_result GetMachineID(cc_uint32* key) {
 	return 0;
 }
 
-#if !defined EKA2
-GLDEF_C TInt E32Dll(TDllReason) {
-	return KErrNone;
-}
-#elif !defined __ARMCC_4_0__
+#if !defined __ARMCC_4_0__ && defined EKA2
 extern "C" {
 extern int __aeabi_uidivmod(unsigned int a, unsigned int b);
 extern int __aeabi_idivmod(int a, int b);

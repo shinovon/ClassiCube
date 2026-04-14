@@ -1,0 +1,19 @@
+TARGET		  ClassiCube.app
+TARGETTYPE	  app
+TARGETPATH        \system\apps\ClassiCube
+UID			 0x100039CE 0x1212A5C2
+
+
+SYSTEMINCLUDE \Epoc32
+SYSTEMINCLUDE \Epoc32\include
+
+LIBRARY euser.lib
+LIBRARY avkon.lib
+LIBRARY eikcore.lib
+LIBRARY cone.lib
+LIBRARY apgrfx.lib
+LIBRARY apparc.lib
+
+USERINCLUDE .
+
+SOURCE launcher.cpp

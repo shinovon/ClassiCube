@@ -197,7 +197,11 @@ void* Gfx_LockVb(GfxResourceID vb, VertexFormat fmt, int count) {
 
 cc_bool UnlockVb(GfxResourceID vb) {
 	_glBufferData(GL_ARRAY_BUFFER, tmpSize, tmpData, GL_STATIC_DRAW);
+#if defined CC_BUILD_SYMBIAN
+	return _glGetError() != GL_OUT_OF_MEMORY;
+#else
 	return true;
+#endif
 }
 
 #else
