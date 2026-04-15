@@ -49,6 +49,7 @@ extern "C" {
 #include <e32debug.h>
 #endif
 #include <hal.h>
+#include <e32hal.h>
 
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
 const cc_result ReturnCode_FileNotFound     = ENOENT;
@@ -173,14 +174,20 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 cc_bool crashed = false;
 
 static void ExceptionHandler(TExcType type) {
-	cc_string msg; char msgB[64];
+	cc_string msg; char msgB[128];
+	
+	TInt id;
+	TExcInfo excInfo;
+	UserHal::ExceptionId(id);
+	UserHal::ExceptionInfo(excInfo);
 	
 	crashed = true;
 	String_InitArray(msg, msgB);
-	String_AppendConst(&msg, "Exception: ");
+	String_AppendConst(&msg, "Exception type: ");
 	String_AppendInt(&msg, (int) type);
+	String_Format4(&msg, ", id: %i, code: %x, data: %x, extra: %i", &id, &excInfo.iCodeAddress, &excInfo.iDataAddress, &excInfo.iExtraData);
 	msg.buffer[msg.length] = '\0';
-	Logger_DoAbort(0, msg.buffer, 0);
+	Logger_DoAbort(0, msg.buffer, (void*)1);
 }
 
 void CrashHandler_Install(void) {
@@ -194,7 +201,15 @@ void CrashHandler_Install(void) {
 }
 
 void Process_Abort2(cc_result result, const char* raw_msg) {
-	Logger_DoAbort(result, raw_msg, NULL);
+	Logger_DoAbort(result, raw_msg, (void*)1);
+}
+
+void Logger_Backtrace(cc_string* trace, void* ctx) {
+	RThread thread; 
+	TName name = thread.Name();
+	String_AppendConst(trace, "Thread: ");
+	String_AppendUtf16(trace, (const void*)name.Ptr(), name.Length() * 2);
+	// TODO
 }
 
 
@@ -270,7 +285,7 @@ cc_result Directory_Enum(const cc_string* dirPath, void* obj, Directory_EnumCall
 }
 
 static cc_result File_Do(cc_file* file, const char* path, int mode) {
-	*file = open(path, mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+	*file = open(path, mode | O_BINARY, 0777);
 	return *file == -1 ? errno : 0;
 }
 
@@ -356,11 +371,14 @@ void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char*
 	Thread* ptr = (Thread*)Mem_Alloc(1, sizeof(Thread), "thread");
 	*handle = ptr;
 	
-	if (stackSize >= 80 * 1024) {
-		stackSize = 80 * 1024;
+	if (stackSize >= 64 * 1024) {
+		stackSize = 64 * 1024;
 	}
 	
 	ptr->rt.Create(_L(""), ExecThread, stackSize, NULL, (TAny*)func);
+#ifndef EKA2
+	ptr->rt.SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#endif
 	ptr->rt.Resume();
 #else
 	pthread_t* ptr = (pthread_t*)Mem_Alloc(1, sizeof(pthread_t), "thread");
@@ -779,17 +797,17 @@ cc_bool DynamicLib_DescribeError(cc_string* dst) {
 *--------------------------------------------------------Platform---------------------------------------------------------*
 *#########################################################################################################################*/
 void Platform_Init(void) {
-#if !defined CC_BUILD_SYMBIAN_ESTLIB
 	cc_uintptr addr;
+#if !defined CC_BUILD_SYMBIAN_ESTLIB
 	signal(SIGCHLD, SIG_IGN);
 	/* So writing to closed socket doesn't raise SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	/* Log runtime address of a known function to ease investigating crashes */
 	/* (on platforms with ASLR, function addresses change every time when run) */
 	addr = (cc_uintptr)Process_Exit;
 	Platform_Log1("Process_Exit addr: %x", &addr);
-#endif
 	
 	Stopwatch_Init();
 }

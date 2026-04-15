@@ -491,10 +491,7 @@ void Logger_Backtrace(cc_string* trace, void* ctx) {
 	String_AppendConst(trace, _NL);
 }
 #elif defined CC_BUILD_SYMBIAN
-void Logger_Backtrace(cc_string* trace, void* ctx) {
-	String_AppendConst(trace, "-- backtrace unimplemented --");
-	/* There is no dladdr on Symbian */
-}
+/* Platform_Symbian.cpp */
 #elif defined CC_BUILD_HPUX
 /* HP-UX doesn't have unwind support */
 void Logger_Backtrace(cc_string* trace, void* ctx) {

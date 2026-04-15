@@ -106,6 +106,8 @@ static void ShowDialogL(const char* title, const char* msg) {
 	dialog->RunLD();
 #else
 	// TODO
+	Platform_LogConst(title);
+	Platform_LogConst(msg);
 #endif
 }
 

@@ -75,7 +75,7 @@ float Math_Mod1(float x) { return x - (int)x; /* fmodf(x, 1); */ }
 *-------------------------------------------------------Math intrinsics---------------------------------------------------*
 *#########################################################################################################################*/
 /* 32x/Saturn/GBA is missing these intrinsics */
-#if defined CC_BUILD_32X || defined CC_BUILD_SATURN || defined CC_BUILD_GBA || defined CC_BUILD_SYMBIAN_ESTLIB
+#if defined CC_BUILD_32X || defined CC_BUILD_SATURN || defined CC_BUILD_GBA
 #include "../third_party/fix16_sqrt.c"
 
 float sqrtf(float x) {
@@ -83,6 +83,9 @@ float sqrtf(float x) {
 	fp_x = sqrt_fix16(fp_x);
 	return (float)fp_x / (1 << 16);
 }
+#elif defined CC_BUILD_SYMBIAN_ESTLIB
+#include <math.h>
+float sqrtf(float x) { return sqrt(x); }
 #endif
 
 
