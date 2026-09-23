@@ -1,5 +1,7 @@
 #define CC_XTEA_ENCRYPTION
+#ifdef EKA2
 #define OVERRIDE_MEM_FUNCTIONS
+#endif
 
 extern "C" {
 #include "Errors.h"
@@ -22,25 +24,28 @@ extern "C" {
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#include <pthread.h>
 #include <dlfcn.h>
 
-#include <stdapis/string.h>
-#include <stdapis/arpa/inet.h>
-#include <stdapis/netinet/in.h>
-#include <stdapis/sys/socket.h>
-#include <stdapis/sys/ioctl.h>
-#include <stdapis/sys/types.h>
-#include <stdapis/sys/stat.h>
-#include <stdapis/sys/time.h>
-#include <stdapis/sys/select.h>
-#include <stdapis/netdb.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <netdb.h>
 }
 #include <e32base.h>
+#ifdef EKA2
 #include <e32debug.h>
+#endif
 #include <hal.h>
+#include <e32hal.h>
 
 const cc_result ReturnCode_FileShareViolation = 1000000000; /* TODO: not used apparently */
 const cc_result ReturnCode_FileNotFound     = ENOENT;
@@ -54,12 +59,16 @@ const cc_result ReturnCode_SocketDropped    = EPIPE;
 const char* Platform_AppNameSuffix = " Symbian";
 cc_uint8 Platform_Flags = PLAT_FLAG_SINGLE_PROCESS | PLAT_FLAG_APP_EXIT;
 cc_bool  Platform_ReadonlyFilesystem;
+#ifndef CC_BUILD_NETWORKING
+#define CC_NO_SOCKETS
+#endif
 #include "_PlatformBase.h"
 
 
 /*########################################################################################################################*
 *---------------------------------------------------------Memory----------------------------------------------------------*
 *#########################################################################################################################*/
+#ifdef EKA2
 void* Mem_TryAlloc(cc_uint32 numElems, cc_uint32 elemsSize) {
 	cc_uint32 size = CalcMemSize(numElems, elemsSize);
 	return size ? User::Alloc(size) : NULL;
@@ -78,6 +87,7 @@ void* Mem_TryRealloc(void* mem, cc_uint32 numElems, cc_uint32 elemsSize) {
 void Mem_Free(void* mem) {
 	if (mem) User::Free(mem);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -92,7 +102,9 @@ void Platform_Log(const char* msg, int len) {
 	str = String_FromReadonly("\r\n");
 	Logger_Log(&str);
 	
+#ifdef EKA2
 	RDebug::RawPrint(ptr);
+#endif
 }
 
 TimeMS DateTime_CurrentUTC(void) {
@@ -123,13 +135,21 @@ void DateTime_CurrentLocal(struct cc_datetime* t) {
 static TInt tickPeriod;
 
 static void Stopwatch_Init(void) {
+#ifdef EKA2
 	if (HAL::Get(HAL::ENanoTickPeriod, tickPeriod) != KErrNone) {
+#else
+	if (HAL::Get(HAL::ESystemTickPeriod, tickPeriod) != KErrNone) {
+#endif
 		User::Panic(_L("Could not init timer"), 0);
 	}
 }
 
 cc_uint64 Stopwatch_Measure(void) {
+#ifdef EKA2
 	return (cc_uint64)User::NTickCount();
+#else
+	return (cc_uint64)User::TickCount();
+#endif
 }
 
 cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
@@ -141,22 +161,33 @@ cc_uint64 Stopwatch_ElapsedMicroseconds(cc_uint64 beg, cc_uint64 end) {
 /*########################################################################################################################*
 *-------------------------------------------------------Crash handling----------------------------------------------------*
 *#########################################################################################################################*/
-cc_bool crashed = false;
+bool crashed = false;
 
 static void ExceptionHandler(TExcType type) {
-	cc_string msg; char msgB[64];
+	cc_string msg; char msgB[128];
+	
+	TInt id;
+	TExcInfo excInfo;
+	UserHal::ExceptionId(id);
+	UserHal::ExceptionInfo(excInfo);
 	
 	crashed = true;
 	String_InitArray(msg, msgB);
-	String_AppendConst(&msg, "Exception: ");
+	String_AppendConst(&msg, "Exception type: ");
 	String_AppendInt(&msg, (int) type);
+	String_Format4(&msg, ", id: %i, code: %x, data: %x, extra: %i", &id, &excInfo.iCodeAddress, &excInfo.iDataAddress, &excInfo.iExtraData);
 	msg.buffer[msg.length] = '\0';
 	Logger_DoAbort(0, msg.buffer, 0);
 }
 
 void CrashHandler_Install(void) {
 #if !defined _DEBUG
+#if defined EKA2
 	User::SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#else
+	RThread t;
+	t.SetExceptionHandler(ExceptionHandler, 0xffffffff);
+#endif
 #endif
 }
 
@@ -402,10 +433,12 @@ void Waitable_Wait(void* handle) {
 	sem->Wait();
 }
 
+#ifdef EKA2
 void Waitable_WaitFor(void* handle, cc_uint32 milliseconds) {
 	RSemaphore* sem = (RSemaphore*)handle;
 	sem->Wait(milliseconds * 1000);
 }
+#endif
 
 
 /*########################################################################################################################*
@@ -420,6 +453,7 @@ static void FontDirCallback(const cc_string* path, void* obj, int isDirectory) {
 }
 
 void Platform_LoadSysFonts(void) {
+#ifdef EKA2
 	int i;
 	static const cc_string dirs[] = {
 		String_FromConst("Z:\\resource\\fonts"),
@@ -432,6 +466,7 @@ void Platform_LoadSysFonts(void) {
 		Directory_Enum(&dirs[i], NULL, FontDirCallback);
 	}
 	Platform_LogConst("Finished searching for fonts");
+#endif
 }
 
 
@@ -507,6 +542,7 @@ static cc_result ParseHost(const char* host, int port, cc_sockaddr* addrs, int* 
 	int i;
 	
 	// Must have at least one IPv4 address
+	if (!res)                       return ERR_INVALID_ARGUMENT;
 	if (res->h_addrtype != AF_INET) return ERR_INVALID_ARGUMENT;
 	if (!res->h_addr_list)          return ERR_INVALID_ARGUMENT;
 
@@ -719,17 +755,15 @@ static cc_result GetMachineID(cc_uint32* key) {
 	return 0;
 }
 
-#ifndef __ARMCC_4_0__
+#if !defined __ARMCC_4_0__ && defined EKA2
 extern "C" {
 extern int __aeabi_uidivmod(unsigned int a, unsigned int b);
 extern int __aeabi_idivmod(int a, int b);
-int __aeabi_idiv(int a, int b)
-{
+int __aeabi_idiv(int a, int b) {
 	return __aeabi_idivmod(a, b);
 }
 
-int __aeabi_uidiv(unsigned int a, unsigned int b)
-{
+int __aeabi_uidiv(unsigned int a, unsigned int b) {
 	return __aeabi_uidivmod(a, b);
 }
 }
